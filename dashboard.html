@@ -453,6 +453,24 @@
                 <button class="refresh-btn" onclick="loadData()">🔄 REFRESH DATA</button>
             </center>
         </div>
+
+        <!-- ANNOUNCEMENT POSTING -->
+        <div class="section">
+            <div class="section-title">📢 POST ANNOUNCEMENT</div>
+            <div style="margin-bottom: 15px;">
+                <label
+                    style="display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 5px; letter-spacing: 0.1em;">ANNOUNCEMENT
+                    CONTENT</label>
+                <textarea id="announcementContent" rows="4"
+                    style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; resize: vertical;"
+                    placeholder="アナウンスメントの内容を入力..."></textarea>
+            </div>
+            <button onclick="postAnnouncement()"
+                style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">📢
+                POST ANNOUNCEMENT</button>
+            <p style="margin-top: 10px; font-size: 11px; color: var(--text-gray);">※ 投稿されたアナウンスメントはメインアプリのHOME画面に表示されます
+            </p>
+        </div>
     </main>
 
     <script>
@@ -528,7 +546,8 @@
                 post: '📝',
                 task: '✅',
                 join: '👋',
-                token: '💎'
+                token: '💎',
+                announcement: '📢'
             };
 
             list.innerHTML = activities.map(activity => `
@@ -540,6 +559,38 @@
                     </div>
                 </li>
             `).join('');
+        }
+
+        // ============ ANNOUNCEMENT POSTING ============
+        function postAnnouncement() {
+            const content = document.getElementById('announcementContent').value.trim();
+            if (!content) {
+                alert('アナウンスメントの内容を入力してください');
+                return;
+            }
+
+            // Store announcement in localStorage (to be shared with main app)
+            const announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
+
+            const newAnnouncement = {
+                id: Date.now(),
+                author: 'TSS運営',
+                content: content,
+                date: new Date().toISOString(),
+                likes: 0
+            };
+
+            announcements.unshift(newAnnouncement);
+            localStorage.setItem('tss_announcements', JSON.stringify(announcements));
+
+            document.getElementById('announcementContent').value = '';
+            alert('✅ アナウンスメントを投稿しました！\nメインアプリのHOME画面に表示されます。');
+
+            // Add to activity feed
+            renderActivity([
+                { type: 'announcement', user: 'TSS運営', action: 'が新しいアナウンスメントを投稿しました', time: 'たった今' },
+                ...JSON.parse(localStorage.getItem('tss_activity') || '[]')
+            ]);
         }
 
         // ============ INIT ============

@@ -1028,18 +1028,34 @@
 
             <div class="section-title">📢 ANNOUNCEMENTS</div>
             <div id="announcementsList">
-                <div class="post-card">
+                <!-- Announcements will be loaded dynamically -->
+                <div class="post-card" data-announcement-id="1">
                     <div class="post-header">
                         <div class="post-avatar">T</div>
                         <div class="post-meta">
                             <div class="post-author">TSS運営</div>
-                            <div class="post-time">2026.01.16</div>
+                            <div class="post-time">2026.01.19</div>
                         </div>
                     </div>
                     <div class="post-content">
-                        コミュニティアプリへようこそ！🎉<br>
-                        ここでは、メンバー同士の交流や情報共有ができます。<br>
-                        積極的に活動してトークンを貯めましょう！
+                        🎉 TSS v2.0がリリースされました！<br>
+                        新機能：JINSEI AI、プロフィール写真アップロード、いいね・コメント機能<br>
+                        積極的に活動してTSSTを貯めましょう！
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action" onclick="likeAnnouncement(1)">
+                            ❤️ <span id="announcement-likes-1">0</span>
+                        </div>
+                        <div class="post-action" onclick="toggleComments(1)">
+                            💬 コメント
+                        </div>
+                    </div>
+                    <div class="comments-section" id="comments-section-1" style="display: none;">
+                        <div id="comments-list-1"></div>
+                        <div class="comment-input-row">
+                            <input type="text" class="text-input" id="comment-input-1" placeholder="コメントを入力...">
+                            <button class="comment-submit-btn" onclick="submitComment(1)">送信</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1601,6 +1617,216 @@
         document.getElementById('chatInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') sendChat();
         });
+
+        // ============ ANNOUNCEMENT INTERACTIONS ============
+        let announcementLikes = JSON.parse(localStorage.getItem('tss_announcement_likes') || '{}');
+        let announcementComments = JSON.parse(localStorage.getItem('tss_announcement_comments') || '{}');
+        let likedAnnouncements = JSON.parse(localStorage.getItem('tss_liked_announcements') || '[]');
+
+        function likeAnnouncement(id) {
+            const profile = getProfile();
+            if (!profile) return;
+
+            // Check if already liked
+            if (likedAnnouncements.includes(id)) {
+                alert('すでにいいねしています！');
+                return;
+            }
+
+            // Add like
+            announcementLikes[id] = (announcementLikes[id] || 0) + 1;
+            likedAnnouncements.push(id);
+
+            localStorage.setItem('tss_announcement_likes', JSON.stringify(announcementLikes));
+            localStorage.setItem('tss_liked_announcements', JSON.stringify(likedAnnouncements));
+
+            // Update display
+            document.getElementById(`announcement-likes-${id}`).textContent = announcementLikes[id];
+
+            // Award 1 TSST for liking
+            addTokens(1);
+            showTokenEarned(1, 'Like Bonus! ❤️');
+        }
+
+        function toggleComments(id) {
+            const section = document.getElementById(`comments-section-${id}`);
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+            renderComments(id);
+        }
+
+        function submitComment(id) {
+            const input = document.getElementById(`comment-input-${id}`);
+            const content = input.value.trim();
+            if (!content) return;
+
+            const profile = getProfile();
+            if (!profile) return;
+
+            if (!announcementComments[id]) {
+                announcementComments[id] = [];
+            }
+
+            announcementComments[id].push({
+                author: profile.name,
+                content: content,
+                time: new Date().toISOString()
+            });
+
+            localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+            input.value = '';
+
+            renderComments(id);
+
+            // Award 1 TSST for commenting
+            addTokens(1);
+            showTokenEarned(1, 'Comment Bonus! 💬');
+        }
+
+        function renderComments(id) {
+            const list = document.getElementById(`comments-list-${id}`);
+            const comments = announcementComments[id] || [];
+
+            if (comments.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: var(--text-gray); padding: 10px; font-size: 12px;">コメントはまだありません</div>';
+                return;
+            }
+
+            list.innerHTML = comments.map(comment => `
+                <div class="comment-item">
+                    <div class="comment-avatar">${comment.author.charAt(0).toUpperCase()}</div>
+                    <div class="comment-content">
+                        <div class="comment-author">${escapeHtml(comment.author)}</div>
+                        <div class="comment-text">${escapeHtml(comment.content)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize announcement likes display
+        function initAnnouncementInteractions() {
+            Object.keys(announcementLikes).forEach(id => {
+                const el = document.getElementById(`announcement-likes-${id}`);
+                if (el) el.textContent = announcementLikes[id];
+            });
+        }
+
+        // ============ PIN AUTHENTICATION ============
+        function checkPinAuth() {
+            const storedPin = localStorage.getItem('tss_pin');
+            const isAuthenticated = sessionStorage.getItem('tss_authenticated');
+
+            if (storedPin && !isAuthenticated) {
+                showPinModal('login');
+                return false;
+            }
+            return true;
+        }
+
+        function showPinModal(mode) {
+            const modal = document.createElement('div');
+            modal.id = 'pinModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8); display: flex; align-items: center;
+                justify-content: center; z-index: 99999;
+            `;
+
+            const title = mode === 'login' ? 'PINを入力' : 'PINを設定';
+            const btnText = mode === 'login' ? 'ログイン' : '設定';
+
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 16px; text-align: center; width: 280px;">
+                    <h3 style="font-family: 'Montserrat', sans-serif; color: var(--primary); margin-bottom: 20px;">${title}</h3>
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                        <input type="password" maxlength="1" class="pin-input" style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input" style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input" style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input" style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                    </div>
+                    <button onclick="handlePin('${mode}')" style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">${btnText}</button>
+                    ${mode === 'setup' ? '<p style="margin-top: 15px; font-size: 12px; color: var(--text-gray);">セキュリティのため4桁のPINを設定してください</p>' : ''}
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Auto-focus and auto-advance
+            const inputs = modal.querySelectorAll('.pin-input');
+            inputs[0].focus();
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    if (e.target.value && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+        }
+
+        function handlePin(mode) {
+            const inputs = document.querySelectorAll('.pin-input');
+            const pin = Array.from(inputs).map(i => i.value).join('');
+
+            if (pin.length !== 4) {
+                alert('4桁のPINを入力してください');
+                return;
+            }
+
+            if (mode === 'setup') {
+                localStorage.setItem('tss_pin', pin);
+                sessionStorage.setItem('tss_authenticated', 'true');
+                document.getElementById('pinModal').remove();
+                showTokenEarned(5, 'PIN設定完了! 🔐');
+                addTokens(5);
+            } else {
+                const storedPin = localStorage.getItem('tss_pin');
+                if (pin === storedPin) {
+                    sessionStorage.setItem('tss_authenticated', 'true');
+                    document.getElementById('pinModal').remove();
+                } else {
+                    alert('PINが正しくありません');
+                    inputs.forEach(i => i.value = '');
+                    inputs[0].focus();
+                }
+            }
+        }
+
+        // Modified init to include PIN check
+        const originalInit = init;
+        init = function () {
+            const profile = getProfile();
+            const storedPin = localStorage.getItem('tss_pin');
+
+            if (profile && storedPin) {
+                if (!checkPinAuth()) {
+                    // Wait for PIN authentication
+                    const checkAuth = setInterval(() => {
+                        if (sessionStorage.getItem('tss_authenticated')) {
+                            clearInterval(checkAuth);
+                            originalInit();
+                            initAnnouncementInteractions();
+                        }
+                    }, 100);
+                    return;
+                }
+            }
+
+            originalInit();
+            initAnnouncementInteractions();
+
+            // Offer PIN setup after registration if not set
+            if (profile && !storedPin) {
+                setTimeout(() => {
+                    if (confirm('セキュリティ強化のためPINを設定しますか？（後で設定も可能）')) {
+                        showPinModal('setup');
+                    }
+                }, 2000);
+            }
+        };
 
         // ============ START ============
         document.addEventListener('DOMContentLoaded', init);
