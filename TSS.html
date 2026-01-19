@@ -26,8 +26,8 @@
             --primary-dark: #B8960C;
             --primary-light: rgba(212, 175, 55, 0.15);
             --primary-glow: rgba(212, 175, 55, 0.35);
-            --accent: #FFD700;
-            --accent-light: rgba(255, 215, 0, 0.15);
+            --accent: #B8960C;
+            --accent-light: rgba(184, 150, 12, 0.18);
             --text-dark: #1a1a1a;
             --text-gray: #5a5a5a;
             --border: rgba(26, 26, 26, 0.1);
@@ -692,6 +692,196 @@
             letter-spacing: 0.3em;
             color: var(--text-gray);
         }
+
+        /* Profile Photo Upload */
+        .profile-photo-upload {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-photo-upload input[type="file"] {
+            display: none;
+        }
+
+        .profile-photo-upload .upload-hint {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: var(--primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 2px solid white;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        /* Bio Section */
+        .bio-section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .bio-textarea {
+            width: 100%;
+            min-height: 80px;
+            background: var(--light-gray);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 14px;
+            color: var(--text-dark);
+            resize: none;
+        }
+
+        .bio-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* YouTube URL Settings */
+        .youtube-url-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--light-gray);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--text-dark);
+        }
+
+        .youtube-url-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* AI Chat */
+        .ai-chat-section {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .ai-chat-section .section-title {
+            color: white;
+        }
+
+        .ai-chat-section .section-title::before,
+        .ai-chat-section .section-title::after {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        }
+
+        .ai-messages {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+
+        .ai-message {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .ai-message.user {
+            background: rgba(255, 255, 255, 0.25);
+            text-align: right;
+        }
+
+        .ai-input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ai-input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 14px;
+        }
+
+        .ai-send-btn {
+            width: 44px;
+            height: 44px;
+            background: white;
+            color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ai-send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Settings Card */
+        .settings-section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .settings-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            font-size: 11px;
+            color: var(--primary);
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .save-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
     </style>
 </head>
 
@@ -705,9 +895,9 @@
         <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 5px;">
             <div class="user-badge" id="userBadge" style="display: none;"></div>
             <div class="token-display" id="tokenDisplay" style="display: none;">
-                <span class="token-icon">⭐</span>
+                <span class="token-icon">🪙</span>
                 <span class="token-balance" id="tokenBalance">0</span>
-                <span class="token-label">POINT</span>
+                <span class="token-label">TSST</span>
             </div>
         </div>
     </header>
@@ -745,6 +935,21 @@
                         style="display: flex; align-items: center; justify-content: center; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3);">
                         <span style="font-size: 48px;">🎬</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- AI Chat Section -->
+            <div class="ai-chat-section">
+                <div class="section-title">🤖 TSS AI アシスタント</div>
+                <div class="ai-messages" id="aiMessages">
+                    <div class="ai-message">
+                        こんにちは！TSSアシスタントです。何でも相談してくださいね 😊
+                    </div>
+                </div>
+                <div class="ai-input-area">
+                    <input type="text" class="ai-input" id="aiInput" placeholder="質問を入力..."
+                        onkeypress="if(event.key==='Enter')askAI()">
+                    <button class="ai-send-btn" onclick="askAI()">➤</button>
                 </div>
             </div>
 
@@ -824,7 +1029,11 @@
         <!-- SCREEN 4: PROFILE -->
         <div class="screen" id="screen-profile">
             <div class="profile-card">
-                <div class="profile-avatar">👤</div>
+                <div class="profile-photo-upload" onclick="document.getElementById('photoInput').click()">
+                    <div class="profile-avatar" id="profileAvatar">👤</div>
+                    <div class="upload-hint">📷</div>
+                    <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoUpload(event)">
+                </div>
                 <div class="profile-name" id="profileName">-</div>
                 <div class="profile-role">TSSメンバー</div>
                 <div class="profile-stats">
@@ -834,7 +1043,7 @@
                     </div>
                     <div class="profile-stat">
                         <div class="profile-stat-value" id="profilePoints">0</div>
-                        <div class="profile-stat-label">ポイント</div>
+                        <div class="profile-stat-label">TSST</div>
                     </div>
                     <div class="profile-stat">
                         <div class="profile-stat-value" id="profileDays">0</div>
@@ -843,6 +1052,24 @@
                 </div>
             </div>
 
+            <!-- 自己紹介 -->
+            <div class="bio-section">
+                <div class="card-title">📝 自己紹介</div>
+                <textarea class="bio-textarea" id="bioInput" placeholder="自己紹介を入力してください..."></textarea>
+            </div>
+
+            <!-- YouTube テーマソング設定 -->
+            <div class="settings-section">
+                <div class="card-title">🎵 マイテーマソング</div>
+                <div class="settings-item">
+                    <div class="settings-label">YOUTUBE URL</div>
+                    <input type="text" class="youtube-url-input" id="youtubeUrlInput"
+                        placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+                <button class="save-btn" onclick="saveProfile()">保存する</button>
+            </div>
+
+            <!-- 設定 -->
             <div class="card">
                 <div class="card-title">⚙️ 設定</div>
                 <button class="btn-secondary" onclick="logout()"
@@ -1152,9 +1379,161 @@
             return date.toLocaleDateString('ja-JP');
         }
 
+        // ========== Profile Functions ==========
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 画像サイズチェック（1MB以下）
+            if (file.size > 1024 * 1024) {
+                alert('画像サイズは1MB以下にしてください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64 = e.target.result;
+                // プロフィールアバターを更新
+                const avatar = document.getElementById('profileAvatar');
+                avatar.innerHTML = `<img src="${base64}" alt="プロフィール写真">`;
+                // ローカルに保存
+                saveToStorage('profilePhoto', base64);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function loadProfilePhoto() {
+            const photo = loadFromStorage('profilePhoto');
+            if (photo) {
+                const avatar = document.getElementById('profileAvatar');
+                if (avatar) {
+                    avatar.innerHTML = `<img src="${photo}" alt="プロフィール写真">`;
+                }
+            }
+        }
+
+        function saveProfile() {
+            const bio = document.getElementById('bioInput').value;
+            const youtubeUrl = document.getElementById('youtubeUrlInput').value;
+
+            saveToStorage('bio', bio);
+            saveToStorage('youtubeUrl', youtubeUrl);
+
+            // YouTube動画を更新
+            updateYoutubeEmbed(youtubeUrl);
+
+            alert('プロフィールを保存しました！');
+        }
+
+        function loadProfile() {
+            const bio = loadFromStorage('bio');
+            const youtubeUrl = loadFromStorage('youtubeUrl');
+
+            if (bio) {
+                document.getElementById('bioInput').value = bio;
+            }
+            if (youtubeUrl) {
+                document.getElementById('youtubeUrlInput').value = youtubeUrl;
+                updateYoutubeEmbed(youtubeUrl);
+            }
+        }
+
+        function updateYoutubeEmbed(url) {
+            if (!url) return;
+
+            // YouTube URLからビデオIDを抽出
+            let videoId = null;
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=)([^&]+)/,
+                /(?:youtu\.be\/)([^?]+)/,
+                /(?:youtube\.com\/embed\/)([^?]+)/
+            ];
+
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) {
+                    videoId = match[1];
+                    break;
+                }
+            }
+
+            if (videoId) {
+                const embed = document.getElementById('youtubeEmbed');
+                embed.innerHTML = `
+                    <iframe 
+                        src="https://www.youtube.com/embed/${videoId}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                `;
+            }
+        }
+
+        // ========== AI Chat Functions ==========
+        async function askAI() {
+            const input = document.getElementById('aiInput');
+            const question = input.value.trim();
+            if (!question) return;
+
+            const messagesContainer = document.getElementById('aiMessages');
+
+            // ユーザーメッセージを追加
+            messagesContainer.innerHTML += `
+                <div class="ai-message user">${escapeHtml(question)}</div>
+            `;
+
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // ローディング表示
+            const loadingId = Date.now();
+            messagesContainer.innerHTML += `
+                <div class="ai-message" id="loading-${loadingId}">考え中...</div>
+            `;
+
+            try {
+                if (SCRIPT_URL) {
+                    const response = await fetch(
+                        SCRIPT_URL + '?action=chat&q=' + encodeURIComponent(question) + '&name=' + encodeURIComponent(currentUser?.name || 'ユーザー')
+                    );
+                    const data = await response.json();
+
+                    document.getElementById(`loading-${loadingId}`).remove();
+                    messagesContainer.innerHTML += `
+                        <div class="ai-message">${escapeHtml(data.response || 'すみません、うまく返答できませんでした。')}</div>
+                    `;
+                } else {
+                    // バックエンド未設定時のローカル応答
+                    document.getElementById(`loading-${loadingId}`).remove();
+                    const localResponses = [
+                        '素晴らしい質問ですね！もう少し詳しく教えてください 😊',
+                        'その点について一緒に考えましょう！',
+                        'TSSコミュニティの仲間にも相談してみるといいかもしれませんね 🤝',
+                        '一歩一歩前進していきましょう！💪'
+                    ];
+                    const randomResponse = localResponses[Math.floor(Math.random() * localResponses.length)];
+                    messagesContainer.innerHTML += `
+                        <div class="ai-message">${randomResponse}</div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById(`loading-${loadingId}`)?.remove();
+                messagesContainer.innerHTML += `
+                    <div class="ai-message">申し訳ありません、エラーが発生しました。</div>
+                `;
+            }
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
         // ========== Enter key handlers ==========
         document.addEventListener('DOMContentLoaded', () => {
             init();
+
+            // プロフィール情報を読み込み
+            loadProfilePhoto();
+            loadProfile();
 
             document.getElementById('todoInput')?.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') addTodo();
