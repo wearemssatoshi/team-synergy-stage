@@ -5,14 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TEAM SYNERGY STAGE</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TSS">
-    <link rel="apple-touch-icon" sizes="180x180" href="logo/TSS_icon.png">
-    <link rel="icon" type="image/png" href="logo/TSS_icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="logo/tss_icon.png">
+    <link rel="icon" type="image/png" href="logo/tss_icon.png">
     <link rel="manifest" href="manifest.json">
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
@@ -26,14 +23,16 @@
             --primary-dark: #B8960C;
             --primary-light: rgba(212, 175, 55, 0.15);
             --primary-glow: rgba(212, 175, 55, 0.35);
-            --accent: #B8960C;
-            --accent-light: rgba(184, 150, 12, 0.18);
+            --accent: #FFD700;
+            --accent-light: rgba(255, 215, 0, 0.15);
             --text-dark: #1a1a1a;
             --text-gray: #5a5a5a;
             --border: rgba(26, 26, 26, 0.1);
             --success: #22C55E;
             --warning: #F59E0B;
             --danger: #EF4444;
+            --gradient-primary: linear-gradient(135deg, #D4AF37, #FFD700);
+            --gradient-dark: linear-gradient(135deg, #2D2308, #4A3D14);
         }
 
         * {
@@ -41,10 +40,6 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        body.modal-open {
-            overflow: hidden;
         }
 
         body {
@@ -74,22 +69,25 @@
         }
 
         .logo-container img {
-            height: 50px;
+            height: 45px;
         }
 
         h1 {
             font-family: 'Montserrat', sans-serif;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
             letter-spacing: 0.05em;
-            color: var(--primary);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .header-sub {
             font-family: 'Montserrat', sans-serif;
             font-size: 10px;
-            color: var(--accent);
-            letter-spacing: 0.2em;
+            color: var(--primary);
+            letter-spacing: 0.25em;
             margin-top: 4px;
             font-weight: 500;
         }
@@ -110,8 +108,8 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: linear-gradient(135deg, var(--accent-light), rgba(245, 158, 11, 0.05));
-            border: 1px solid var(--accent);
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
             padding: 6px 14px;
             border-radius: 25px;
             margin-top: 10px;
@@ -139,7 +137,7 @@
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
             font-size: 13px;
-            color: var(--accent);
+            color: var(--primary);
         }
 
         .token-label {
@@ -147,6 +145,72 @@
             font-size: 9px;
             letter-spacing: 0.1em;
             color: var(--text-gray);
+        }
+
+        /* TOKEN EARNED ANIMATION */
+        .token-earned-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .token-earned-badge {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 30px;
+            background: var(--gradient-dark);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            box-shadow: 0 0 30px var(--primary-glow);
+            animation: tokenPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes tokenPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px var(--primary-glow);
+            }
+
+            50% {
+                box-shadow: 0 0 40px var(--primary), 0 0 60px var(--primary-glow);
+            }
+        }
+
+        .token-earned-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            animation: tokenBounce 0.6s ease-out;
+        }
+
+        @keyframes tokenBounce {
+            0% {
+                transform: scale(0) rotate(-45deg);
+            }
+
+            50% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+            }
+        }
+
+        .token-earned-amount {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .token-earned-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 4px;
         }
 
         main {
@@ -205,7 +269,7 @@
             background: var(--white);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 20px;
+            padding: 25px;
             margin-bottom: 16px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
         }
@@ -214,8 +278,15 @@
             font-family: 'Montserrat', sans-serif;
             font-size: 14px;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             color: var(--text-dark);
+        }
+
+        .card-title .icon {
+            font-size: 18px;
         }
 
         /* REGISTRATION */
@@ -231,10 +302,12 @@
         .register-title {
             font-family: 'Montserrat', sans-serif;
             font-size: 22px;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 8px;
-            letter-spacing: 0.05em;
-            color: var(--primary);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .register-sub {
@@ -278,9 +351,14 @@
             border-color: var(--primary);
         }
 
+        textarea.text-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+
         /* BUTTONS */
         .btn-main {
-            background: var(--primary);
+            background: var(--gradient-primary);
             color: white;
             border: none;
             padding: 15px;
@@ -297,12 +375,12 @@
         }
 
         .btn-main:disabled {
-            opacity: 0.25;
+            opacity: 0.5;
             cursor: not-allowed;
         }
 
         .btn-main:hover:not(:disabled) {
-            box-shadow: 0 6px 20px var(--primary-glow);
+            box-shadow: 0 6px 25px var(--primary-glow);
             transform: translateY(-2px);
         }
 
@@ -328,173 +406,220 @@
             color: var(--primary);
         }
 
-        /* YouTube Section */
-        .youtube-section {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            color: white;
+        /* NAVIGATION */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 10px 0;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            z-index: 10000;
         }
 
-        .youtube-section .section-title {
-            color: white;
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
-        .youtube-section .section-title::before,
-        .youtube-section .section-title::after {
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            color: var(--text-gray);
         }
 
-        .youtube-embed {
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: 3px;
+        }
+
+        .nav-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            letter-spacing: 0.08em;
+            font-weight: 500;
+        }
+
+        /* YOUTUBE SECTION */
+        .youtube-container {
             position: relative;
             width: 100%;
             padding-bottom: 56.25%;
-            border-radius: 12px;
+            height: 0;
             overflow: hidden;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-bottom: 16px;
         }
 
-        .youtube-embed iframe {
+        .youtube-container iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             border: none;
+            border-radius: 12px;
         }
 
-        /* Board Section */
-        .board-post {
+        /* BOARD / POSTS */
+        .post-card {
             background: var(--white);
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
         }
 
-        .board-post-header {
+        .post-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        .board-avatar {
+        .post-avatar {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: var(--primary-light);
+            background: var(--gradient-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
         }
 
-        .board-author {
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
+        .post-meta {
+            flex: 1;
+        }
+
+        .post-author {
             font-weight: 600;
+            font-size: 13px;
             color: var(--text-dark);
         }
 
-        .board-time {
-            font-family: 'Inter', sans-serif;
-            font-size: 10px;
+        .post-time {
+            font-size: 11px;
             color: var(--text-gray);
         }
 
-        .board-content {
+        .post-content {
             font-size: 14px;
-            line-height: 1.7;
+            line-height: 1.6;
             color: var(--text-dark);
         }
 
-        .board-actions {
+        .post-actions {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             margin-top: 12px;
             padding-top: 12px;
             border-top: 1px solid var(--border);
         }
 
-        .board-action {
+        .post-action {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             font-size: 12px;
             color: var(--text-gray);
             cursor: pointer;
             transition: color 0.2s;
         }
 
-        .board-action:hover {
+        .post-action:hover {
             color: var(--primary);
         }
 
-        .board-action.liked {
-            color: var(--danger);
-        }
-
-        /* To-do List */
-        .todo-container {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        .todo-input-area {
+        /* TO-DO LIST */
+        .todo-tabs {
             display: flex;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
-        .todo-input-area input {
+        .todo-tab {
             flex: 1;
-            padding: 12px 14px;
+            padding: 10px;
             background: var(--light-gray);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-
-        .todo-input-area input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .todo-input-area button {
-            width: 44px;
-            height: 44px;
-            background: var(--primary);
-            border: none;
-            border-radius: 10px;
-            font-size: 20px;
-            color: white;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
             cursor: pointer;
+            text-align: center;
             transition: all 0.2s;
         }
 
-        .todo-input-area button:hover {
-            transform: scale(1.05);
+        .todo-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+        }
+
+        .todo-content {
+            display: none;
+        }
+
+        .todo-content.active {
+            display: block;
+        }
+
+        .todo-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .todo-input-row input {
+            flex: 1;
+        }
+
+        .todo-add-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
         }
 
         .todo-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 14px;
+            padding: 12px;
             background: var(--light-gray);
             border-radius: 10px;
             margin-bottom: 8px;
         }
 
         .todo-item.completed {
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .todo-item.completed .todo-text {
@@ -513,155 +638,217 @@
             transition: all 0.2s;
         }
 
-        .todo-checkbox:hover {
-            border-color: var(--primary);
-        }
-
         .todo-checkbox.checked {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: var(--success);
+            border-color: var(--success);
         }
 
         .todo-checkbox.checked::after {
             content: '✓';
             color: white;
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 12px;
         }
 
         .todo-text {
             flex: 1;
             font-size: 14px;
-            color: var(--text-dark);
         }
 
         .todo-delete {
-            opacity: 0.5;
+            background: none;
+            border: none;
+            color: var(--text-gray);
             cursor: pointer;
-            transition: opacity 0.2s;
+            font-size: 16px;
         }
 
         .todo-delete:hover {
-            opacity: 1;
             color: var(--danger);
         }
 
-        /* NAV */
-        nav {
-            display: flex;
-            border-top: 1px solid var(--border);
-            background: var(--white);
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
-        }
-
-        .nav-item {
-            flex: 1;
-            padding: 11px 0;
+        .todo-empty {
             text-align: center;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 8px;
-            letter-spacing: 0.05em;
+            padding: 30px;
             color: var(--text-gray);
-            cursor: pointer;
-            transition: all 0.2s;
+            font-size: 13px;
         }
 
-        .nav-item.active {
-            color: var(--primary);
+        /* AI CHAT */
+        .chat-container {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 16px;
         }
 
-        .nav-icon {
-            font-size: 18px;
-            margin-bottom: 2px;
+        .chat-message {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 10px;
         }
 
-        /* Profile Section */
-        .profile-card {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 16px;
-            padding: 24px;
-            color: white;
-            text-align: center;
-            margin-bottom: 20px;
+        .chat-message.ai {
+            flex-direction: row;
         }
 
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .chat-avatar {
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .chat-message.ai .chat-avatar {
+            background: var(--gradient-primary);
+        }
+
+        .chat-message.user .chat-avatar {
+            background: var(--text-dark);
+        }
+
+        .chat-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .chat-message.ai .chat-bubble {
+            background: white;
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.user .chat-bubble {
+            background: var(--gradient-primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+        }
+
+        .chat-send-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            width: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* PROFILE */
+        .profile-header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
             margin: 0 auto 16px;
-            border: 3px solid rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 4px 20px var(--primary-glow);
         }
 
         .profile-name {
             font-family: 'Montserrat', sans-serif;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
-            margin-bottom: 4px;
+            color: var(--text-dark);
         }
 
         .profile-role {
-            font-size: 12px;
-            opacity: 0.8;
+            font-size: 13px;
+            color: var(--primary);
+            margin-top: 4px;
         }
 
         .profile-stats {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
             margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .profile-stat {
             text-align: center;
+            padding: 16px;
+            background: var(--light-gray);
+            border-radius: 12px;
         }
 
         .profile-stat-value {
             font-family: 'Montserrat', sans-serif;
             font-size: 24px;
             font-weight: 700;
+            color: var(--primary);
         }
 
         .profile-stat-label {
             font-size: 10px;
-            opacity: 0.7;
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+
+        .profile-section {
+            margin-top: 20px;
+        }
+
+        .profile-section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            color: var(--primary);
             letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
-        /* Sending Overlay */
-        .sending-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
+        .profile-bio {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--light-gray);
+            padding: 16px;
+            border-radius: 12px;
         }
 
-        .sending-overlay.active {
+        /* LOADING */
+        .loading {
             display: flex;
+            justify-content: center;
+            padding: 30px;
         }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--light-gray);
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border);
             border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -672,873 +859,587 @@
                 transform: rotate(360deg);
             }
         }
-
-        .sending-text {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 12px;
-            color: var(--text-gray);
-            margin-top: 15px;
-            letter-spacing: 0.1em;
-        }
-
-        /* FOOTER */
-        footer {
-            padding: 12px;
-            text-align: center;
-            border-top: 1px solid var(--border);
-            background: var(--white);
-            font-family: 'Montserrat', sans-serif;
-            font-size: 9px;
-            letter-spacing: 0.3em;
-            color: var(--text-gray);
-        }
-
-        /* Profile Photo Upload */
-        .profile-photo-upload {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .profile-photo-upload input[type="file"] {
-            display: none;
-        }
-
-        .profile-photo-upload .upload-hint {
-            position: absolute;
-            bottom: -5px;
-            right: -5px;
-            background: var(--primary);
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            border: 2px solid white;
-        }
-
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        /* Bio Section */
-        .bio-section {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .bio-textarea {
-            width: 100%;
-            min-height: 80px;
-            background: var(--light-gray);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            font-family: 'Noto Sans JP', sans-serif;
-            font-size: 14px;
-            color: var(--text-dark);
-            resize: none;
-        }
-
-        .bio-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        /* YouTube URL Settings */
-        .youtube-url-input {
-            width: 100%;
-            padding: 12px;
-            background: var(--light-gray);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            color: var(--text-dark);
-        }
-
-        .youtube-url-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        /* AI Chat */
-        .ai-chat-section {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            color: white;
-        }
-
-        .ai-chat-section .section-title {
-            color: white;
-        }
-
-        .ai-chat-section .section-title::before,
-        .ai-chat-section .section-title::after {
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        }
-
-        .ai-messages {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-bottom: 12px;
-        }
-
-        .ai-message {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 8px;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .ai-message.user {
-            background: rgba(255, 255, 255, 0.25);
-            text-align: right;
-        }
-
-        .ai-input-area {
-            display: flex;
-            gap: 8px;
-        }
-
-        .ai-input {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 25px;
-            font-family: 'Noto Sans JP', sans-serif;
-            font-size: 14px;
-        }
-
-        .ai-send-btn {
-            width: 44px;
-            height: 44px;
-            background: white;
-            color: var(--primary);
-            border: none;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .ai-send-btn:hover {
-            transform: scale(1.1);
-        }
-
-        /* Settings Card */
-        .settings-section {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .settings-item {
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .settings-item:last-child {
-            border-bottom: none;
-        }
-
-        .settings-label {
-            font-size: 11px;
-            color: var(--primary);
-            letter-spacing: 0.1em;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .save-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-            font-size: 12px;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: all 0.2s;
-        }
-
-        .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px var(--primary-glow);
-        }
     </style>
 </head>
 
 <body>
     <header>
         <div class="logo-container">
-            <img src="logo/TSS_logo.png" alt="TSS" onerror="this.style.display='none'">
+            <img src="logo/tss_logo.png" alt="TSS Logo" onerror="this.style.display='none'">
         </div>
         <h1>TEAM SYNERGY STAGE</h1>
-        <div class="header-sub">SUPPORT EACH OTHER — GROW TOGETHER</div>
-        <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 5px;">
-            <div class="user-badge" id="userBadge" style="display: none;"></div>
-            <div class="token-display" id="tokenDisplay" style="display: none;">
-                <span class="token-icon">🪙</span>
-                <span class="token-balance" id="tokenBalance">0</span>
-                <span class="token-label">TSST</span>
-            </div>
+        <div class="header-sub">COMMUNITY APP</div>
+        <div class="user-badge" id="userBadge" style="display: none;"></div>
+        <div class="token-display" id="tokenDisplay" style="display: none;">
+            <span class="token-icon">🪙</span>
+            <span class="token-balance" id="tokenBalance">0</span>
+            <span class="token-label">TSST</span>
         </div>
     </header>
 
     <main>
-        <!-- SCREEN 0: REGISTRATION -->
+        <!-- REGISTER SCREEN -->
         <div class="screen active" id="screen-register">
             <div class="register-card">
-                <div class="register-title">Welcome to TSS</div>
-                <div class="register-sub">TEAM SYNERGY STAGEへようこそ！<br>あなたの情報を登録してください</div>
+                <div class="register-title">Welcome</div>
+                <div class="register-sub">TEAM SYNERGY STAGEへようこそ！<br>プロフィールを登録してください</div>
+
                 <div class="input-group">
                     <label class="input-label">YOUR NAME</label>
-                    <input type="text" class="text-input" id="inputName" placeholder="例: 山田太郎">
+                    <input type="text" class="text-input" id="inputName" placeholder="名前を入力">
                 </div>
+
                 <div class="input-group">
-                    <label class="input-label">🔐 PIN（4桁の数字）</label>
-                    <input type="password" class="text-input" id="inputPin" placeholder="1234" maxlength="4"
-                        pattern="[0-9]*" inputmode="numeric"
-                        style="letter-spacing: 0.3em; text-align: center; font-size: 18px;">
-                    <div style="font-size: 10px; color: var(--text-gray); margin-top: 4px;">※ 次回ログイン時に必要です</div>
+                    <label class="input-label">ROLE / 役割</label>
+                    <input type="text" class="text-input" id="inputRole" placeholder="例: リーダー、メンバーなど">
                 </div>
-                <button class="btn-main" id="btnRegister" onclick="register()">登録してはじめる</button>
-                <button class="btn-secondary" onclick="showLoginMode()">すでにアカウントをお持ちの方</button>
+
+                <div class="input-group">
+                    <label class="input-label">BIO / 自己紹介</label>
+                    <textarea class="text-input" id="inputBio" placeholder="あなたのことを教えてください"></textarea>
+                </div>
+
+                <button class="btn-main" id="registerBtn" onclick="register()" disabled>JOIN COMMUNITY</button>
             </div>
         </div>
 
-        <!-- SCREEN 1: HOME -->
+        <!-- HOME SCREEN -->
         <div class="screen" id="screen-home">
-            <!-- YouTube Section -->
-            <div class="youtube-section">
-                <div class="section-title">🎵 TSS THEME SONG</div>
-                <div class="youtube-embed" id="youtubeEmbed">
-                    <!-- YouTube動画がここに埋め込まれます -->
-                    <div
-                        style="display: flex; align-items: center; justify-content: center; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3);">
-                        <span style="font-size: 48px;">🎬</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AI Chat Section -->
-            <div class="ai-chat-section">
-                <div class="section-title">🤖 TSS AI アシスタント</div>
-                <div class="ai-messages" id="aiMessages">
-                    <div class="ai-message">
-                        こんにちは！TSSアシスタントです。何でも相談してくださいね 😊
-                    </div>
-                </div>
-                <div class="ai-input-area">
-                    <input type="text" class="ai-input" id="aiInput" placeholder="質問を入力..."
-                        onkeypress="if(event.key==='Enter')askAI()">
-                    <button class="ai-send-btn" onclick="askAI()">➤</button>
-                </div>
-            </div>
-
-            <!-- Quick Stats -->
+            <div class="section-title">🎥 FEATURED VIDEO</div>
             <div class="card">
-                <div class="card-title">📊 今日のアクティビティ</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div
-                        style="text-align: center; padding: 16px; background: var(--primary-light); border-radius: 12px;">
-                        <div
-                            style="font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 700; color: var(--primary);">
-                            0</div>
-                        <div style="font-size: 10px; color: var(--text-gray); letter-spacing: 0.1em;">投稿</div>
-                    </div>
-                    <div
-                        style="text-align: center; padding: 16px; background: var(--accent-light); border-radius: 12px;">
-                        <div
-                            style="font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 700; color: var(--accent);">
-                            0</div>
-                        <div style="font-size: 10px; color: var(--text-gray); letter-spacing: 0.1em;">応援</div>
-                    </div>
+                <div class="youtube-container">
+                    <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" title="TEAM SYNERGY STAGE"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
                 </div>
+                <p style="text-align: center; font-size: 13px; color: var(--text-gray);">
+                    SATプロデュース - TEAM SYNERGY STAGE オリジナル楽曲
+                </p>
             </div>
 
-            <!-- Recent Activity -->
-            <div class="section-title">📢 最新の投稿</div>
-            <div id="recentPosts">
-                <div class="board-post">
-                    <div class="board-post-header">
-                        <div class="board-avatar">🎉</div>
-                        <div>
-                            <div class="board-author">TSSチーム</div>
-                            <div class="board-time">今日</div>
+            <div class="section-title">📢 ANNOUNCEMENTS</div>
+            <div id="announcementsList">
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-avatar">T</div>
+                        <div class="post-meta">
+                            <div class="post-author">TSS運営</div>
+                            <div class="post-time">2026.01.16</div>
                         </div>
                     </div>
-                    <div class="board-content">
-                        TEAM SYNERGY STAGEへようこそ！みんなで応援し合い、一緒に成長していきましょう！🚀✨
-                    </div>
-                    <div class="board-actions">
-                        <div class="board-action"><span>❤️</span> 0</div>
-                        <div class="board-action"><span>💬</span> 0</div>
+                    <div class="post-content">
+                        コミュニティアプリへようこそ！🎉<br>
+                        ここでは、メンバー同士の交流や情報共有ができます。<br>
+                        積極的に活動してトークンを貯めましょう！
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 2: BOARD -->
+        <!-- BOARD SCREEN -->
         <div class="screen" id="screen-board">
-            <div class="section-title">📋 掲示板</div>
+            <div class="section-title">💬 COMMUNITY BOARD</div>
 
-            <!-- 投稿フォーム -->
-            <div class="card" style="margin-bottom: 20px;">
-                <textarea class="text-input" id="boardInput" placeholder="今日の気づきや応援メッセージを共有しよう..."
-                    style="height: 80px; resize: none;"></textarea>
-                <button class="btn-main" onclick="postToBoard()" style="margin-top: 12px;">投稿する</button>
+            <div class="card">
+                <div class="input-group">
+                    <textarea class="text-input" id="postContent" placeholder="投稿を書く..." rows="3"></textarea>
+                </div>
+                <button class="btn-main" onclick="submitPost()" style="margin-top: 0;">POST</button>
             </div>
 
-            <div id="boardPosts">
-                <!-- 投稿がここに表示されます -->
+            <div id="postsList">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
         </div>
 
-        <!-- SCREEN 3: TODO -->
+        <!-- TODO SCREEN -->
         <div class="screen" id="screen-todo">
-            <div class="section-title">✅ タスク管理</div>
-            <div class="todo-container">
-                <div class="todo-input-area">
-                    <input type="text" id="todoInput" placeholder="新しいタスクを追加...">
-                    <button onclick="addTodo()">+</button>
+            <div class="section-title">✅ TO-DO LIST</div>
+
+            <div class="card">
+                <div class="todo-tabs">
+                    <div class="todo-tab active" onclick="showTodoTab('daily')">DAILY</div>
+                    <div class="todo-tab" onclick="showTodoTab('weekly')">WEEKLY</div>
+                    <div class="todo-tab" onclick="showTodoTab('monthly')">MONTHLY</div>
                 </div>
-                <div id="todoList">
-                    <!-- タスクがここに表示されます -->
+
+                <div class="todo-content active" id="todo-daily">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="dailyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('daily')">+</button>
+                    </div>
+                    <div id="dailyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <div class="todo-content" id="todo-weekly">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="weeklyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('weekly')">+</button>
+                    </div>
+                    <div id="weeklyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <div class="todo-content" id="todo-monthly">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="monthlyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('monthly')">+</button>
+                    </div>
+                    <div id="monthlyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 4: PROFILE -->
-        <div class="screen" id="screen-profile">
-            <div class="profile-card">
-                <div class="profile-photo-upload" onclick="document.getElementById('photoInput').click()">
-                    <div class="profile-avatar" id="profileAvatar">👤</div>
-                    <div class="upload-hint">📷</div>
-                    <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoUpload(event)">
+        <!-- AI SCREEN -->
+        <div class="screen" id="screen-ai">
+            <div class="section-title">🤖 AI ASSISTANT</div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">💬</span>
+                    JINSEI AI
                 </div>
-                <div class="profile-name" id="profileName">-</div>
-                <div class="profile-role">TSSメンバー</div>
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-message ai">
+                        <div class="chat-avatar">🤖</div>
+                        <div class="chat-bubble">
+                            こんにちは！JINSEI AIです。<br>
+                            人生のこと、何でも気軽に相談してください。
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" class="text-input" id="chatInput" placeholder="メッセージを入力...">
+                    <button class="chat-send-btn" onclick="sendChat()">→</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE SCREEN -->
+        <div class="screen" id="screen-profile">
+            <div class="card">
+                <div class="profile-header">
+                    <div class="profile-avatar-large" id="profileAvatar">👤</div>
+                    <div class="profile-name" id="profileName">-</div>
+                    <div class="profile-role" id="profileRole">-</div>
+                </div>
+
                 <div class="profile-stats">
                     <div class="profile-stat">
-                        <div class="profile-stat-value" id="profilePosts">0</div>
-                        <div class="profile-stat-label">投稿</div>
+                        <div class="profile-stat-value" id="profileTokens">0</div>
+                        <div class="profile-stat-label">TOKENS</div>
                     </div>
                     <div class="profile-stat">
-                        <div class="profile-stat-value" id="profilePoints">0</div>
-                        <div class="profile-stat-label">TSST</div>
+                        <div class="profile-stat-value" id="profilePosts">0</div>
+                        <div class="profile-stat-label">POSTS</div>
                     </div>
                     <div class="profile-stat">
                         <div class="profile-stat-value" id="profileDays">0</div>
-                        <div class="profile-stat-label">日</div>
+                        <div class="profile-stat-label">DAYS</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 自己紹介 -->
-            <div class="bio-section">
-                <div class="card-title">📝 自己紹介</div>
-                <textarea class="bio-textarea" id="bioInput" placeholder="自己紹介を入力してください..."></textarea>
-            </div>
-
-            <!-- YouTube テーマソング設定 -->
-            <div class="settings-section">
-                <div class="card-title">🎵 マイテーマソング</div>
-                <div class="settings-item">
-                    <div class="settings-label">YOUTUBE URL</div>
-                    <input type="text" class="youtube-url-input" id="youtubeUrlInput"
-                        placeholder="https://www.youtube.com/watch?v=...">
+                <div class="profile-section">
+                    <div class="profile-section-title">BIO</div>
+                    <div class="profile-bio" id="profileBio">-</div>
                 </div>
-                <button class="save-btn" onclick="saveProfile()">保存する</button>
-            </div>
 
-            <!-- 設定 -->
-            <div class="card">
-                <div class="card-title">⚙️ 設定</div>
-                <button class="btn-secondary" onclick="logout()"
-                    style="margin-top: 0; color: var(--danger); border-color: var(--danger);">ログアウト</button>
+                <button class="btn-secondary" onclick="confirmEditProfile()">プロフィールを編集</button>
             </div>
         </div>
     </main>
 
-    <nav>
-        <div class="nav-item active" onclick="showScreen('home')">
-            <div class="nav-icon">🏠</div>
-            HOME
-        </div>
-        <div class="nav-item" onclick="showScreen('board')">
-            <div class="nav-icon">📋</div>
-            BOARD
-        </div>
-        <div class="nav-item" onclick="showScreen('todo')">
-            <div class="nav-icon">✅</div>
-            TODO
-        </div>
-        <div class="nav-item" onclick="showScreen('profile')">
-            <div class="nav-icon">👤</div>
-            PROFILE
+    <nav id="mainNav" style="display: none;">
+        <div class="nav-container">
+            <div class="nav-item active" onclick="showScreen('screen-home')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">HOME</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-board')">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">BOARD</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-todo')">
+                <span class="nav-icon">✅</span>
+                <span class="nav-label">TODO</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-ai')">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-label">AI</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-profile')">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">PROFILE</span>
+            </div>
         </div>
     </nav>
 
-    <div class="sending-overlay" id="sendingOverlay">
-        <div class="spinner"></div>
-        <div class="sending-text">処理中...</div>
-    </div>
-
     <script>
-        // ========== Configuration ==========
-        const SCRIPT_URL = ''; // GASのデプロイURLを設定
+        // ============ CONFIGURATION ============
+        const SCRIPT_URL = 'YOUR_GAS_URL_HERE'; // Google Apps Script URL
 
-        // ========== State ==========
-        let currentUser = null;
-        let todos = [];
-        let boardPosts = [];
+        // ============ STATE ============
+        let todos = {
+            daily: [],
+            weekly: [],
+            monthly: []
+        };
 
-        // ========== Storage ==========
-        function saveToStorage(key, value) {
-            try {
-                localStorage.setItem('tss_' + key, JSON.stringify(value));
-            } catch (e) {
-                console.error('Storage error:', e);
-            }
-        }
+        let posts = [];
+        let chatHistory = [];
 
-        function loadFromStorage(key) {
-            try {
-                const data = localStorage.getItem('tss_' + key);
-                return data ? JSON.parse(data) : null;
-            } catch (e) {
-                console.error('Storage error:', e);
-                return null;
-            }
-        }
-
-        // ========== Init ==========
+        // ============ INITIALIZATION ============
         function init() {
-            currentUser = loadFromStorage('user');
-            todos = loadFromStorage('todos') || [];
-            boardPosts = loadFromStorage('boardPosts') || [];
-
-            if (currentUser) {
-                showLoggedInState();
-                showScreen('home');
+            loadTodos();
+            const profile = getProfile();
+            if (profile) {
+                showUserBadge(profile);
+                updateTokenDisplay();
+                showScreen('screen-home');
+                document.getElementById('mainNav').style.display = 'block';
+                loadPosts();
             } else {
-                showScreen('register');
+                showScreen('screen-register');
             }
-
-            renderTodos();
-            renderBoardPosts();
         }
 
-        // ========== Auth ==========
+        // ============ PROFILE ============
+        function getProfile() {
+            return JSON.parse(localStorage.getItem('tss_profile') || 'null');
+        }
+
+        function validateRegistration() {
+            const name = document.getElementById('inputName').value.trim();
+            document.getElementById('registerBtn').disabled = !name;
+        }
+
+        document.getElementById('inputName').addEventListener('input', validateRegistration);
+
         function register() {
             const name = document.getElementById('inputName').value.trim();
-            const pin = document.getElementById('inputPin').value.trim();
+            const role = document.getElementById('inputRole').value.trim() || 'メンバー';
+            const bio = document.getElementById('inputBio').value.trim() || '';
 
-            if (!name) {
-                alert('名前を入力してください');
-                return;
-            }
-            if (!pin || pin.length !== 4) {
-                alert('4桁のPINを入力してください');
-                return;
-            }
+            if (name) {
+                const profile = {
+                    name,
+                    role,
+                    bio,
+                    tokens: 10, // Welcome bonus
+                    joinedAt: new Date().toISOString()
+                };
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+                showUserBadge(profile);
+                updateTokenDisplay();
+                showScreen('screen-home');
+                document.getElementById('mainNav').style.display = 'block';
+                loadPosts();
 
-            currentUser = {
-                name: name,
-                pin: pin,
-                tokenBalance: 0,
-                createdAt: new Date().toISOString()
-            };
-
-            saveToStorage('user', currentUser);
-            showLoggedInState();
-            showScreen('home');
-        }
-
-        function showLoginMode() {
-            document.querySelector('.register-title').textContent = 'ログイン';
-            document.querySelector('.register-sub').textContent = '登録済みの情報でログイン';
-            document.getElementById('btnRegister').textContent = 'ログイン';
-            document.getElementById('btnRegister').onclick = login;
-        }
-
-        function login() {
-            const name = document.getElementById('inputName').value.trim();
-            const pin = document.getElementById('inputPin').value.trim();
-
-            if (!name || !pin) {
-                alert('名前とPINを入力してください');
-                return;
-            }
-
-            // ローカルストレージから確認（後でバックエンド認証に置き換え）
-            const savedUser = loadFromStorage('user');
-            if (savedUser && savedUser.name === name && savedUser.pin === pin) {
-                currentUser = savedUser;
-                showLoggedInState();
-                showScreen('home');
-            } else {
-                alert('名前またはPINが正しくありません');
+                // Show welcome token animation
+                showTokenEarned(10, 'Welcome Bonus! 🎉');
             }
         }
 
-        function logout() {
-            if (confirm('ログアウトしますか？')) {
-                currentUser = null;
-                localStorage.removeItem('tss_user');
-                location.reload();
+        function showUserBadge(profile) {
+            const badge = document.getElementById('userBadge');
+            badge.textContent = `${profile.name} - ${profile.role}`;
+            badge.style.display = 'inline-block';
+
+            // Update profile screen
+            document.getElementById('profileName').textContent = profile.name;
+            document.getElementById('profileRole').textContent = profile.role;
+            document.getElementById('profileBio').textContent = profile.bio || '自己紹介がありません';
+            document.getElementById('profileAvatar').textContent = profile.name.charAt(0).toUpperCase();
+        }
+
+        function updateTokenDisplay() {
+            const profile = getProfile();
+            if (profile) {
+                document.getElementById('tokenDisplay').style.display = 'inline-flex';
+                document.getElementById('tokenBalance').textContent = profile.tokens || 0;
+                document.getElementById('profileTokens').textContent = profile.tokens || 0;
             }
         }
 
-        function showLoggedInState() {
-            document.getElementById('userBadge').textContent = currentUser.name;
-            document.getElementById('userBadge').style.display = 'inline-block';
-            document.getElementById('tokenDisplay').style.display = 'inline-flex';
-            document.getElementById('tokenBalance').textContent = currentUser.tokenBalance || 0;
-            document.getElementById('profileName').textContent = currentUser.name;
-            document.getElementById('profilePoints').textContent = currentUser.tokenBalance || 0;
-            document.querySelector('nav').style.display = 'flex';
+        function addTokens(amount) {
+            const profile = getProfile();
+            if (profile) {
+                profile.tokens = (profile.tokens || 0) + amount;
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+                updateTokenDisplay();
+            }
         }
 
-        // ========== Screen Navigation ==========
-        function showScreen(screenName) {
-            if (!currentUser && screenName !== 'register') {
-                showScreen('register');
-                return;
-            }
+        function showTokenEarned(amount, message) {
+            const container = document.createElement('div');
+            container.className = 'token-earned-container';
+            container.innerHTML = `
+                <div class="token-earned-badge">
+                    <div class="token-earned-icon">💎</div>
+                    <div class="token-earned-amount">+${amount}</div>
+                    <div class="token-earned-label">${message}</div>
+                </div>
+            `;
+            container.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;';
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 3000);
+        }
 
+        function confirmEditProfile() {
+            if (confirm('プロフィールを編集しますか？')) {
+                const profile = getProfile();
+                if (profile) {
+                    document.getElementById('inputName').value = profile.name;
+                    document.getElementById('inputRole').value = profile.role;
+                    document.getElementById('inputBio').value = profile.bio;
+                }
+                localStorage.removeItem('tss_profile');
+                document.getElementById('mainNav').style.display = 'none';
+                showScreen('screen-register');
+            }
+        }
+
+        // ============ NAVIGATION ============
+        function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
 
-            document.getElementById('screen-' + screenName).classList.add('active');
-            document.querySelector(`.nav-item[onclick="showScreen('${screenName}')"]`)?.classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navItem = document.querySelector(`.nav-item[onclick="showScreen('${screenId}')"]`);
+            if (navItem) navItem.classList.add('active');
         }
 
-        // ========== Todo Functions ==========
-        function addTodo() {
-            const input = document.getElementById('todoInput');
+        // ============ TO-DO LIST ============
+        function loadTodos() {
+            const saved = localStorage.getItem('tss_todos');
+            if (saved) {
+                todos = JSON.parse(saved);
+            }
+            renderTodos('daily');
+            renderTodos('weekly');
+            renderTodos('monthly');
+        }
+
+        function saveTodos() {
+            localStorage.setItem('tss_todos', JSON.stringify(todos));
+        }
+
+        function showTodoTab(tab) {
+            document.querySelectorAll('.todo-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.todo-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('todo-' + tab).classList.add('active');
+        }
+
+        function addTodo(type) {
+            const input = document.getElementById(type + 'TodoInput');
             const text = input.value.trim();
             if (!text) return;
 
-            todos.push({
+            const newTodo = {
                 id: Date.now(),
                 text: text,
                 completed: false,
                 createdAt: new Date().toISOString()
-            });
+            };
 
-            saveToStorage('todos', todos);
+            todos[type].unshift(newTodo);
+            saveTodos();
+            renderTodos(type);
             input.value = '';
-            renderTodos();
+
+            // Award token for adding task
+            addTokens(1);
         }
 
-        function toggleTodo(id) {
-            const todo = todos.find(t => t.id === id);
+        function toggleTodo(type, id) {
+            const todo = todos[type].find(t => t.id === id);
             if (todo) {
                 todo.completed = !todo.completed;
-                saveToStorage('todos', todos);
-                renderTodos();
+                saveTodos();
+                renderTodos(type);
+
+                // Award token for completing task
+                if (todo.completed) {
+                    addTokens(2);
+                    showTokenEarned(2, 'Task Complete! ✅');
+                }
             }
         }
 
-        function deleteTodo(id) {
-            todos = todos.filter(t => t.id !== id);
-            saveToStorage('todos', todos);
-            renderTodos();
+        function deleteTodo(type, id) {
+            todos[type] = todos[type].filter(t => t.id !== id);
+            saveTodos();
+            renderTodos(type);
         }
 
-        function renderTodos() {
-            const container = document.getElementById('todoList');
-            if (todos.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-gray);">タスクがありません</div>';
+        function renderTodos(type) {
+            const list = document.getElementById(type + 'TodoList');
+            if (!list) return;
+
+            if (todos[type].length === 0) {
+                list.innerHTML = '<div class="todo-empty">タスクがありません</div>';
                 return;
             }
 
-            container.innerHTML = todos.map(todo => `
+            list.innerHTML = todos[type].map(todo => `
                 <div class="todo-item ${todo.completed ? 'completed' : ''}">
-                    <div class="todo-checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleTodo(${todo.id})"></div>
-                    <div class="todo-text">${escapeHtml(todo.text)}</div>
-                    <div class="todo-delete" onclick="deleteTodo(${todo.id})">🗑️</div>
+                    <div class="todo-checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleTodo('${type}', ${todo.id})"></div>
+                    <span class="todo-text">${escapeHtml(todo.text)}</span>
+                    <button class="todo-delete" onclick="deleteTodo('${type}', ${todo.id})">×</button>
                 </div>
             `).join('');
         }
 
-        // ========== Board Functions ==========
-        function postToBoard() {
-            const input = document.getElementById('boardInput');
-            const content = input.value.trim();
-            if (!content) return;
-
-            boardPosts.unshift({
-                id: Date.now(),
-                author: currentUser.name,
-                content: content,
-                likes: 0,
-                comments: 0,
-                createdAt: new Date().toISOString()
-            });
-
-            saveToStorage('boardPosts', boardPosts);
-            input.value = '';
-            renderBoardPosts();
-
-            // トークン付与
-            currentUser.tokenBalance = (currentUser.tokenBalance || 0) + 1;
-            saveToStorage('user', currentUser);
-            document.getElementById('tokenBalance').textContent = currentUser.tokenBalance;
-        }
-
-        function likePost(id) {
-            const post = boardPosts.find(p => p.id === id);
-            if (post) {
-                post.likes++;
-                saveToStorage('boardPosts', boardPosts);
-                renderBoardPosts();
-            }
-        }
-
-        function renderBoardPosts() {
-            const container = document.getElementById('boardPosts');
-            if (boardPosts.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-gray);">まだ投稿がありません。<br>最初の投稿をしてみましょう！</div>';
-                return;
-            }
-
-            container.innerHTML = boardPosts.map(post => `
-                <div class="board-post">
-                    <div class="board-post-header">
-                        <div class="board-avatar">👤</div>
-                        <div>
-                            <div class="board-author">${escapeHtml(post.author)}</div>
-                            <div class="board-time">${formatTime(post.createdAt)}</div>
-                        </div>
-                    </div>
-                    <div class="board-content">${escapeHtml(post.content)}</div>
-                    <div class="board-actions">
-                        <div class="board-action" onclick="likePost(${post.id})"><span>❤️</span> ${post.likes}</div>
-                        <div class="board-action"><span>💬</span> ${post.comments}</div>
-                    </div>
-                </div>
-            `).join('');
-
-            // Home画面の最新投稿も更新
-            const recentContainer = document.getElementById('recentPosts');
-            if (recentContainer && boardPosts.length > 0) {
-                recentContainer.innerHTML = boardPosts.slice(0, 3).map(post => `
-                    <div class="board-post">
-                        <div class="board-post-header">
-                            <div class="board-avatar">👤</div>
-                            <div>
-                                <div class="board-author">${escapeHtml(post.author)}</div>
-                                <div class="board-time">${formatTime(post.createdAt)}</div>
-                            </div>
-                        </div>
-                        <div class="board-content">${escapeHtml(post.content)}</div>
-                        <div class="board-actions">
-                            <div class="board-action"><span>❤️</span> ${post.likes}</div>
-                            <div class="board-action"><span>💬</span> ${post.comments}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // ========== Utility Functions ==========
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        function formatTime(isoString) {
-            const date = new Date(isoString);
-            const now = new Date();
-            const diff = now - date;
-
-            if (diff < 60000) return '今';
-            if (diff < 3600000) return Math.floor(diff / 60000) + '分前';
-            if (diff < 86400000) return Math.floor(diff / 3600000) + '時間前';
-            return date.toLocaleDateString('ja-JP');
+        // ============ BOARD / POSTS ============
+        function loadPosts() {
+            // Load from localStorage for now
+            const saved = localStorage.getItem('tss_posts');
+            if (saved) {
+                posts = JSON.parse(saved);
+            }
+            renderPosts();
         }
 
-        // ========== Profile Functions ==========
-        function handlePhotoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        function submitPost() {
+            const content = document.getElementById('postContent').value.trim();
+            if (!content) return;
 
-            // 画像サイズチェック（1MB以下）
-            if (file.size > 1024 * 1024) {
-                alert('画像サイズは1MB以下にしてください');
+            const profile = getProfile();
+            const newPost = {
+                id: Date.now(),
+                author: profile.name,
+                content: content,
+                createdAt: new Date().toISOString(),
+                likes: 0
+            };
+
+            posts.unshift(newPost);
+            localStorage.setItem('tss_posts', JSON.stringify(posts));
+            renderPosts();
+            document.getElementById('postContent').value = '';
+
+            // Award token for posting
+            addTokens(3);
+            showTokenEarned(3, 'Post Created! 📝');
+        }
+
+        function renderPosts() {
+            const list = document.getElementById('postsList');
+
+            if (posts.length === 0) {
+                list.innerHTML = '<div class="todo-empty">投稿がありません。最初の投稿をしてみましょう！</div>';
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const base64 = e.target.result;
-                // プロフィールアバターを更新
-                const avatar = document.getElementById('profileAvatar');
-                avatar.innerHTML = `<img src="${base64}" alt="プロフィール写真">`;
-                // ローカルに保存
-                saveToStorage('profilePhoto', base64);
-            };
-            reader.readAsDataURL(file);
+            list.innerHTML = posts.map(post => `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-avatar">${post.author.charAt(0).toUpperCase()}</div>
+                        <div class="post-meta">
+                            <div class="post-author">${escapeHtml(post.author)}</div>
+                            <div class="post-time">${formatDate(post.createdAt)}</div>
+                        </div>
+                    </div>
+                    <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
+                    <div class="post-actions">
+                        <div class="post-action" onclick="likePost(${post.id})">
+                            ❤️ ${post.likes}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function loadProfilePhoto() {
-            const photo = loadFromStorage('profilePhoto');
-            if (photo) {
-                const avatar = document.getElementById('profileAvatar');
-                if (avatar) {
-                    avatar.innerHTML = `<img src="${photo}" alt="プロフィール写真">`;
-                }
+        function likePost(id) {
+            const post = posts.find(p => p.id === id);
+            if (post) {
+                post.likes++;
+                localStorage.setItem('tss_posts', JSON.stringify(posts));
+                renderPosts();
             }
         }
 
-        function saveProfile() {
-            const bio = document.getElementById('bioInput').value;
-            const youtubeUrl = document.getElementById('youtubeUrlInput').value;
-
-            saveToStorage('bio', bio);
-            saveToStorage('youtubeUrl', youtubeUrl);
-
-            // YouTube動画を更新
-            updateYoutubeEmbed(youtubeUrl);
-
-            alert('プロフィールを保存しました！');
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}.${m}.${d}`;
         }
 
-        function loadProfile() {
-            const bio = loadFromStorage('bio');
-            const youtubeUrl = loadFromStorage('youtubeUrl');
+        // ============ AI CHAT ============
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
 
-            if (bio) {
-                document.getElementById('bioInput').value = bio;
-            }
-            if (youtubeUrl) {
-                document.getElementById('youtubeUrlInput').value = youtubeUrl;
-                updateYoutubeEmbed(youtubeUrl);
-            }
-        }
-
-        function updateYoutubeEmbed(url) {
-            if (!url) return;
-
-            // YouTube URLからビデオIDを抽出
-            let videoId = null;
-            const patterns = [
-                /(?:youtube\.com\/watch\?v=)([^&]+)/,
-                /(?:youtu\.be\/)([^?]+)/,
-                /(?:youtube\.com\/embed\/)([^?]+)/
-            ];
-
-            for (const pattern of patterns) {
-                const match = url.match(pattern);
-                if (match) {
-                    videoId = match[1];
-                    break;
-                }
-            }
-
-            if (videoId) {
-                const embed = document.getElementById('youtubeEmbed');
-                embed.innerHTML = `
-                    <iframe 
-                        src="https://www.youtube.com/embed/${videoId}" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                    </iframe>
-                `;
-            }
-        }
-
-        // ========== AI Chat Functions ==========
-        async function askAI() {
-            const input = document.getElementById('aiInput');
-            const question = input.value.trim();
-            if (!question) return;
-
-            const messagesContainer = document.getElementById('aiMessages');
-
-            // ユーザーメッセージを追加
-            messagesContainer.innerHTML += `
-                <div class="ai-message user">${escapeHtml(question)}</div>
-            `;
-
+            // Add user message
+            addChatMessage('user', message);
             input.value = '';
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // ローディング表示
-            const loadingId = Date.now();
-            messagesContainer.innerHTML += `
-                <div class="ai-message" id="loading-${loadingId}">考え中...</div>
-            `;
-
-            try {
-                if (SCRIPT_URL) {
-                    const response = await fetch(
-                        SCRIPT_URL + '?action=chat&q=' + encodeURIComponent(question) + '&name=' + encodeURIComponent(currentUser?.name || 'ユーザー')
-                    );
-                    const data = await response.json();
-
-                    document.getElementById(`loading-${loadingId}`).remove();
-                    messagesContainer.innerHTML += `
-                        <div class="ai-message">${escapeHtml(data.response || 'すみません、うまく返答できませんでした。')}</div>
-                    `;
-                } else {
-                    // バックエンド未設定時のローカル応答
-                    document.getElementById(`loading-${loadingId}`).remove();
-                    const localResponses = [
-                        '素晴らしい質問ですね！もう少し詳しく教えてください 😊',
-                        'その点について一緒に考えましょう！',
-                        'TSSコミュニティの仲間にも相談してみるといいかもしれませんね 🤝',
-                        '一歩一歩前進していきましょう！💪'
-                    ];
-                    const randomResponse = localResponses[Math.floor(Math.random() * localResponses.length)];
-                    messagesContainer.innerHTML += `
-                        <div class="ai-message">${randomResponse}</div>
-                    `;
-                }
-            } catch (error) {
-                document.getElementById(`loading-${loadingId}`)?.remove();
-                messagesContainer.innerHTML += `
-                    <div class="ai-message">申し訳ありません、エラーが発生しました。</div>
-                `;
-            }
-
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            // Simulate AI response (can be replaced with actual API call)
+            setTimeout(() => {
+                const response = generateLocalResponse(message);
+                addChatMessage('ai', response);
+            }, 1000);
         }
 
-        // ========== Enter key handlers ==========
-        document.addEventListener('DOMContentLoaded', () => {
-            init();
+        function addChatMessage(type, message) {
+            const container = document.getElementById('chatContainer');
+            const avatar = type === 'ai' ? '🤖' : getProfile()?.name?.charAt(0).toUpperCase() || '👤';
 
-            // プロフィール情報を読み込み
-            loadProfilePhoto();
-            loadProfile();
+            container.innerHTML += `
+                <div class="chat-message ${type}">
+                    <div class="chat-avatar">${avatar}</div>
+                    <div class="chat-bubble">${escapeHtml(message).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
 
-            document.getElementById('todoInput')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') addTodo();
-            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function generateLocalResponse(question) {
+            const q = question.toLowerCase();
+
+            if (q.includes('こんにちは') || q.includes('はじめまして')) {
+                return 'こんにちは！何かお手伝いできることはありますか？';
+            }
+            if (q.includes('ありがとう')) {
+                return 'どういたしまして！また何かあれば気軽に聞いてくださいね😊';
+            }
+            if (q.includes('トークン') || q.includes('ポイント')) {
+                return 'トークンは、投稿やタスク完了で獲得できます！\n・投稿: +3 TSS\n・タスク追加: +1 TSS\n・タスク完了: +2 TSS';
+            }
+
+            const responses = [
+                'いい質問ですね！もう少し詳しく教えてもらえますか？',
+                '面白い視点ですね。一緒に考えましょう！',
+                'なるほど！他に気になることはありますか？'
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // Enter key for chat
+        document.getElementById('chatInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendChat();
         });
+
+        // ============ START ============
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 

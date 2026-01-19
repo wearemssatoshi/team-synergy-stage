@@ -1,5 +1,5 @@
 /**
- * TSS (TEAM SYNERGY STAGE) - Google Apps Script Backend
+ * TEAM SYNERGY STAGE - Google Apps Script Backend
  * 
  * 設定手順:
  * 1. Google Spreadsheetを作成
@@ -8,7 +8,7 @@
  * 4. デプロイ > 新しいデプロイ > ウェブアプリ
  * 5. アクセス: 全員（匿名ユーザーを含む）
  * 6. デプロイしてURLをコピー
- * 7. TSS.htmlのSCRIPT_URLに設定
+ * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
 function doPost(e) {
@@ -16,380 +16,235 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    // アクションに応じて処理を分岐
     switch (data.action) {
+      case 'register':
+        return handleRegister(ss, data);
       case 'post':
-        return postToBoard(data);
-      case 'like':
-        return likePost(data);
-      case 'addTodo':
-        return addTodo(data);
-      case 'toggleTodo':
-        return toggleTodo(data);
-      case 'deleteTodo':
-        return deleteTodo(data);
+        return handlePost(ss, data);
+      case 'addToken':
+        return handleAddToken(ss, data);
       default:
-        return jsonResponse({ success: false, error: 'Unknown action' });
+        return createResponse({ error: 'Unknown action' });
     }
+    
   } catch (error) {
-    return jsonResponse({ success: false, error: error.message });
+    return createResponse({ error: error.message });
   }
 }
 
 function doGet(e) {
   try {
     const action = e?.parameter?.action || 'data';
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
     
     switch (action) {
-      case 'version':
-        return jsonResponse({
-          version: '1.0.0',
-          name: 'TSS Backend',
-          deployedAt: new Date().toISOString().split('T')[0]
-        });
-      
-      case 'register':
-        return registerUser(e.parameter);
-      
-      case 'login':
-        return loginUser(e.parameter);
-      
-      case 'sync':
-        return syncUserData(e.parameter);
-      
-      case 'board':
-        return getBoardPosts();
-      
-      case 'todos':
-        return getUserTodos(e.parameter);
-      
+      case 'members':
+        return getMembers(ss);
+      case 'posts':
+        return getPosts(ss);
+      case 'stats':
+        return getStats(ss);
       case 'chat':
-        return askAI(e.parameter);
-      
+        const question = e?.parameter?.q || '';
+        const userName = e?.parameter?.name || 'User';
+        return askSatoshiAI(question, userName);
       default:
-        return getStats();
+        return getAllData(ss);
     }
+    
   } catch (error) {
-    return jsonResponse({ success: false, error: error.message });
+    return createResponse({ error: error.message });
   }
 }
 
-// ========== ユーザー管理 ==========
+// ============ HANDLERS ============
 
-function getUsersSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('TSS_Users');
+function handleRegister(ss, data) {
+  let sheet = ss.getSheetByName('TSS_Members');
   if (!sheet) {
-    sheet = ss.insertSheet('TSS_Users');
-    sheet.getRange(1, 1, 1, 7).setValues([[
-      'Name', 'PIN_Hash', 'Points', 'Posts', 'Likes_Given', 'Created_At', 'Last_Login'
-    ]]);
-    sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
-  }
-  return sheet;
-}
-
-function hashPin(pin) {
-  const hash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, pin);
-  return hash.map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
-}
-
-function registerUser(params) {
-  const name = params.name || '';
-  const pin = params.pin || '';
-  
-  if (!name || !pin) {
-    return jsonResponse({ success: false, error: '名前とPINを入力してください' });
-  }
-  
-  const sheet = getUsersSheet();
-  const data = sheet.getDataRange().getValues();
-  
-  // 既存ユーザーチェック
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === name) {
-      return jsonResponse({ 
-        success: false, 
-        error: 'この名前は既に登録されています',
-        exists: true 
-      });
-    }
-  }
-  
-  const pinHash = hashPin(pin);
-  const now = new Date().toISOString();
-  
-  sheet.appendRow([name, pinHash, 0, 0, 0, now, now]);
-  
-  return jsonResponse({ 
-    success: true, 
-    message: '登録完了！',
-    name: name,
-    points: 0
-  });
-}
-
-function loginUser(params) {
-  const name = params.name || '';
-  const pin = params.pin || '';
-  
-  if (!name || !pin) {
-    return jsonResponse({ success: false, error: '名前とPINを入力してください' });
-  }
-  
-  const sheet = getUsersSheet();
-  const data = sheet.getDataRange().getValues();
-  const pinHash = hashPin(pin);
-  
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === name && data[i][1] === pinHash) {
-      // ログイン成功 - 最終ログイン時刻を更新
-      sheet.getRange(i + 1, 7).setValue(new Date().toISOString());
-      
-      return jsonResponse({ 
-        success: true,
-        name: name,
-        points: data[i][2] || 0,
-        posts: data[i][3] || 0,
-        likesGiven: data[i][4] || 0
-      });
-    }
-  }
-  
-  return jsonResponse({ success: false, error: '名前またはPINが正しくありません' });
-}
-
-function syncUserData(params) {
-  const name = params.name || '';
-  
-  if (!name) {
-    return jsonResponse({ success: false, error: 'ユーザー名が必要です' });
-  }
-  
-  const sheet = getUsersSheet();
-  const data = sheet.getDataRange().getValues();
-  
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === name) {
-      return jsonResponse({ 
-        success: true,
-        points: data[i][2] || 0,
-        posts: data[i][3] || 0,
-        likesGiven: data[i][4] || 0
-      });
-    }
-  }
-  
-  return jsonResponse({ success: false, error: 'ユーザーが見つかりません' });
-}
-
-// ========== 掲示板機能 ==========
-
-function getBoardSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('TSS_Board');
-  if (!sheet) {
-    sheet = ss.insertSheet('TSS_Board');
-    sheet.getRange(1, 1, 1, 6).setValues([[
-      'ID', 'Author', 'Content', 'Likes', 'Created_At', 'Likers'
-    ]]);
+    sheet = ss.insertSheet('TSS_Members');
+    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'Name', 'Role', 'Bio', 'Tokens', 'JoinedAt']]);
     sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
   }
-  return sheet;
+  
+  // Check if user already exists
+  const allData = sheet.getDataRange().getValues();
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][1] === data.name) {
+      // Update existing user
+      sheet.getRange(i + 1, 3).setValue(data.role);
+      sheet.getRange(i + 1, 4).setValue(data.bio);
+      return createResponse({ success: true, updated: true });
+    }
+  }
+  
+  // Add new user
+  const row = [
+    new Date().toISOString(),
+    data.name,
+    data.role || 'メンバー',
+    data.bio || '',
+    10, // Welcome bonus
+    new Date().toISOString()
+  ];
+  
+  sheet.appendRow(row);
+  
+  return createResponse({ success: true, tokens: 10 });
 }
 
-function postToBoard(data) {
-  const sheet = getBoardSheet();
-  const id = Date.now().toString();
-  const now = new Date().toISOString();
+function handlePost(ss, data) {
+  let sheet = ss.getSheetByName('TSS_Posts');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Posts');
+    sheet.getRange(1, 1, 1, 5).setValues([['Timestamp', 'Author', 'Content', 'Likes', 'PostId']]);
+    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+  }
   
-  sheet.appendRow([id, data.author, data.content, 0, now, '[]']);
+  const postId = Date.now();
+  const row = [
+    new Date().toISOString(),
+    data.author,
+    data.content,
+    0,
+    postId
+  ];
   
-  // ユーザーのポイントと投稿数を更新
-  updateUserStats(data.author, 'posts', 1);
-  updateUserStats(data.author, 'points', 1); // 投稿で1ポイント
+  sheet.appendRow(row);
   
-  return jsonResponse({ 
-    success: true, 
-    id: id,
-    pointsEarned: 1 
+  // Award tokens for posting
+  addTokensToUser(ss, data.author, 3);
+  
+  return createResponse({ success: true, postId: postId, tokensEarned: 3 });
+}
+
+function handleAddToken(ss, data) {
+  const result = addTokensToUser(ss, data.name, data.amount || 1);
+  return createResponse(result);
+}
+
+function addTokensToUser(ss, name, amount) {
+  const sheet = ss.getSheetByName('TSS_Members');
+  if (!sheet) return { success: false, error: 'Members sheet not found' };
+  
+  const allData = sheet.getDataRange().getValues();
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][1] === name) {
+      const currentTokens = allData[i][4] || 0;
+      const newTokens = currentTokens + amount;
+      sheet.getRange(i + 1, 5).setValue(newTokens);
+      return { success: true, newBalance: newTokens };
+    }
+  }
+  
+  return { success: false, error: 'User not found' };
+}
+
+// ============ GETTERS ============
+
+function getMembers(ss) {
+  const sheet = ss.getSheetByName('TSS_Members');
+  if (!sheet) return createResponse({ members: [] });
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const members = data.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s/g, '')] = row[i]);
+    return obj;
+  });
+  
+  return createResponse({ members });
+}
+
+function getPosts(ss) {
+  const sheet = ss.getSheetByName('TSS_Posts');
+  if (!sheet) return createResponse({ posts: [] });
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const posts = data.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s/g, '')] = row[i]);
+    return obj;
+  }).reverse(); // Latest first
+  
+  return createResponse({ posts });
+}
+
+function getStats(ss) {
+  const membersSheet = ss.getSheetByName('TSS_Members');
+  const postsSheet = ss.getSheetByName('TSS_Posts');
+  
+  const membersData = membersSheet ? membersSheet.getDataRange().getValues().slice(1) : [];
+  const postsData = postsSheet ? postsSheet.getDataRange().getValues().slice(1) : [];
+  
+  const totalMembers = membersData.length;
+  const totalTokens = membersData.reduce((sum, row) => sum + (row[4] || 0), 0);
+  const totalPosts = postsData.length;
+  
+  // Top members by tokens
+  const topMembers = membersData
+    .map(row => ({ name: row[1], role: row[2], tokens: row[4] }))
+    .sort((a, b) => b.tokens - a.tokens)
+    .slice(0, 10);
+  
+  return createResponse({
+    totalMembers,
+    totalTokens,
+    totalPosts,
+    topMembers
   });
 }
 
-function likePost(data) {
-  const sheet = getBoardSheet();
-  const allData = sheet.getDataRange().getValues();
+function getAllData(ss) {
+  const members = JSON.parse(getMembers(ss).getContent()).members;
+  const posts = JSON.parse(getPosts(ss).getContent()).posts;
+  const stats = JSON.parse(getStats(ss).getContent());
   
-  for (let i = 1; i < allData.length; i++) {
-    if (allData[i][0] === data.postId) {
-      // いいね数を更新
-      const currentLikes = allData[i][3] || 0;
-      sheet.getRange(i + 1, 4).setValue(currentLikes + 1);
-      
-      // いいねした人を記録
-      let likers = [];
-      try {
-        likers = JSON.parse(allData[i][5] || '[]');
-      } catch (e) {
-        likers = [];
-      }
-      
-      if (!likers.includes(data.liker)) {
-        likers.push(data.liker);
-        sheet.getRange(i + 1, 6).setValue(JSON.stringify(likers));
-        
-        // いいねした人のポイントを更新
-        updateUserStats(data.liker, 'likesGiven', 1);
-      }
-      
-      return jsonResponse({ success: true, likes: currentLikes + 1 });
-    }
-  }
-  
-  return jsonResponse({ success: false, error: '投稿が見つかりません' });
+  return createResponse({
+    members,
+    posts,
+    ...stats
+  });
 }
 
-function getBoardPosts() {
-  const sheet = getBoardSheet();
-  const data = sheet.getDataRange().getValues();
-  
-  if (data.length <= 1) {
-    return jsonResponse({ success: true, posts: [] });
-  }
-  
-  const posts = [];
-  for (let i = 1; i < data.length; i++) {
-    posts.push({
-      id: data[i][0],
-      author: data[i][1],
-      content: data[i][2],
-      likes: data[i][3] || 0,
-      createdAt: data[i][4]
-    });
-  }
-  
-  // 新しい順にソート
-  posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  
-  return jsonResponse({ success: true, posts: posts.slice(0, 50) });
-}
+// ============ AI CHAT ============
 
-// ========== To-do機能 ==========
-
-function getTodosSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('TSS_Todos');
-  if (!sheet) {
-    sheet = ss.insertSheet('TSS_Todos');
-    sheet.getRange(1, 1, 1, 5).setValues([[
-      'ID', 'User', 'Text', 'Completed', 'Created_At'
-    ]]);
-    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
-  }
-  return sheet;
-}
-
-function addTodo(data) {
-  const sheet = getTodosSheet();
-  const id = Date.now().toString();
-  const now = new Date().toISOString();
-  
-  sheet.appendRow([id, data.user, data.text, false, now]);
-  
-  return jsonResponse({ success: true, id: id });
-}
-
-function toggleTodo(data) {
-  const sheet = getTodosSheet();
-  const allData = sheet.getDataRange().getValues();
-  
-  for (let i = 1; i < allData.length; i++) {
-    if (allData[i][0] === data.id && allData[i][1] === data.user) {
-      const currentState = allData[i][3];
-      sheet.getRange(i + 1, 4).setValue(!currentState);
-      
-      // 完了したらポイント付与
-      if (!currentState) {
-        updateUserStats(data.user, 'points', 1);
-      }
-      
-      return jsonResponse({ success: true, completed: !currentState });
-    }
-  }
-  
-  return jsonResponse({ success: false, error: 'タスクが見つかりません' });
-}
-
-function deleteTodo(data) {
-  const sheet = getTodosSheet();
-  const allData = sheet.getDataRange().getValues();
-  
-  for (let i = 1; i < allData.length; i++) {
-    if (allData[i][0] === data.id && allData[i][1] === data.user) {
-      sheet.deleteRow(i + 1);
-      return jsonResponse({ success: true });
-    }
-  }
-  
-  return jsonResponse({ success: false, error: 'タスクが見つかりません' });
-}
-
-function getUserTodos(params) {
-  const user = params.user || '';
-  const sheet = getTodosSheet();
-  const data = sheet.getDataRange().getValues();
-  
-  const todos = [];
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][1] === user) {
-      todos.push({
-        id: data[i][0],
-        text: data[i][2],
-        completed: data[i][3],
-        createdAt: data[i][4]
+function askSatoshiAI(question, userName) {
+  try {
+    const GEMINI_API_KEY = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+    
+    if (!GEMINI_API_KEY) {
+      return createResponse({ 
+        response: generateLocalResponse(question),
+        source: 'local'
       });
     }
-  }
-  
-  return jsonResponse({ success: true, todos: todos });
-}
+    
+    const systemPrompt = `あなたは「SATOSHI」です。TEAM SYNERGY STAGEのコミュニティメンバーをサポートするAIアシスタントです。
 
-// ========== AI機能 ==========
+## 基本姿勢
+- フレンドリーで親しみやすい態度
+- 建設的で前向きなアドバイス
+- コミュニティの団結を促進
+- 簡潔で分かりやすい回答
 
-function askAI(params) {
-  const question = params.q || '';
-  const userName = params.name || '相談者';
-  
-  const GEMINI_API_KEY = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
-  
-  if (!GEMINI_API_KEY) {
-    return jsonResponse({ 
-      response: generateLocalResponse(question),
-      source: 'local'
-    });
-  }
-  
-  const systemPrompt = `あなたは「TSSアシスタント」です。TEAM SYNERGY STAGEコミュニティのメンバーをサポートするAIです。
+## 対応できるトピック
+- コミュニティ活動のアドバイス
+- チームワーク、コラボレーション
+- モチベーション維持
+- トークンシステムの説明
+- アプリの使い方
 
-## あなたの役割
-- コミュニティメンバーの質問に親身に答える
-- 応援やモチベーションを高めるアドバイスを提供
-- ビジネスや自己成長に関する相談に対応
-- 押し付けがましくなく、寄り添う姿勢で対話
+相談者: ${userName}さん
 
-## 回答ガイドライン
-1. 200〜300文字程度で簡潔に
-2. 具体的で実践的なアドバイスを心がける
-3. 適度に絵文字を使用（控えめに）
-4. 相談者の名前で呼びかける
+回答は200〜300文字程度で簡潔に。`;
 
-相談者: ${userName}さん`;
-
-  try {
     const payload = {
       contents: [{
         parts: [{
-          text: systemPrompt + '\n\n相談内容: ' + question
+          text: systemPrompt + '\n\n質問: ' + question
         }]
       }]
     };
@@ -407,9 +262,13 @@ function askAI(params) {
     const result = JSON.parse(response.getContentText());
     const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || generateLocalResponse(question);
     
-    return jsonResponse({ response: aiText, source: 'gemini' });
+    return createResponse({ 
+      response: aiText,
+      source: 'gemini'
+    });
+    
   } catch (error) {
-    return jsonResponse({ 
+    return createResponse({ 
       response: generateLocalResponse(question),
       source: 'local',
       error: error.message
@@ -418,60 +277,43 @@ function askAI(params) {
 }
 
 function generateLocalResponse(question) {
+  const q = question.toLowerCase();
+  
+  if (q.includes('こんにちは') || q.includes('はじめまして')) {
+    return 'こんにちは！TEAM SYNERGY STAGEへようこそ😊 何かお手伝いできることはありますか？';
+  }
+  
+  if (q.includes('ありがとう')) {
+    return 'どういたしまして！また気軽に声をかけてくださいね🌟';
+  }
+  
+  if (q.includes('トークン') || q.includes('ポイント')) {
+    return 'トークンは活動で獲得できます！\n📝 投稿: +3 TSS\n✅ タスク追加: +1 TSS\n🎯 タスク完了: +2 TSS\n積極的に活動してトークンを貯めましょう！';
+  }
+  
+  if (q.includes('使い方') || q.includes('ヘルプ')) {
+    return 'このアプリでは:\n🏠 HOME: お知らせ・動画\n💬 BOARD: 投稿・交流\n✅ TODO: タスク管理\n🤖 AI: 私に相談\n👤 PROFILE: プロフィール確認\nができます！';
+  }
+  
   const responses = [
-    'いい質問ですね！もう少し詳しく教えていただけますか？具体的なアドバイスができると思います。✨',
-    'その悩み、とても大切なことですね。一緒に考えていきましょう！',
-    '素晴らしい視点です！TSSコミュニティの仲間にも相談してみるといいかもしれません。🤝',
-    '一歩一歩前進していけば大丈夫です。今日できることから始めてみましょう！💪'
+    'いい質問ですね！もう少し詳しく教えていただけますか？',
+    '面白い視点ですね。一緒に考えましょう！',
+    'なるほど！他に気になることはありますか？'
   ];
   return responses[Math.floor(Math.random() * responses.length)];
 }
 
-// ========== 統計・ユーティリティ ==========
+// ============ UTILITIES ============
 
-function updateUserStats(userName, field, increment) {
-  const sheet = getUsersSheet();
-  const data = sheet.getDataRange().getValues();
-  
-  const fieldIndex = {
-    'points': 2,
-    'posts': 3,
-    'likesGiven': 4
-  };
-  
-  const colIndex = fieldIndex[field];
-  if (!colIndex) return;
-  
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === userName) {
-      const currentValue = data[i][colIndex] || 0;
-      sheet.getRange(i + 1, colIndex + 1).setValue(currentValue + increment);
-      return;
-    }
-  }
-}
-
-function getStats() {
-  const usersSheet = getUsersSheet();
-  const boardSheet = getBoardSheet();
-  
-  const usersData = usersSheet.getDataRange().getValues();
-  const boardData = boardSheet.getDataRange().getValues();
-  
-  return jsonResponse({
-    totalUsers: Math.max(0, usersData.length - 1),
-    totalPosts: Math.max(0, boardData.length - 1),
-    version: '1.0.0'
-  });
-}
-
-function jsonResponse(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
+function createResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// テスト用
-function testBackend() {
-  console.log('TSS Backend is working!');
-  console.log(getStats().getContent());
+// ============ TEST FUNCTIONS ============
+
+function testSetup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  console.log('Spreadsheet ID:', ss.getId());
+  console.log('Spreadsheet URL:', ss.getUrl());
 }
