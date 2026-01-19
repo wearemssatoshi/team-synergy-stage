@@ -23,6 +23,10 @@ function doPost(e) {
         return handlePost(ss, data);
       case 'addToken':
         return handleAddToken(ss, data);
+      case 'like':
+        return handleLike(ss, data);
+      case 'comment':
+        return handleComment(ss, data);
       default:
         return createResponse({ error: 'Unknown action' });
     }
@@ -47,7 +51,10 @@ function doGet(e) {
       case 'chat':
         const question = e?.parameter?.q || '';
         const userName = e?.parameter?.name || 'User';
-        return askSatoshiAI(question, userName);
+        return askJinseiAI(question, userName);
+      case 'comments':
+        const postId = e?.parameter?.postId || '';
+        return getComments(ss, postId);
       default:
         return getAllData(ss);
     }
@@ -209,44 +216,133 @@ function getAllData(ss) {
   });
 }
 
-// ============ AI CHAT ============
+// ============ POST INTERACTIONS ============
 
-function askSatoshiAI(question, userName) {
+function handleLike(ss, data) {
+  const sheet = ss.getSheetByName('TSS_Posts');
+  if (!sheet) return createResponse({ error: 'Posts sheet not found' });
+  
+  const allData = sheet.getDataRange().getValues();
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][4]) === String(data.postId)) {
+      const currentLikes = allData[i][3] || 0;
+      sheet.getRange(i + 1, 4).setValue(currentLikes + 1);
+      return createResponse({ success: true, likes: currentLikes + 1 });
+    }
+  }
+  return createResponse({ error: 'Post not found' });
+}
+
+function handleComment(ss, data) {
+  let sheet = ss.getSheetByName('TSS_Comments');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Comments');
+    sheet.getRange(1, 1, 1, 5).setValues([['Timestamp', 'PostId', 'Author', 'Content', 'CommentId']]);
+    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+  }
+  
+  const commentId = Date.now();
+  const row = [
+    new Date().toISOString(),
+    data.postId,
+    data.author,
+    data.content,
+    commentId
+  ];
+  
+  sheet.appendRow(row);
+  
+  // Award tokens for commenting
+  addTokensToUser(ss, data.author, 1);
+  
+  return createResponse({ success: true, commentId: commentId, tokensEarned: 1 });
+}
+
+function getComments(ss, postId) {
+  const sheet = ss.getSheetByName('TSS_Comments');
+  if (!sheet) return createResponse({ comments: [] });
+  
+  const data = sheet.getDataRange().getValues();
+  const comments = data.slice(1)
+    .filter(row => String(row[1]) === String(postId))
+    .map(row => ({
+      timestamp: row[0],
+      postId: row[1],
+      author: row[2],
+      content: row[3],
+      commentId: row[4]
+    }));
+  
+  return createResponse({ comments });
+}
+
+// ============ JINSEI AI ============
+
+function askJinseiAI(question, userName) {
   try {
     const GEMINI_API_KEY = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
     
     if (!GEMINI_API_KEY) {
       return createResponse({ 
-        response: generateLocalResponse(question),
+        response: generateJinseiResponse(question),
         source: 'local'
       });
     }
     
-    const systemPrompt = `あなたは「SATOSHI」です。TEAM SYNERGY STAGEのコミュニティメンバーをサポートするAIアシスタントです。
+    const systemPrompt = `あなたは「JINSEI AI」です。TEAM SYNERGY STAGEコミュニティの専属AIアドバイザーとして、仁成（じんせい）氏の「自走型組織づくり」メソッドに基づいたアドバイスを提供します。
 
-## 基本姿勢
-- フレンドリーで親しみやすい態度
-- 建設的で前向きなアドバイス
-- コミュニティの団結を促進
-- 簡潔で分かりやすい回答
+## 仁成メソッドの核心知識
 
-## 対応できるトピック
-- コミュニティ活動のアドバイス
-- チームワーク、コラボレーション
-- モチベーション維持
-- トークンシステムの説明
-- アプリの使い方
+### 自走型組織とは
+- 経営者が指示・命令しなくても社員が自ら考えて行動できる組織
+- チーム全体で「右腕」として機能する組織づくり
+- 個人プレイではなく、チームで協力し力を結集させる
 
-相談者: ${userName}さん
+### 心理的安全性の重要性
+- 人が主体的に行動するには心理的安全性が必須
+- 「無知だと思われる不安」「無能だと思われる不安」を取り除く
+- 失敗しても大丈夫という安心感がチャレンジを生む
 
-回答は200〜300文字程度で簡潔に。`;
+### 承認の力
+- 相手の挑戦や取り組みをまず「認める」ことが大切
+- 叱る前に褒める、結果より過程を評価
+- 心理的安全性を高める最も効果的な方法
+
+### ミッション・ビジョンの重要性
+- 使命があることで「やらされ感」が「やりたい」に変わる
+- 自分たちで決めたミッションだからこそ習慣化しやすい
+- ビジョンに共感する人材が集まる
+
+### 指示待ち組織から自走組織への3ステップ
+1. 経営者が理念を決め、方向性を定める
+2. 共感してくれるチームを募り、中心メンバーを作る
+3. チームビルディングでミッション・ビジョン・行動指針を決める
+
+### 良いリーダーの条件
+- 号令をかけるだけでなく、共感する力を持つ
+- 心理的安全性を確保できる人
+- 発言が多く、仕切り屋にならない人
+
+## 回答ガイドライン
+1. 200〜300文字程度で簡潔に
+2. 相談者の名前で呼びかける（${userName}さん）
+3. 具体的で実践的なアドバイス
+4. 前向きで寄り添う姿勢
+5. 適度に絵文字を使用（控えめに）
+6. 仁成メソッドに基づいた知見を提供
+
+相談者: ${userName}さん`;
 
     const payload = {
       contents: [{
         parts: [{
           text: systemPrompt + '\n\n質問: ' + question
         }]
-      }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 500
+      }
     };
     
     const response = UrlFetchApp.fetch(
@@ -260,7 +356,7 @@ function askSatoshiAI(question, userName) {
     );
     
     const result = JSON.parse(response.getContentText());
-    const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || generateLocalResponse(question);
+    const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || generateJinseiResponse(question);
     
     return createResponse({ 
       response: aiText,
@@ -269,36 +365,48 @@ function askSatoshiAI(question, userName) {
     
   } catch (error) {
     return createResponse({ 
-      response: generateLocalResponse(question),
+      response: generateJinseiResponse(question),
       source: 'local',
       error: error.message
     });
   }
 }
 
-function generateLocalResponse(question) {
+function generateJinseiResponse(question) {
   const q = question.toLowerCase();
   
   if (q.includes('こんにちは') || q.includes('はじめまして')) {
-    return 'こんにちは！TEAM SYNERGY STAGEへようこそ😊 何かお手伝いできることはありますか？';
+    return 'こんにちは！JINSEI AIです😊 人生のこと、仕事のこと、チームのこと、何でも相談してくださいね。一緒に考えましょう！';
   }
   
-  if (q.includes('ありがとう')) {
-    return 'どういたしまして！また気軽に声をかけてくださいね🌟';
+  if (q.includes('ありがとう') || q.includes('感謝')) {
+    return 'どういたしまして！また気軽に話しかけてくださいね。あなたの挑戦を応援しています🌟';
   }
   
-  if (q.includes('トークン') || q.includes('ポイント')) {
-    return 'トークンは活動で獲得できます！\n📝 投稿: +3 TSS\n✅ タスク追加: +1 TSS\n🎯 タスク完了: +2 TSS\n積極的に活動してトークンを貯めましょう！';
+  if (q.includes('チーム') || q.includes('組織') || q.includes('メンバー')) {
+    return '自走型組織を作るコツは「承認」です。メンバーの挑戦をまず認め、心理的安全性を高めること。失敗しても大丈夫という環境があれば、人は自然と主体的になります✨';
   }
   
-  if (q.includes('使い方') || q.includes('ヘルプ')) {
-    return 'このアプリでは:\n🏠 HOME: お知らせ・動画\n💬 BOARD: 投稿・交流\n✅ TODO: タスク管理\n🤖 AI: 私に相談\n👤 PROFILE: プロフィール確認\nができます！';
+  if (q.includes('リーダー') || q.includes('上司') || q.includes('部下')) {
+    return '良いリーダーは号令をかける人ではなく、共感できる人です。メンバー一人ひとりの声に耳を傾け、承認し、巻き込んでいく。そうすることで、チーム全体が自走し始めます🚀';
+  }
+  
+  if (q.includes('やる気') || q.includes('モチベーション') || q.includes('主体性')) {
+    return '主体性を引き出す鍵は「使命」です。自分たちで決めたミッションがあると、「やらされ感」が「やりたい！」に変わります。一緒に目標を作ってみませんか？💪';
+  }
+  
+  if (q.includes('失敗') || q.includes('ミス') || q.includes('不安')) {
+    return '失敗は学びのチャンスです。心理的安全性が高い組織では、失敗を恐れずチャレンジできます。まずあなたの挑戦を認めてくれる人を見つけましょう。きっといるはずです😊';
+  }
+  
+  if (q.includes('トークン') || q.includes('ポイント') || q.includes('TSST')) {
+    return 'TSSトークン(TSST)は活動で獲得できます！\n📝 投稿: +3 TSST\n✅ タスク追加: +1 TSST\n🎯 タスク完了: +2 TSST\n💬 コメント: +1 TSST\n積極的に活動して、コミュニティに貢献しましょう！';
   }
   
   const responses = [
-    'いい質問ですね！もう少し詳しく教えていただけますか？',
-    '面白い視点ですね。一緒に考えましょう！',
-    'なるほど！他に気になることはありますか？'
+    'いい質問ですね！もう少し詳しく教えていただけますか？一緒に考えましょう✨',
+    'なるほど、その悩みは多くの人が持っています。まず「心理的安全性」を意識してみてください。自分を認めてくれる環境があると、人は変われます😊',
+    '素晴らしい視点ですね！自走型組織を作る第一歩は、共感してくれる仲間を見つけること。あなたはすでにその一歩を踏み出していますよ🚀'
   ];
   return responses[Math.floor(Math.random() * responses.length)];
 }
@@ -316,4 +424,5 @@ function testSetup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   console.log('Spreadsheet ID:', ss.getId());
   console.log('Spreadsheet URL:', ss.getUrl());
+  console.log('TSS Backend v2.0 - JINSEI AI Ready');
 }

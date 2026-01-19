@@ -755,10 +755,12 @@
             font-size: 18px;
         }
 
-        /* PROFILE */
-        .profile-header {
-            text-align: center;
-            padding: 20px;
+        /* PROFILE PHOTO UPLOAD */
+        .profile-photo-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
         }
 
         .profile-avatar-large {
@@ -766,7 +768,6 @@
             height: 100px;
             border-radius: 50%;
             background: var(--gradient-primary);
-            margin: 0 auto 16px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -774,6 +775,114 @@
             color: white;
             border: 3px solid white;
             box-shadow: 0 4px 20px var(--primary-glow);
+            overflow: hidden;
+        }
+
+        .profile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .photo-upload-input {
+            display: none;
+        }
+
+        /* COMMENT SECTION */
+        .comments-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--primary);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-author {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .comment-text {
+            font-size: 12px;
+            color: var(--text-dark);
+            margin-top: 2px;
+        }
+
+        .comment-input-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .comment-input-row input {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .comment-submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* VERSION BADGE */
+        .version-badge {
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: var(--text-gray);
+            letter-spacing: 0.1em;
+            padding: 10px;
+            margin-top: 20px;
         }
 
         .profile-name {
@@ -1022,11 +1131,15 @@
             </div>
         </div>
 
-        <!-- PROFILE SCREEN -->
         <div class="screen" id="screen-profile">
             <div class="card">
                 <div class="profile-header">
-                    <div class="profile-avatar-large" id="profileAvatar">👤</div>
+                    <div class="profile-photo-container">
+                        <div class="profile-avatar-large" id="profileAvatar">👤</div>
+                        <label class="photo-upload-btn" for="photoUpload">📷</label>
+                        <input type="file" id="photoUpload" class="photo-upload-input" accept="image/*"
+                            onchange="handlePhotoUpload(event)">
+                    </div>
                     <div class="profile-name" id="profileName">-</div>
                     <div class="profile-role" id="profileRole">-</div>
                 </div>
@@ -1034,7 +1147,7 @@
                 <div class="profile-stats">
                     <div class="profile-stat">
                         <div class="profile-stat-value" id="profileTokens">0</div>
-                        <div class="profile-stat-label">TOKENS</div>
+                        <div class="profile-stat-label">TSST</div>
                     </div>
                     <div class="profile-stat">
                         <div class="profile-stat-value" id="profilePosts">0</div>
@@ -1052,6 +1165,8 @@
                 </div>
 
                 <button class="btn-secondary" onclick="confirmEditProfile()">プロフィールを編集</button>
+
+                <div class="version-badge">TSS v2.0 | Powered by JINSEI AI</div>
             </div>
         </div>
     </main>
@@ -1156,7 +1271,39 @@
             document.getElementById('profileName').textContent = profile.name;
             document.getElementById('profileRole').textContent = profile.role;
             document.getElementById('profileBio').textContent = profile.bio || '自己紹介がありません';
-            document.getElementById('profileAvatar').textContent = profile.name.charAt(0).toUpperCase();
+
+            // Check for profile photo
+            const photoData = localStorage.getItem('tss_profile_photo');
+            const avatarEl = document.getElementById('profileAvatar');
+            if (photoData) {
+                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+            } else {
+                avatarEl.textContent = profile.name.charAt(0).toUpperCase();
+            }
+        }
+
+        // ============ PROFILE PHOTO ============
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 1024 * 1024) {
+                alert('画像サイズは1MB以下にしてください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const photoData = e.target.result;
+                localStorage.setItem('tss_profile_photo', photoData);
+
+                const avatarEl = document.getElementById('profileAvatar');
+                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+
+                showTokenEarned(5, 'Photo Uploaded! 📸');
+                addTokens(5);
+            };
+            reader.readAsDataURL(file);
         }
 
         function updateTokenDisplay() {
@@ -1414,21 +1561,38 @@
 
         function generateLocalResponse(question) {
             const q = question.toLowerCase();
+            const profile = getProfile();
+            const userName = profile?.name || 'あなた';
 
             if (q.includes('こんにちは') || q.includes('はじめまして')) {
-                return 'こんにちは！何かお手伝いできることはありますか？';
+                return `${userName}さん、こんにちは！JINSEI AIです😊 人生のこと、仕事のこと、チームのこと、何でも相談してくださいね。一緒に考えましょう！`;
             }
-            if (q.includes('ありがとう')) {
-                return 'どういたしまして！また何かあれば気軽に聞いてくださいね😊';
+            if (q.includes('ありがとう') || q.includes('感謝')) {
+                return `${userName}さん、どういたしまして！また気軽に話しかけてくださいね。あなたの挑戦を応援しています🌟`;
             }
-            if (q.includes('トークン') || q.includes('ポイント')) {
-                return 'トークンは、投稿やタスク完了で獲得できます！\n・投稿: +3 TSS\n・タスク追加: +1 TSS\n・タスク完了: +2 TSS';
+            if (q.includes('チーム') || q.includes('組織') || q.includes('メンバー')) {
+                return `${userName}さん、自走型組織を作るコツは「承認」です。メンバーの挑戦をまず認め、心理的安全性を高めること。失敗しても大丈夫という環境があれば、人は自然と主体的になります✨`;
+            }
+            if (q.includes('リーダー') || q.includes('上司') || q.includes('部下')) {
+                return `${userName}さん、良いリーダーは号令をかける人ではなく、共感できる人です。メンバー一人ひとりの声に耳を傾け、承認し、巻き込んでいく。そうすることで、チーム全体が自走し始めます🚀`;
+            }
+            if (q.includes('やる気') || q.includes('モチベーション') || q.includes('主体性')) {
+                return `${userName}さん、主体性を引き出す鍵は「使命」です。自分たちで決めたミッションがあると、「やらされ感」が「やりたい！」に変わります。一緒に目標を作ってみませんか？💪`;
+            }
+            if (q.includes('失敗') || q.includes('ミス') || q.includes('不安')) {
+                return `${userName}さん、失敗は学びのチャンスです。心理的安全性が高い組織では、失敗を恐れずチャレンジできます。まずあなたの挑戦を認めてくれる人を見つけましょう。きっといるはずです😊`;
+            }
+            if (q.includes('トークン') || q.includes('ポイント') || q.includes('TSST') || q.includes('tsst')) {
+                return `${userName}さん、TSSTは活動で獲得できます！\n📝 投稿: +3 TSST\n✅ タスク追加: +1 TSST\n🎯 タスク完了: +2 TSST\n📷 写真アップロード: +5 TSST\n积極的に活動して、コミュニティに貢献しましょう！`;
+            }
+            if (q.includes('使い方') || q.includes('ヘルプ')) {
+                return `${userName}さん、このアプリでは:\n🏠 HOME: お知らせ・動画\n💬 BOARD: 投稿・交流\n✅ TODO: タスク管理\n🤖 AI: 私に相談\n👤 PROFILE: プロフィール確認\nができます！`;
             }
 
             const responses = [
-                'いい質問ですね！もう少し詳しく教えてもらえますか？',
-                '面白い視点ですね。一緒に考えましょう！',
-                'なるほど！他に気になることはありますか？'
+                `${userName}さん、いい質問ですね！もう少し詳しく教えていただけますか？一緒に考えましょう✨`,
+                `なるほど、${userName}さん、その悩みは多くの人が持っています。まず「心理的安全性」を意識してみてください。自分を認めてくれる環境があると、人は変われます😊`,
+                `素晴らしい視点ですね！${userName}さん、自走型組織を作る第一歩は、共感してくれる仲間を見つけること。あなたはすでにその一歩を踏み出していますよ🚀`
             ];
             return responses[Math.floor(Math.random() * responses.length)];
         }
