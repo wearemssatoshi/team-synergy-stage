@@ -1008,6 +1008,11 @@
                     <textarea class="text-input" id="inputBio" placeholder="あなたのことを教えてください"></textarea>
                 </div>
 
+                <div class="input-group">
+                    <label class="input-label">3年後の自分は？</label>
+                    <textarea class="text-input" id="inputFuture" placeholder="3年後、どんな自分になっていたい？"></textarea>
+                </div>
+
                 <button class="btn-main" id="registerBtn" onclick="register()" disabled>JOIN COMMUNITY</button>
             </div>
         </div>
@@ -1163,7 +1168,7 @@
                 <div class="profile-stats">
                     <div class="profile-stat">
                         <div class="profile-stat-value" id="profileTokens">0</div>
-                        <div class="profile-stat-label">TSST</div>
+                        <div class="profile-stat-label">トークン</div>
                     </div>
                     <div class="profile-stat">
                         <div class="profile-stat-value" id="profilePosts">0</div>
@@ -1179,10 +1184,14 @@
                     <div class="profile-section-title">BIO</div>
                     <div class="profile-bio" id="profileBio">-</div>
                 </div>
+                <div class="profile-section">
+                    <div class="profile-section-title">3年後の自分は？</div>
+                    <div class="profile-bio" id="profileFuture">-</div>
+                </div>
 
                 <button class="btn-secondary" onclick="confirmEditProfile()">プロフィールを編集</button>
 
-                <div class="version-badge">TSS v2.0 | Powered by JINSEI AI</div>
+                <div class="version-badge">TSS v2.0 | Powered by ITO JINSEI</div>
             </div>
         </div>
     </main>
@@ -1190,23 +1199,23 @@
     <nav id="mainNav" style="display: none;">
         <div class="nav-container">
             <div class="nav-item active" onclick="showScreen('screen-home')">
-                <span class="nav-icon">🏠</span>
+                <span class="nav-icon">○</span>
                 <span class="nav-label">HOME</span>
             </div>
             <div class="nav-item" onclick="showScreen('screen-board')">
-                <span class="nav-icon">💬</span>
+                <span class="nav-icon">□</span>
                 <span class="nav-label">BOARD</span>
             </div>
             <div class="nav-item" onclick="showScreen('screen-todo')">
-                <span class="nav-icon">✅</span>
+                <span class="nav-icon">☐</span>
                 <span class="nav-label">TODO</span>
             </div>
             <div class="nav-item" onclick="showScreen('screen-ai')">
-                <span class="nav-icon">🤖</span>
+                <span class="nav-icon">◇</span>
                 <span class="nav-label">AI</span>
             </div>
             <div class="nav-item" onclick="showScreen('screen-profile')">
-                <span class="nav-icon">👤</span>
+                <span class="nav-icon">◯</span>
                 <span class="nav-label">PROFILE</span>
             </div>
         </div>
@@ -1257,12 +1266,14 @@
             const name = document.getElementById('inputName').value.trim();
             const role = document.getElementById('inputRole').value.trim() || 'メンバー';
             const bio = document.getElementById('inputBio').value.trim() || '';
+            const future = document.getElementById('inputFuture').value.trim() || '';
 
             if (name) {
                 const profile = {
                     name,
                     role,
                     bio,
+                    future,
                     tokens: 10, // Welcome bonus
                     joinedAt: new Date().toISOString()
                 };
@@ -1287,6 +1298,7 @@
             document.getElementById('profileName').textContent = profile.name;
             document.getElementById('profileRole').textContent = profile.role;
             document.getElementById('profileBio').textContent = profile.bio || '自己紹介がありません';
+            document.getElementById('profileFuture').textContent = profile.future || '未設定';
 
             // Check for profile photo
             const photoData = localStorage.getItem('tss_profile_photo');
@@ -1545,7 +1557,7 @@
         }
 
         // ============ AI CHAT ============
-        function sendChat() {
+        async function sendChat() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             if (!message) return;
@@ -1554,11 +1566,39 @@
             addChatMessage('user', message);
             input.value = '';
 
-            // Simulate AI response (can be replaced with actual API call)
-            setTimeout(() => {
-                const response = generateLocalResponse(message);
-                addChatMessage('ai', response);
-            }, 1000);
+            // Show typing indicator
+            addChatMessage('ai', '考え中...');
+
+            try {
+                // Try to call GAS backend with Gemini 3 Flash
+                if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_GAS_URL_HERE') {
+                    const profile = getProfile();
+                    const userName = profile?.name || 'User';
+                    const response = await fetch(`${SCRIPT_URL}?action=chat&q=${encodeURIComponent(message)}&name=${encodeURIComponent(userName)}`);
+                    const data = await response.json();
+
+                    // Remove typing indicator and show response
+                    removeLastAIMessage();
+                    addChatMessage('ai', data.response || generateLocalResponse(message));
+                } else {
+                    // Use local response if no GAS URL configured
+                    removeLastAIMessage();
+                    const response = generateLocalResponse(message);
+                    addChatMessage('ai', response);
+                }
+            } catch (error) {
+                console.error('AI Error:', error);
+                removeLastAIMessage();
+                addChatMessage('ai', generateLocalResponse(message));
+            }
+        }
+
+        function removeLastAIMessage() {
+            const container = document.getElementById('chatContainer');
+            const messages = container.querySelectorAll('.chat-message.ai');
+            if (messages.length > 0) {
+                messages[messages.length - 1].remove();
+            }
         }
 
         function addChatMessage(type, message) {
