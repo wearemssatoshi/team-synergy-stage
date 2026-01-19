@@ -463,13 +463,25 @@
                     CONTENT</label>
                 <textarea id="announcementContent" rows="4"
                     style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; resize: vertical;"
-                    placeholder="アナウンスメントの内容を入力..."></textarea>
-            </div>
-            <button onclick="postAnnouncement()"
-                style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">📢
+                    <button onclick="postAnnouncement()"
+                    style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">📢
                 POST ANNOUNCEMENT</button>
             <p style="margin-top: 10px; font-size: 11px; color: var(--text-gray);">※ 投稿されたアナウンスメントはメインアプリのHOME画面に表示されます
             </p>
+        </div>
+
+        <!-- YOUTUBE SETTINGS -->
+        <div class="section">
+            <div class="section-title">🎬 YOUTUBE SETTINGS</div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 5px; letter-spacing: 0.1em;">VIDEO ID</label>
+                <input type="text" id="youtubeVideoId" class="text-input" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px;" placeholder="YouTube Video ID (e.g. dQw4w9WgXcQ)">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 5px; letter-spacing: 0.1em;">CAPTION / キャプション</label>
+                <input type="text" id="youtubeCaptionInput" class="text-input" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px;" placeholder="キャプションを入力...">
+            </div>
+            <button onclick="saveYouTubeSettings()" style="background: var(--navy); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">SAVE SETTINGS</button>
         </div>
     </main>
 
@@ -593,8 +605,43 @@
             ]);
         }
 
+        // ============ YOUTUBE SETTINGS ============
+        function loadYouTubeSettings() {
+            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
+            document.getElementById('youtubeVideoId').value = settings.videoId || '';
+            document.getElementById('youtubeCaptionInput').value = settings.caption || '';
+        }
+
+        function saveYouTubeSettings() {
+            const videoId = document.getElementById('youtubeVideoId').value.trim();
+            const caption = document.getElementById('youtubeCaptionInput').value.trim();
+
+            if (!videoId) {
+                alert('Video ID is required');
+                return;
+            }
+
+            const settings = {
+                videoId: videoId,
+                caption: caption
+            };
+
+            localStorage.setItem('tss_youtube_settings', JSON.stringify(settings));
+
+            // Add to activity feed
+            renderActivity([
+                { type: 'post', user: 'TSS運営', action: 'がYouTube設定を更新しました', time: 'たった今' },
+                ...JSON.parse(localStorage.getItem('tss_activity') || '[]')
+            ]);
+
+            alert('✅ YouTube設定を保存しました！\nメインアプリのHOME画面に反映されます。');
+        }
+
         // ============ INIT ============
-        document.addEventListener('DOMContentLoaded', loadData);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            loadYouTubeSettings();
+        });
     </script>
 </body>
 

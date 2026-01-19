@@ -336,10 +336,11 @@
             background: var(--light-gray);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 14px 16px;
+            padding: 12px 14px;
             color: var(--text-dark);
             font-family: 'Inter', sans-serif;
-            font-size: 15px;
+            font-size: 13px;
+            /* Smaller font size as requested */
         }
 
         .text-input::placeholder {
@@ -1019,16 +1020,15 @@
 
         <!-- HOME SCREEN -->
         <div class="screen" id="screen-home">
-            <div class="section-title">🎥 FEATURED VIDEO</div>
+            <div class="section-title">🎬 FEATURED VIDEO</div>
             <div class="card">
-                <div class="youtube-container">
-                    <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" title="TEAM SYNERGY STAGE"
+                <div class="youtube-container" id="youtubeContainer">
+                    <iframe id="youtubeEmbed" src="" title="TEAM SYNERGY STAGE"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
                 </div>
-                <p style="text-align: center; font-size: 13px; color: var(--text-gray);">
-                    SATプロデュース - TEAM SYNERGY STAGE オリジナル楽曲
-                </p>
+                <p id="youtubeCaption"
+                    style="text-align: center; font-size: 12px; color: var(--text-gray); margin-top: 8px;"></p>
             </div>
 
             <div class="section-title">📢 ANNOUNCEMENTS</div>
@@ -1199,23 +1199,23 @@
     <nav id="mainNav" style="display: none;">
         <div class="nav-container">
             <div class="nav-item active" onclick="showScreen('screen-home')">
-                <span class="nav-icon">○</span>
+                <span class="nav-icon">⌂</span>
                 <span class="nav-label">HOME</span>
             </div>
             <div class="nav-item" onclick="showScreen('screen-board')">
-                <span class="nav-icon">□</span>
+                <span class="nav-icon">≡</span>
                 <span class="nav-label">BOARD</span>
             </div>
             <div class="nav-item" onclick="showScreen('screen-todo')">
-                <span class="nav-icon">☐</span>
+                <span class="nav-icon">✓</span>
                 <span class="nav-label">TODO</span>
             </div>
             <div class="nav-item" onclick="showScreen('screen-ai')">
-                <span class="nav-icon">◇</span>
+                <span class="nav-icon">◈</span>
                 <span class="nav-label">AI</span>
             </div>
             <div class="nav-item" onclick="showScreen('screen-profile')">
-                <span class="nav-icon">◯</span>
+                <span class="nav-icon">●</span>
                 <span class="nav-label">PROFILE</span>
             </div>
         </div>
@@ -1261,6 +1261,97 @@
         }
 
         document.getElementById('inputName').addEventListener('input', validateRegistration);
+
+        // ============ PROFILE EDIT ============
+        function confirmEditProfile() {
+            const profile = getProfile();
+            if (!profile) return;
+
+            // Create edit modal
+            const modal = document.createElement('div');
+            modal.id = 'editProfileModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); display: flex; align-items: center;
+                justify-content: center; z-index: 10000;
+            `;
+
+            modal.innerHTML = `
+                <div class="register-card" style="width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto;">
+                    <div class="register-title" style="font-size: 18px;">EDIT PROFILE</div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">YOUR NAME</label>
+                        <input type="text" class="text-input" id="editName" value="${escapeHtml(profile.name)}">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">ROLE / 役割</label>
+                        <input type="text" class="text-input" id="editRole" value="${escapeHtml(profile.role)}">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">BIO / 自己紹介</label>
+                        <textarea class="text-input" id="editBio" rows="3">${escapeHtml(profile.bio || '')}</textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">3年後の自分は？</label>
+                        <textarea class="text-input" id="editFuture" rows="3">${escapeHtml(profile.future || '')}</textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" onclick="document.getElementById('editProfileModal').remove()">CANCEL</button>
+                        <button class="btn-main" onclick="saveProfileEdit()">SAVE</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function saveProfileEdit() {
+            const name = document.getElementById('editName').value.trim();
+            const role = document.getElementById('editRole').value.trim();
+            const bio = document.getElementById('editBio').value.trim();
+            const future = document.getElementById('editFuture').value.trim();
+
+            if (!name) {
+                alert('名前は必須です');
+                return;
+            }
+
+            const profile = getProfile();
+            profile.name = name;
+            profile.role = role || 'メンバー';
+            profile.bio = bio;
+            profile.future = future;
+
+            localStorage.setItem('tss_profile', JSON.stringify(profile));
+            showUserBadge(profile);
+
+            document.getElementById('editProfileModal').remove();
+            alert('プロフィールを更新しました！✨');
+        }
+
+        // ============ YOUTUBE ============
+        function loadYouTubeSettings() {
+            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
+            const iframe = document.getElementById('youtubeEmbed');
+            const caption = document.getElementById('youtubeCaption');
+
+            // Default video if none set
+            const defaultVideoId = 'YOUR_VIDEO_ID';
+            const videoId = settings.videoId || defaultVideoId;
+
+            iframe.src = `https://www.youtube.com/embed/${videoId}`;
+            caption.textContent = settings.caption || '';
+
+            if (!settings.caption) {
+                caption.style.display = 'none';
+            } else {
+                caption.style.display = 'block';
+            }
+        }
 
         function register() {
             const name = document.getElementById('inputName').value.trim();
@@ -1315,8 +1406,8 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            if (file.size > 1024 * 1024) {
-                alert('画像サイズは1MB以下にしてください');
+            if (file.size > 2 * 1024 * 1024) {
+                alert('画像サイズは2MB以下にしてください');
                 return;
             }
 
@@ -1855,6 +1946,7 @@
                 }
             }
 
+            loadYouTubeSettings();
             originalInit();
             initAnnouncementInteractions();
 
