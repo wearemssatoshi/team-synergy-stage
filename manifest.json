@@ -1,0 +1,22 @@
+{
+    "name": "TEAM SYNERGY STAGE",
+    "short_name": "TSS",
+    "description": "応援し合うコミュニティアプリ / Support Each Other - Grow Together",
+    "start_url": "./TSS.html",
+    "display": "standalone",
+    "background_color": "#FAFAFA",
+    "theme_color": "#6366F1",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "logo/TSS_icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "logo/TSS_icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
