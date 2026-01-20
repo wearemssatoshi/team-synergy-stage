@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSS PERFECT SYNERGY - V3 STUDIO</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s;
+        }
+
+        #btnStart {
+            padding: 20px 60px;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Helvetica', sans-serif;
+            background: #D4AF37;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.6);
+            transition: all 0.3s;
+        }
+
+        #btnStart:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 80px rgba(212, 175, 55, 1);
+        }
+
+        /* Control Bar */
+        #controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            /* Let clicks pass specific buttons will re-enable */
+        }
+
+        #controls>* {
+            pointer-events: auto;
+        }
+
+        button.ctrl-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            font-family: monospace;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.ctrl-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #seekBar {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+    <div id="start-overlay">
+        <button id="btnStart">OPEN STUDIO</button>
+    </div>
+
+    <div id="controls">
+        <button id="btnPlayPause" class="ctrl-btn" style="width: 40px;">⏸</button>
+        <input type="range" id="seekBar" min="0" max="1" step="0.001" value="0">
+        <div id="timeDisplay" style="color: #fff; font-family: monospace; width: 60px;">00:00</div>
+        <button id="btnGB" class="ctrl-btn" style="border-color: #0f0; color: #0f0;">GB MODE</button>
+        <button id="btnRecord" class="ctrl-btn" style="background: #D00; border-color: #F00;">REC & DL</button>
+    </div>
+
+    <audio id="music" src="./the-synergy-stage.mp3" preload="auto"></audio>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
+        import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+        import { RGBShiftShader } from 'three/addons/shaders/RGBShiftShader.js';
+        import gsap from 'https://unpkg.com/gsap@3.12.5/index.js';
+
+        // --- ASSETS INJECTION POINT ---
+        const ASSETS = {
+            TITLE: "__TITLE_IMG__",
+            VERSE1: "__VERSE1_IMG__",
+            CHORUS1: "__CHORUS1_IMG__",
+            BRIDGE: "__BRIDGE_IMG__",
+            OUTRO: "__OUTRO_IMG__"
+        };
+
+        const LYRICS = [
+            { time: 9.55, text: "ずっと1人だった", scene: "VERSE1" },
+            { time: 11.64, text: "ずっとがんばってここまできた" },
+            { time: 15.17, text: "だけどなにかが足りない気がして\nもがいてた" },
+            { time: 19.29, text: "次々にスターへと\n駆け上がる人" },
+            { time: 21.81, text: "私もいつかと\n必死でくらいついてきた" },
+            { time: 25.3, text: "もう少しで届きそうな\n気がしてたんだ" },
+            { time: 28.81, text: "そしてわかった\nそして出会えた", scene: "CHORUS1" },
+            { time: 33.51, text: "足りない何かは\n仲間だったこと" },
+            { time: 38.21, text: "手を伸ばした\n先のむこうに" },
+            { time: 40.6, text: "しっかりと掴んでくれる\n安心感" },
+            { time: 43.49, text: "仲間と一緒に\n生み出すシナジー", isChorus: true },
+            { time: 47.14, text: "ずっと孤独だった", scene: "VERSE1" },
+            { time: 49.57, text: "ずっと家族にも\n理解されなかった" },
+            { time: 52.22, text: "そろそろ会社に戻ったらなんて\n言われて悔しかった" },
+            { time: 57, text: "キラキラと見えた世界には\n嫉妬や" },
+            { time: 59.97, text: "欲望が渦巻いていた\nそれでも" },
+            { time: 61.79, text: "もう少しで抜け出せそうな\n気がしたんだ" },
+            { time: 66.24, text: "そしてわかった\nそして出会えた", scene: "CHORUS1" },
+            { time: 70.33, text: "踏み出さなければ\n出会えなかった" },
+            { time: 75.45, text: "何度も流した\n涙はきっと" },
+            { time: 78.18, text: "ここにいるみんなと\n出会うための時間" },
+            { time: 81.22, text: "仲間と一緒に\n生み出すシナジー", isChorus: true },
+            { time: 85.92, text: "TSS\nこれからもずっと", isSpecial: true, scene: "BRIDGE" }, // Bridge
+            { time: 88, text: "TSS\n傷を舐め合うんじゃない", isSpecial: true },
+            { time: 90.55, text: "TSS\nプロフェッショナルとしての\nシナジー", isSpecial: true },
+            { time: 95.29, text: "TSS\nいつまでもずっと", isSpecial: true },
+            { time: 97.59, text: "TSS\n夢語り合い\n叶えてくシナジー", isSpecial: true },
+
+            // --- INTERLUDE CLEAR (FIXED) ---
+            { time: 103.00, text: "" },
+
+            { time: 122.26, text: "そしてわかった\nそして出会えた", scene: "CHORUS1" }, // Last Chorus
+            { time: 127.69, text: "踏み出さなければ\n変わらなかった" },
+            { time: 132.39, text: "何度も流した\n涙はきっと" },
+            { time: 134.56, text: "今ここから起こす奇跡\n手繰り寄せるため" },
+            { time: 137.62, text: "仲間と一緒に\n生み出すシナジー", isChorus: true },
+            { time: 141.77, text: "TSS\nこれからもずっと", isSpecial: true, scene: "OUTRO" }, // Outro
+            { time: 144.72, text: "TSS\n傷を舐め合うんじゃない", isSpecial: true },
+            { time: 147.06, text: "TSS\nプロフェッショナルとしての\nシナジー", isSpecial: true },
+            { time: 151.67, text: "TSS\nいつまでもずっと", isSpecial: true },
+            { time: 154.1, text: "TSS\n夢語り合い\n叶えてくシナジー", isSpecial: true },
+            { time: 162.17, text: "TSS\nこれからはずっと", isSpecial: true },
+            { time: 164.35, text: "TSS\n夢物語なんかじゃない", isSpecial: true },
+            { time: 166.02, text: "TSS\n世界を変えていく\nシナジー", isSpecial: true },
+            { time: 170.58, text: "TSS\nいつまでもずっと", isSpecial: true },
+            { time: 172.9, text: "TSS\n夢語り合い\n叶えてくシナジー", isSpecial: true },
+
+            // --- END CLEAR ---
+            { time: 178.00, text: "" }
+        ];
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true }); // Enable drawing buffer for capture
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        // --- BACKGROUND PLANE (THE WORLD) ---
+        const bgGeometry = new THREE.PlaneGeometry(60, 35);
+        const bgMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff, transparent: true, opacity: 0.5,
+            blending: THREE.NormalBlending
+        });
+        const bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+        bgMesh.position.z = -15;
+        scene.add(bgMesh);
+
+        // Texture Loader Helper
+        const textureLoader = new THREE.TextureLoader();
+        const loadedTextures = {
+            TITLE: textureLoader.load(ASSETS.TITLE),
+            VERSE1: textureLoader.load(ASSETS.VERSE1),
+            CHORUS1: textureLoader.load(ASSETS.CHORUS1),
+            BRIDGE: textureLoader.load(ASSETS.BRIDGE),
+            OUTRO: textureLoader.load(ASSETS.OUTRO)
+        };
+        bgMaterial.map = loadedTextures.TITLE;
+
+        // --- POST PROCESSING ---
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+
+        // 1. Bloom
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.1;
+        bloomPass.strength = 0.3; // Very subtle
+        bloomPass.radius = 0.5;
+        composer.addPass(bloomPass);
+
+        // 2. Film Grain
+        const filmPass = new FilmPass(0.35, 0.025, 648, false);
+        composer.addPass(filmPass);
+
+        // 3. RGB Shift
+        const rgbShift = new ShaderPass(RGBShiftShader);
+        rgbShift.uniforms['amount'].value = 0.0015;
+        composer.addPass(rgbShift);
+
+        // --- TEXT GENERATOR ---
+        function createTextTexture(text, isSpecial) {
+            if (!text) return null; // Wait... handling empty string
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const W = 2048; const H = 1024;
+            canvas.width = W; canvas.height = H;
+
+            // Clear
+            ctx.clearRect(0, 0, W, H);
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const fontSize = isSpecial ? 120 : 90;
+            ctx.font = `900 ${fontSize}px "Hiragino Mincho ProN", serif`;
+
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 4;
+            ctx.shadowOffsetY = 4;
+
+            const lines = text.split('\n');
+            lines.forEach((line, i) => {
+                const y = (H / 2) - ((lines.length - 1) * fontSize / 2) + (i * fontSize * 1.4);
+                const grad = ctx.createLinearGradient(0, y - 50, 0, y + 50);
+                if (isSpecial) {
+                    grad.addColorStop(0, '#FBF5B7');
+                    grad.addColorStop(0.5, '#BF953F');
+                    grad.addColorStop(1, '#AA771C');
+                } else {
+                    grad.addColorStop(0, '#FFFFFF');
+                    grad.addColorStop(1, '#DDDDDD');
+                }
+                ctx.fillStyle = grad;
+                ctx.fillText(line, W / 2, y);
+
+                ctx.shadowColor = 'transparent';
+                ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeText(line, W / 2, y);
+            });
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // --- CONTROLS & STATE ---
+        const music = document.getElementById('music');
+        let currentIndex = 0;
+        let currentText = null;
+        let isGBMode = false;
+
+        // Elements
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const seekBar = document.getElementById('seekBar');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const btnGB = document.getElementById('btnGB');
+        const btnRecord = document.getElementById('btnRecord');
+
+        // Play/Pause
+        btnPlayPause.addEventListener('click', () => {
+            if (music.paused) { music.play(); btnPlayPause.innerText = "⏸"; }
+            else { music.pause(); btnPlayPause.innerText = "▶"; }
+        });
+
+        // Seek
+        seekBar.addEventListener('input', (e) => {
+            const t = music.duration * e.target.value;
+            music.currentTime = t;
+            resetToTime(t);
+        });
+
+        // GB Toggle
+        btnGB.addEventListener('click', () => {
+            toggleGBMode();
+        });
+
+        function toggleGBMode() {
+            isGBMode = !isGBMode;
+            if (isGBMode) {
+                bgMesh.visible = false;
+                renderer.setClearColor(0x00FF00);
+                bloomPass.enabled = false;
+                filmPass.enabled = false;
+                rgbShift.enabled = false;
+                btnGB.innerText = "EXIT GB";
+                btnGB.style.background = "#0f0";
+                btnGB.style.color = "#000";
+            } else {
+                bgMesh.visible = true;
+                renderer.setClearColor(0x000000);
+                bloomPass.enabled = true;
+                filmPass.enabled = true;
+                rgbShift.enabled = true;
+                btnGB.innerText = "GB MODE";
+                btnGB.style.background = "transparent";
+                btnGB.style.color = "#0f0";
+            }
+        }
+
+        function resetToTime(time) {
+            if (currentText) { scene.remove(currentText); currentText = null; }
+
+            let foundIdx = -1;
+            for (let i = 0; i < LYRICS.length; i++) {
+                if (LYRICS[i].time <= time) foundIdx = i;
+            }
+
+            currentIndex = foundIdx + 1;
+
+            // Should we spawn the found one? Only if within 5s duration roughly
+            if (foundIdx >= 0) {
+                const lyric = LYRICS[foundIdx];
+                let duration = 999;
+                if (foundIdx < LYRICS.length - 1) {
+                    duration = LYRICS[foundIdx + 1].time - lyric.time;
+                }
+                if (time - lyric.time < duration) {
+                    spawnLyric(lyric, true);
+                }
+            }
+        }
+
+        // --- ANIMATION ENGINE ---
+        function spawnLyric(data, immediate = false) {
+            if (data.scene && !isGBMode) transitionBackground(data.scene);
+
+            // Remove old
+            if (currentText) {
+                const old = currentText;
+                if (immediate) scene.remove(old);
+                else {
+                    gsap.to(old.material, { opacity: 0, duration: 0.5 });
+                    gsap.to(old.position, { y: 5, duration: 0.8, ease: "power2.in", onComplete: () => scene.remove(old) });
+                }
+            }
+
+            if (data.text === "") { // Clear event
+                currentText = null;
+                return;
+            }
+
+            const tex = createTextTexture(data.text, data.isSpecial);
+            if (!tex) return;
+
+            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: immediate ? 1 : 0 });
+            const geom = new THREE.PlaneGeometry(30, 15);
+            const mesh = new THREE.Mesh(geom, mat);
+
+            mesh.position.set(0, 0, 0); // Center
+            if (!immediate) mesh.position.y = -2;
+
+            scene.add(mesh);
+            currentText = mesh;
+
+            if (!immediate) {
+                gsap.to(mesh.material, { opacity: 1, duration: 0.3 });
+                gsap.to(mesh.position, { y: 0, duration: 0.8, ease: "expo.out" });
+
+                if ((data.isSpecial || data.isChorus) && !isGBMode) {
+                    camera.position.z = 28;
+                    gsap.to(camera.position, { z: 30, duration: 2, ease: "power1.out" });
+                }
+            }
+        }
+
+        function transitionBackground(sceneKey) {
+            if (!loadedTextures[sceneKey] || isGBMode) return;
+            bgMaterial.map = loadedTextures[sceneKey];
+            gsap.fromTo(rgbShift.uniforms['amount'], { value: 0.05 }, { value: 0.0015, duration: 0.5 });
+        }
+
+        // --- RECORDER ---
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        btnRecord.addEventListener('click', startRecording);
+
+        function startRecording() {
+            if (!confirm("Start recording? Audio will restart.")) return;
+
+            music.currentTime = 0;
+            resetToTime(0);
+
+            const canvasStream = renderer.domElement.captureStream(60);
+            let finalStream = canvasStream;
+
+            // Try audio capture
+            if (music.captureStream) {
+                const audioStream = music.captureStream();
+                finalStream = new MediaStream([...canvasStream.getTracks(), ...audioStream.getTracks()]);
+            } else if (music.mozCaptureStream) {
+                const audioStream = music.mozCaptureStream();
+                finalStream = new MediaStream([...canvasStream.getTracks(), ...audioStream.getTracks()]);
+            }
+
+            const options = { mimeType: 'video/webm; codecs=vp9' };
+            recordedChunks = [];
+            try {
+                mediaRecorder = new MediaRecorder(finalStream, options);
+            } catch (e) {
+                mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm; codecs=vp8' });
+            }
+
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = saveVideo;
+
+            mediaRecorder.start();
+            btnRecord.innerText = "REC...";
+            btnRecord.style.background = "#500";
+
+            music.play();
+
+            music.addEventListener('ended', stopRecording);
+        }
+
+        function stopRecording() {
+            music.removeEventListener('ended', stopRecording);
+            if (mediaRecorder.state === 'recording') mediaRecorder.stop();
+            btnRecord.innerText = "SAVING...";
+        }
+
+        function saveVideo() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'TSS_PV_Final.webm';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                btnRecord.innerText = "REC & DL";
+                btnRecord.style.background = "#D00";
+            }, 100);
+        }
+
+
+        // --- MAIN LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const t = clock.getElapsedTime();
+
+            // UI Update
+            if (!music.paused) {
+                const cur = music.currentTime;
+                const dur = music.duration;
+                if (dur) {
+                    seekBar.value = cur / dur;
+                    const m = Math.floor(cur / 60);
+                    const s = Math.floor(cur % 60);
+                    timeDisplay.innerText = `${m}:${s.toString().padStart(2, '0')}`;
+                }
+                if (currentIndex < LYRICS.length) {
+                    if (cur >= LYRICS[currentIndex].time) {
+                        spawnLyric(LYRICS[currentIndex]);
+                        currentIndex++;
+                    }
+                }
+            }
+
+            // Render
+            if (!isGBMode) {
+                bgMesh.position.x = Math.sin(t * 0.2) * 0.5;
+                bgMesh.position.y = Math.cos(t * 0.2) * 0.5;
+                composer.render();
+            } else {
+                renderer.render(scene, camera);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        document.getElementById('btnStart').addEventListener('click', () => {
+            document.getElementById('start-overlay').style.opacity = 0;
+            setTimeout(() => document.getElementById('start-overlay').remove(), 1000);
+            document.getElementById('controls').style.opacity = 1;
+            music.play();
+            animate();
+        });
+
+    </script>
+</body>
+
+</html>

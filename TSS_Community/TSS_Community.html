@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TEAM SYNERGY STAGE</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TSS">
+    <link rel="apple-touch-icon" sizes="180x180" href="logo/tss_icon.png">
+    <link rel="icon" type="image/png" href="logo/tss_icon.png">
+    <link rel="manifest" href="manifest.json">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --white: #FFFFFF;
+            --off-white: #FAFAFA;
+            --light-gray: #F5F5F5;
+            --primary: #6B5CE7;
+            --primary-dark: #5243C2;
+            --primary-light: rgba(107, 92, 231, 0.15);
+            --primary-glow: rgba(107, 92, 231, 0.3);
+            --accent: #FF6B9D;
+            --accent-light: rgba(255, 107, 157, 0.15);
+            --text-dark: #1A1A2E;
+            --text-gray: #6B7B8C;
+            --border: rgba(26, 26, 46, 0.1);
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gradient-primary: linear-gradient(135deg, #6B5CE7, #FF6B9D);
+            --gradient-dark: linear-gradient(135deg, #1A1A2E, #2D2D44);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--off-white);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .logo-container {
+            margin-bottom: 8px;
+        }
+
+        .logo-container img {
+            height: 45px;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-sub {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: var(--primary);
+            letter-spacing: 0.25em;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .user-badge {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            color: var(--text-gray);
+            margin-top: 10px;
+            padding: 5px 14px;
+            background: var(--light-gray);
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* TOKEN SYSTEM */
+        .token-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            padding: 6px 14px;
+            border-radius: 25px;
+            margin-top: 10px;
+            margin-left: 8px;
+        }
+
+        .token-icon {
+            font-size: 16px;
+            animation: coinSpin 3s linear infinite;
+        }
+
+        @keyframes coinSpin {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+        }
+
+        .token-balance {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--primary);
+        }
+
+        .token-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            color: var(--text-gray);
+        }
+
+        /* TOKEN EARNED ANIMATION */
+        .token-earned-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .token-earned-badge {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 30px;
+            background: var(--gradient-dark);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            box-shadow: 0 0 30px var(--primary-glow);
+            animation: tokenPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes tokenPulse {
+            0%, 100% { box-shadow: 0 0 20px var(--primary-glow); }
+            50% { box-shadow: 0 0 40px var(--primary), 0 0 60px var(--primary-glow); }
+        }
+
+        .token-earned-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            animation: tokenBounce 0.6s ease-out;
+        }
+
+        @keyframes tokenBounce {
+            0% { transform: scale(0) rotate(-45deg); }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+
+        .token-earned-amount {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .token-earned-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 4px;
+        }
+
+        main {
+            flex-grow: 1;
+            padding: 22px;
+            overflow-y: auto;
+            padding-bottom: 120px;
+            position: relative;
+            z-index: 0;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: var(--primary);
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .section-title::before,
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-dark);
+        }
+
+        .card-title .icon {
+            font-size: 18px;
+        }
+
+        /* REGISTRATION */
+        .register-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px 25px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .register-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .register-sub {
+            font-size: 13px;
+            color: var(--text-gray);
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: var(--primary);
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 600;
+        }
+
+        .text-input {
+            width: 100%;
+            background: var(--light-gray);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+        }
+
+        .text-input::placeholder {
+            color: var(--text-gray);
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea.text-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        /* BUTTONS */
+        .btn-main {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.1em;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            transition: all 0.2s;
+            margin-top: 18px;
+        }
+
+        .btn-main:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-main:hover:not(:disabled) {
+            box-shadow: 0 6px 25px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-main:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-gray);
+            padding: 11px;
+            border-radius: 50px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* NAVIGATION */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 10px 0;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            z-index: 10000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            color: var(--text-gray);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: 3px;
+        }
+
+        .nav-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            letter-spacing: 0.08em;
+            font-weight: 500;
+        }
+
+        /* YOUTUBE SECTION */
+        .youtube-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .youtube-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 12px;
+        }
+
+        /* BOARD / POSTS */
+        .post-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .post-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .post-meta {
+            flex: 1;
+        }
+
+        .post-author {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-dark);
+        }
+
+        .post-time {
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+
+        .post-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .post-action:hover {
+            color: var(--primary);
+        }
+
+        /* TO-DO LIST */
+        .todo-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .todo-tab {
+            flex: 1;
+            padding: 10px;
+            background: var(--light-gray);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .todo-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+        }
+
+        .todo-content {
+            display: none;
+        }
+
+        .todo-content.active {
+            display: block;
+        }
+
+        .todo-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .todo-input-row input {
+            flex: 1;
+        }
+
+        .todo-add-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--light-gray);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .todo-item.completed {
+            opacity: 0.5;
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+        }
+
+        .todo-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .todo-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .todo-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .todo-delete {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .todo-delete:hover {
+            color: var(--danger);
+        }
+
+        .todo-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-gray);
+            font-size: 13px;
+        }
+
+        /* AI CHAT */
+        .chat-container {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .chat-message {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-message.ai {
+            flex-direction: row;
+        }
+
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .chat-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .chat-message.ai .chat-avatar {
+            background: var(--gradient-primary);
+        }
+
+        .chat-message.user .chat-avatar {
+            background: var(--text-dark);
+        }
+
+        .chat-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .chat-message.ai .chat-bubble {
+            background: white;
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.user .chat-bubble {
+            background: var(--gradient-primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+        }
+
+        .chat-send-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            width: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* PROFILE */
+        .profile-header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 4px 20px var(--primary-glow);
+        }
+
+        .profile-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .profile-role {
+            font-size: 13px;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .profile-stat {
+            text-align: center;
+            padding: 16px;
+            background: var(--light-gray);
+            border-radius: 12px;
+        }
+
+        .profile-stat-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .profile-stat-label {
+            font-size: 10px;
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+
+        .profile-section {
+            margin-top: 20px;
+        }
+
+        .profile-section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            color: var(--primary);
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .profile-bio {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--light-gray);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        /* LOADING */
+        .loading {
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="logo/tss_logo.png" alt="TSS Logo" onerror="this.style.display='none'">
+        </div>
+        <h1>TEAM SYNERGY STAGE</h1>
+        <div class="header-sub">COMMUNITY APP</div>
+        <div class="user-badge" id="userBadge" style="display: none;"></div>
+        <div class="token-display" id="tokenDisplay" style="display: none;">
+            <span class="token-icon">💎</span>
+            <span class="token-balance" id="tokenBalance">0</span>
+            <span class="token-label">TSS</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- REGISTER SCREEN -->
+        <div class="screen active" id="screen-register">
+            <div class="register-card">
+                <div class="register-title">Welcome</div>
+                <div class="register-sub">TEAM SYNERGY STAGEへようこそ！<br>プロフィールを登録してください</div>
+
+                <div class="input-group">
+                    <label class="input-label">YOUR NAME</label>
+                    <input type="text" class="text-input" id="inputName" placeholder="名前を入力">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">ROLE / 役割</label>
+                    <input type="text" class="text-input" id="inputRole" placeholder="例: リーダー、メンバーなど">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">BIO / 自己紹介</label>
+                    <textarea class="text-input" id="inputBio" placeholder="あなたのことを教えてください"></textarea>
+                </div>
+
+                <button class="btn-main" id="registerBtn" onclick="register()" disabled>JOIN COMMUNITY</button>
+            </div>
+        </div>
+
+        <!-- HOME SCREEN -->
+        <div class="screen" id="screen-home">
+            <div class="section-title">🎥 FEATURED VIDEO</div>
+            <div class="card">
+                <div class="youtube-container">
+                    <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" 
+                            title="TEAM SYNERGY STAGE" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                </div>
+                <p style="text-align: center; font-size: 13px; color: var(--text-gray);">
+                    SATプロデュース - TEAM SYNERGY STAGE オリジナル楽曲
+                </p>
+            </div>
+
+            <div class="section-title">📢 ANNOUNCEMENTS</div>
+            <div id="announcementsList">
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-avatar">T</div>
+                        <div class="post-meta">
+                            <div class="post-author">TSS運営</div>
+                            <div class="post-time">2026.01.16</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        コミュニティアプリへようこそ！🎉<br>
+                        ここでは、メンバー同士の交流や情報共有ができます。<br>
+                        積極的に活動してトークンを貯めましょう！
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOARD SCREEN -->
+        <div class="screen" id="screen-board">
+            <div class="section-title">💬 COMMUNITY BOARD</div>
+            
+            <div class="card">
+                <div class="input-group">
+                    <textarea class="text-input" id="postContent" placeholder="投稿を書く..." rows="3"></textarea>
+                </div>
+                <button class="btn-main" onclick="submitPost()" style="margin-top: 0;">POST</button>
+            </div>
+
+            <div id="postsList">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TODO SCREEN -->
+        <div class="screen" id="screen-todo">
+            <div class="section-title">✅ TO-DO LIST</div>
+            
+            <div class="card">
+                <div class="todo-tabs">
+                    <div class="todo-tab active" onclick="showTodoTab('daily')">DAILY</div>
+                    <div class="todo-tab" onclick="showTodoTab('weekly')">WEEKLY</div>
+                    <div class="todo-tab" onclick="showTodoTab('monthly')">MONTHLY</div>
+                </div>
+
+                <div class="todo-content active" id="todo-daily">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="dailyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('daily')">+</button>
+                    </div>
+                    <div id="dailyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <div class="todo-content" id="todo-weekly">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="weeklyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('weekly')">+</button>
+                    </div>
+                    <div id="weeklyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <div class="todo-content" id="todo-monthly">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="monthlyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('monthly')">+</button>
+                    </div>
+                    <div id="monthlyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI SCREEN -->
+        <div class="screen" id="screen-ai">
+            <div class="section-title">🤖 AI ASSISTANT</div>
+            
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">💬</span>
+                    SATOSHI AI
+                </div>
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-message ai">
+                        <div class="chat-avatar">🤖</div>
+                        <div class="chat-bubble">
+                            こんにちは！SATOSHI AIです。<br>
+                            何でも気軽に相談してください。
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" class="text-input" id="chatInput" placeholder="メッセージを入力...">
+                    <button class="chat-send-btn" onclick="sendChat()">→</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE SCREEN -->
+        <div class="screen" id="screen-profile">
+            <div class="card">
+                <div class="profile-header">
+                    <div class="profile-avatar-large" id="profileAvatar">👤</div>
+                    <div class="profile-name" id="profileName">-</div>
+                    <div class="profile-role" id="profileRole">-</div>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileTokens">0</div>
+                        <div class="profile-stat-label">TOKENS</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profilePosts">0</div>
+                        <div class="profile-stat-label">POSTS</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileDays">0</div>
+                        <div class="profile-stat-label">DAYS</div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="profile-section-title">BIO</div>
+                    <div class="profile-bio" id="profileBio">-</div>
+                </div>
+
+                <button class="btn-secondary" onclick="confirmEditProfile()">プロフィールを編集</button>
+            </div>
+        </div>
+    </main>
+
+    <nav id="mainNav" style="display: none;">
+        <div class="nav-container">
+            <div class="nav-item active" onclick="showScreen('screen-home')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">HOME</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-board')">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">BOARD</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-todo')">
+                <span class="nav-icon">✅</span>
+                <span class="nav-label">TODO</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-ai')">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-label">AI</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-profile')">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">PROFILE</span>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        // ============ CONFIGURATION ============
+        const SCRIPT_URL = 'YOUR_GAS_URL_HERE'; // Google Apps Script URL
+
+        // ============ STATE ============
+        let todos = {
+            daily: [],
+            weekly: [],
+            monthly: []
+        };
+
+        let posts = [];
+        let chatHistory = [];
+
+        // ============ INITIALIZATION ============
+        function init() {
+            loadTodos();
+            const profile = getProfile();
+            if (profile) {
+                showUserBadge(profile);
+                updateTokenDisplay();
+                showScreen('screen-home');
+                document.getElementById('mainNav').style.display = 'block';
+                loadPosts();
+            } else {
+                showScreen('screen-register');
+            }
+        }
+
+        // ============ PROFILE ============
+        function getProfile() {
+            return JSON.parse(localStorage.getItem('tss_profile') || 'null');
+        }
+
+        function validateRegistration() {
+            const name = document.getElementById('inputName').value.trim();
+            document.getElementById('registerBtn').disabled = !name;
+        }
+
+        document.getElementById('inputName').addEventListener('input', validateRegistration);
+
+        function register() {
+            const name = document.getElementById('inputName').value.trim();
+            const role = document.getElementById('inputRole').value.trim() || 'メンバー';
+            const bio = document.getElementById('inputBio').value.trim() || '';
+
+            if (name) {
+                const profile = {
+                    name,
+                    role,
+                    bio,
+                    tokens: 10, // Welcome bonus
+                    joinedAt: new Date().toISOString()
+                };
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+                showUserBadge(profile);
+                updateTokenDisplay();
+                showScreen('screen-home');
+                document.getElementById('mainNav').style.display = 'block';
+                loadPosts();
+
+                // Show welcome token animation
+                showTokenEarned(10, 'Welcome Bonus! 🎉');
+            }
+        }
+
+        function showUserBadge(profile) {
+            const badge = document.getElementById('userBadge');
+            badge.textContent = `${profile.name} - ${profile.role}`;
+            badge.style.display = 'inline-block';
+
+            // Update profile screen
+            document.getElementById('profileName').textContent = profile.name;
+            document.getElementById('profileRole').textContent = profile.role;
+            document.getElementById('profileBio').textContent = profile.bio || '自己紹介がありません';
+            document.getElementById('profileAvatar').textContent = profile.name.charAt(0).toUpperCase();
+        }
+
+        function updateTokenDisplay() {
+            const profile = getProfile();
+            if (profile) {
+                document.getElementById('tokenDisplay').style.display = 'inline-flex';
+                document.getElementById('tokenBalance').textContent = profile.tokens || 0;
+                document.getElementById('profileTokens').textContent = profile.tokens || 0;
+            }
+        }
+
+        function addTokens(amount) {
+            const profile = getProfile();
+            if (profile) {
+                profile.tokens = (profile.tokens || 0) + amount;
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+                updateTokenDisplay();
+            }
+        }
+
+        function showTokenEarned(amount, message) {
+            const container = document.createElement('div');
+            container.className = 'token-earned-container';
+            container.innerHTML = `
+                <div class="token-earned-badge">
+                    <div class="token-earned-icon">💎</div>
+                    <div class="token-earned-amount">+${amount}</div>
+                    <div class="token-earned-label">${message}</div>
+                </div>
+            `;
+            container.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;';
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 3000);
+        }
+
+        function confirmEditProfile() {
+            if (confirm('プロフィールを編集しますか？')) {
+                const profile = getProfile();
+                if (profile) {
+                    document.getElementById('inputName').value = profile.name;
+                    document.getElementById('inputRole').value = profile.role;
+                    document.getElementById('inputBio').value = profile.bio;
+                }
+                localStorage.removeItem('tss_profile');
+                document.getElementById('mainNav').style.display = 'none';
+                showScreen('screen-register');
+            }
+        }
+
+        // ============ NAVIGATION ============
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navItem = document.querySelector(`.nav-item[onclick="showScreen('${screenId}')"]`);
+            if (navItem) navItem.classList.add('active');
+        }
+
+        // ============ TO-DO LIST ============
+        function loadTodos() {
+            const saved = localStorage.getItem('tss_todos');
+            if (saved) {
+                todos = JSON.parse(saved);
+            }
+            renderTodos('daily');
+            renderTodos('weekly');
+            renderTodos('monthly');
+        }
+
+        function saveTodos() {
+            localStorage.setItem('tss_todos', JSON.stringify(todos));
+        }
+
+        function showTodoTab(tab) {
+            document.querySelectorAll('.todo-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.todo-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('todo-' + tab).classList.add('active');
+        }
+
+        function addTodo(type) {
+            const input = document.getElementById(type + 'TodoInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const newTodo = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            todos[type].unshift(newTodo);
+            saveTodos();
+            renderTodos(type);
+            input.value = '';
+
+            // Award token for adding task
+            addTokens(1);
+        }
+
+        function toggleTodo(type, id) {
+            const todo = todos[type].find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                saveTodos();
+                renderTodos(type);
+
+                // Award token for completing task
+                if (todo.completed) {
+                    addTokens(2);
+                    showTokenEarned(2, 'Task Complete! ✅');
+                }
+            }
+        }
+
+        function deleteTodo(type, id) {
+            todos[type] = todos[type].filter(t => t.id !== id);
+            saveTodos();
+            renderTodos(type);
+        }
+
+        function renderTodos(type) {
+            const list = document.getElementById(type + 'TodoList');
+            if (!list) return;
+
+            if (todos[type].length === 0) {
+                list.innerHTML = '<div class="todo-empty">タスクがありません</div>';
+                return;
+            }
+
+            list.innerHTML = todos[type].map(todo => `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                    <div class="todo-checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleTodo('${type}', ${todo.id})"></div>
+                    <span class="todo-text">${escapeHtml(todo.text)}</span>
+                    <button class="todo-delete" onclick="deleteTodo('${type}', ${todo.id})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============ BOARD / POSTS ============
+        function loadPosts() {
+            // Load from localStorage for now
+            const saved = localStorage.getItem('tss_posts');
+            if (saved) {
+                posts = JSON.parse(saved);
+            }
+            renderPosts();
+        }
+
+        function submitPost() {
+            const content = document.getElementById('postContent').value.trim();
+            if (!content) return;
+
+            const profile = getProfile();
+            const newPost = {
+                id: Date.now(),
+                author: profile.name,
+                content: content,
+                createdAt: new Date().toISOString(),
+                likes: 0
+            };
+
+            posts.unshift(newPost);
+            localStorage.setItem('tss_posts', JSON.stringify(posts));
+            renderPosts();
+            document.getElementById('postContent').value = '';
+
+            // Award token for posting
+            addTokens(3);
+            showTokenEarned(3, 'Post Created! 📝');
+        }
+
+        function renderPosts() {
+            const list = document.getElementById('postsList');
+            
+            if (posts.length === 0) {
+                list.innerHTML = '<div class="todo-empty">投稿がありません。最初の投稿をしてみましょう！</div>';
+                return;
+            }
+
+            list.innerHTML = posts.map(post => `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-avatar">${post.author.charAt(0).toUpperCase()}</div>
+                        <div class="post-meta">
+                            <div class="post-author">${escapeHtml(post.author)}</div>
+                            <div class="post-time">${formatDate(post.createdAt)}</div>
+                        </div>
+                    </div>
+                    <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
+                    <div class="post-actions">
+                        <div class="post-action" onclick="likePost(${post.id})">
+                            ❤️ ${post.likes}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function likePost(id) {
+            const post = posts.find(p => p.id === id);
+            if (post) {
+                post.likes++;
+                localStorage.setItem('tss_posts', JSON.stringify(posts));
+                renderPosts();
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}.${m}.${d}`;
+        }
+
+        // ============ AI CHAT ============
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addChatMessage('user', message);
+            input.value = '';
+
+            // Simulate AI response (can be replaced with actual API call)
+            setTimeout(() => {
+                const response = generateLocalResponse(message);
+                addChatMessage('ai', response);
+            }, 1000);
+        }
+
+        function addChatMessage(type, message) {
+            const container = document.getElementById('chatContainer');
+            const avatar = type === 'ai' ? '🤖' : getProfile()?.name?.charAt(0).toUpperCase() || '👤';
+            
+            container.innerHTML += `
+                <div class="chat-message ${type}">
+                    <div class="chat-avatar">${avatar}</div>
+                    <div class="chat-bubble">${escapeHtml(message).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function generateLocalResponse(question) {
+            const q = question.toLowerCase();
+            
+            if (q.includes('こんにちは') || q.includes('はじめまして')) {
+                return 'こんにちは！何かお手伝いできることはありますか？';
+            }
+            if (q.includes('ありがとう')) {
+                return 'どういたしまして！また何かあれば気軽に聞いてくださいね😊';
+            }
+            if (q.includes('トークン') || q.includes('ポイント')) {
+                return 'トークンは、投稿やタスク完了で獲得できます！\n・投稿: +3 TSS\n・タスク追加: +1 TSS\n・タスク完了: +2 TSS';
+            }
+            
+            const responses = [
+                'いい質問ですね！もう少し詳しく教えてもらえますか？',
+                '面白い視点ですね。一緒に考えましょう！',
+                'なるほど！他に気になることはありますか？'
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // Enter key for chat
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendChat();
+        });
+
+        // ============ START ============
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>

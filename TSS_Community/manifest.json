@@ -1,0 +1,22 @@
+{
+    "name": "TEAM SYNERGY STAGE",
+    "short_name": "TSS",
+    "description": "TEAM SYNERGY STAGE コミュニティアプリ",
+    "start_url": "./TSS_Community.html",
+    "display": "standalone",
+    "background_color": "#FAFAFA",
+    "theme_color": "#6B5CE7",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "logo/tss_icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "logo/tss_icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
