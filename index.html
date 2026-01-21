@@ -969,6 +969,72 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* ACCORDION - MY VISION */
+        .vision-accordion {
+            margin-top: 12px;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .vision-accordion-header {
+            padding: 12px 16px;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .vision-accordion-header:hover {
+            background: rgba(212, 175, 55, 0.25);
+        }
+
+        .vision-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            margin-top: -1px;
+        }
+
+        .vision-accordion-content.open {
+            max-height: 500px;
+        }
+
+        .vision-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .vision-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .vision-arrow {
+            font-size: 12px;
+            color: var(--primary);
+            transition: transform 0.3s;
+        }
+
+        .vision-arrow.open {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 
@@ -984,6 +1050,39 @@
             <span class="token-icon">🪙</span>
             <span class="token-balance" id="tokenBalance">0</span>
             <span class="token-label">TSST</span>
+        </div>
+
+        <!-- MY VISION Accordion -->
+        <div class="vision-accordion" id="visionAccordion" style="display: none;">
+            <div class="vision-accordion-header" onclick="toggleVisionAccordion()">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="vision-photo" id="visionPhotoContainer">
+                            <img id="visionPhoto" src="" style="display: none;">
+                            <span id="visionPhotoPlaceholder" style="font-size: 20px; color: white;">👤</span>
+                        </div>
+                        <div
+                            style="font-family: 'Montserrat', sans-serif; font-size: 10px; color: var(--primary); letter-spacing: 0.1em; font-weight: 600;">
+                            📌 MY VISION
+                        </div>
+                    </div>
+                    <span class="vision-arrow" id="visionArrow">▼</span>
+                </div>
+            </div>
+            <div class="vision-accordion-content" id="visionAccordionContent">
+                <div style="padding: 12px 16px;">
+                    <div style="font-size: 11px;">
+                        <div style="color: var(--text-dark); margin-bottom: 10px;">
+                            <strong style="color: var(--primary);">✨ 3年後の自分</strong>
+                            <div id="futureVisionText" style="margin-top: 3px; color: var(--text-gray);">-</div>
+                        </div>
+                        <div style="color: var(--text-dark);">
+                            <strong style="color: var(--primary);">💼 役割</strong>
+                            <div id="roleVisionText" style="margin-top: 3px; color: var(--text-gray);">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -1240,8 +1339,20 @@
             loadTodos();
             const profile = getProfile();
             if (profile) {
+                // Migrate legacy profile data to separate storage if not exists
+                if (!localStorage.getItem('tss_future') && profile.future) {
+                    localStorage.setItem('tss_future', profile.future);
+                }
+                if (!localStorage.getItem('tss_role') && profile.role) {
+                    localStorage.setItem('tss_role', profile.role);
+                }
+                if (!localStorage.getItem('tss_profile_image') && localStorage.getItem('tss_profile_photo')) {
+                    localStorage.setItem('tss_profile_image', localStorage.getItem('tss_profile_photo'));
+                }
+
                 showUserBadge(profile);
                 updateTokenDisplay();
+                updateVisionDisplay(); // Show vision accordion
                 showScreen('screen-home');
                 document.getElementById('mainNav').style.display = 'block';
                 loadPosts();
@@ -1369,8 +1480,14 @@
                     joinedAt: new Date().toISOString()
                 };
                 localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                // Save vision data separately for accordion display
+                localStorage.setItem('tss_future', future);
+                localStorage.setItem('tss_role', role);
+
                 showUserBadge(profile);
                 updateTokenDisplay();
+                updateVisionDisplay(); // Update vision accordion
                 showScreen('screen-home');
                 document.getElementById('mainNav').style.display = 'block';
                 loadPosts();
@@ -1480,6 +1597,58 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             const navItem = document.querySelector(`.nav-item[onclick="showScreen('${screenId}')"]`);
             if (navItem) navItem.classList.add('active');
+        }
+
+        // ============ MY VISION ACCORDION ============
+        let visionAccordionOpen = false;
+
+        function toggleVisionAccordion() {
+            const content = document.getElementById('visionAccordionContent');
+            const arrow = document.getElementById('visionArrow');
+
+            visionAccordionOpen = !visionAccordionOpen;
+
+            if (visionAccordionOpen) {
+                content.classList.add('open');
+                arrow.classList.add('open');
+            } else {
+                content.classList.remove('open');
+                arrow.classList.remove('open');
+            }
+        }
+
+        function updateVisionDisplay() {
+            const accordion = document.getElementById('visionAccordion');
+            const futureText = document.getElementById('futureVisionText');
+            const roleText = document.getElementById('roleVisionText');
+            const photo = document.getElementById('visionPhoto');
+            const placeholder = document.getElementById('visionPhotoPlaceholder');
+
+            // Get stored values
+            const future = localStorage.getItem('tss_future') || '-';
+            const role = localStorage.getItem('tss_role') || '-';
+            const profileImage = localStorage.getItem('tss_profile_image') || '';
+
+            futureText.textContent = future || '-';
+            roleText.textContent = role || '-';
+
+            if (profileImage) {
+                photo.src = profileImage;
+                photo.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                photo.style.display = 'none';
+                placeholder.style.display = 'block';
+                // Show initial letter if userName exists
+                if (userName) {
+                    placeholder.textContent = userName.charAt(0).toUpperCase();
+                }
+            }
+
+            // Show accordion if user is registered
+            if (userName) {
+                accordion.style.display = 'block';
+            }
         }
 
         // ============ TO-DO LIST ============
