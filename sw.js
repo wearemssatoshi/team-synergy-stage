@@ -1,6 +1,7 @@
-const CACHE_NAME = 'tss-cache-v1';
+const CACHE_NAME = 'tss-cache-v2';
 const urlsToCache = [
     './',
+    './index.html',
     './TSS.html',
     './manifest.json',
     './logo/TSS_logo.png',
