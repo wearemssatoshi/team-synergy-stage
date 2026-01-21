@@ -2082,13 +2082,26 @@
 
             const comment = comments.find(c => c.id === commentId);
             if (comment) {
+                // Check Limit
+                let likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
+                const myCount = likedCounts[commentId] || 0;
+
+                if (myCount >= 10) {
+                    alert('このコメントへのいいねは10回までです！たくさんの承認ありがとう！👏');
+                    return;
+                }
+
                 comment.likes = (comment.likes || 0) + 1;
+                likedCounts[commentId] = myCount + 1;
+
                 localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+                localStorage.setItem('tss_liked_comment_counts', JSON.stringify(likedCounts));
+
                 renderComments(annId);
 
                 // Award 1 Token for Liking Comment
                 addTokens(1);
-                showTokenEarned(1, 'Nice! Comment Like ❤️');
+                showTokenEarned(1, `Nice! Comment Like (${myCount + 1}/10) ❤️`);
             }
         }
 
@@ -2101,21 +2114,26 @@
                 return;
             }
 
-            list.innerHTML = comments.map(comment => `
+            list.innerHTML = comments.map(comment => {
+                const likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
+                const myCount = likedCounts[comment.id] || 0;
+                const canLike = myCount < 10;
+
+                return `
                 <div class="comment-item">
                     <div class="comment-avatar">${comment.author.charAt(0).toUpperCase()}</div>
                     <div class="comment-content">
                         <div class="comment-author">${escapeHtml(comment.author)}</div>
                         <div class="comment-text">${escapeHtml(comment.content)}</div>
                         <div style="margin-top: 4px; display: flex; gap: 10px; align-items: center;">
-                            <span class="comment-like-btn" onclick="likeAnnouncementComment(${id}, ${comment.id || 0})" style="font-size: 12px; color: var(--text-gray); cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                ❤️ <span style="font-weight: bold;">${comment.likes || 0}</span>
+                            <span class="comment-like-btn" onclick="likeAnnouncementComment(${id}, ${comment.id || 0})" style="font-size: 12px; color: ${canLike ? 'var(--text-gray)' : '#ccc'}; cursor: ${canLike ? 'pointer' : 'default'}; opacity: ${canLike ? 1 : 0.6}; display: flex; align-items: center; gap: 4px;">
+                                ❤️ <span style="font-weight: bold;">${comment.likes || 0}</span> <span style="font-size:10px;">(You: ${myCount}/10)</span>
                             </span>
                             <span style="font-size: 10px; color: #ccc;">${formatDate(comment.time)}</span>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         // Load and render announcements from localStorage
