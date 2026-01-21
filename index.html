@@ -1630,10 +1630,14 @@
             const photo = document.getElementById('visionPhoto');
             const placeholder = document.getElementById('visionPhotoPlaceholder');
 
+            // Get profile for user name
+            const profile = getProfile();
+            const userName = profile ? profile.name : '';
+
             // Get stored values
             const future = localStorage.getItem('tss_future') || '-';
             const role = localStorage.getItem('tss_role') || '-';
-            const profileImage = localStorage.getItem('tss_profile_image') || '';
+            const profileImage = localStorage.getItem('tss_profile_image') || localStorage.getItem('tss_profile_photo') || '';
 
             futureText.textContent = future || '-';
             roleText.textContent = role || '-';
