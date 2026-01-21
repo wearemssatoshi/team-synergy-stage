@@ -87,6 +87,8 @@ function doGet(e) {
       case 'comments':
         const postId = e?.parameter?.postId || '';
         return getComments(ss, postId);
+      case 'like':
+        return handleLike(ss, e.parameter);
       default:
         return getAllData(ss);
     }
@@ -217,14 +219,34 @@ function getMembers(ss) {
 }
 
 function getPosts(ss) {
-  const sheet = ss.getSheetByName('TSS_Posts');
-  if (!sheet) return createResponse({ posts: [] });
-  
-  const data = sheet.getDataRange().getValues();
+  const postsSheet = ss.getSheetByName('TSS_Posts');
+  if (!postsSheet) return createResponse({ posts: [] });
+
+  // Get users for profile images and roles
+  let userInfo = {};
+  const usersSheet = ss.getSheetByName('TSS_Users');
+  if (usersSheet) {
+    const userData = usersSheet.getDataRange().getValues().slice(1);
+    userData.forEach(row => {
+      // Name(0), Role(2), Profile_Image(6)
+      userInfo[row[0]] = {
+        image: row[6] || '',
+        role: row[2] || 'メンバー'
+      };
+    });
+  }
+
+  const data = postsSheet.getDataRange().getValues();
   const headers = data[0];
   const posts = data.slice(1).map(row => {
     const obj = {};
     headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s/g, '')] = row[i]);
+    
+    // Add user info
+    const info = userInfo[obj['author']] || {};
+    obj['authorImage'] = info.image || '';
+    obj['authorRole'] = info.role || '';
+    
     return obj;
   }).reverse(); // Latest first
   
@@ -291,7 +313,24 @@ function handleLike(ss, data) {
   for (let i = 1; i < allData.length; i++) {
     if (String(allData[i][4]) === String(data.postId)) {
       const currentLikes = allData[i][3] || 0;
+      const author = allData[i][1]; // Author is column 2 (index 1)
+      
+      // Update likes
       sheet.getRange(i + 1, 4).setValue(currentLikes + 1);
+      
+      // Award token to author (Approval Bonus!)
+      const usersSheet = ss.getSheetByName('TSS_Users');
+      if (usersSheet && author) {
+         const usersData = usersSheet.getDataRange().getValues();
+         for (let j = 1; j < usersData.length; j++) {
+            if (usersData[j][0] === author) { // Name match
+               const currentTokens = usersData[j][5] || 0;
+               usersSheet.getRange(j + 1, 6).setValue(currentTokens + 1);
+               break;
+            }
+         }
+      }
+      
       return createResponse({ success: true, likes: currentLikes + 1 });
     }
   }
