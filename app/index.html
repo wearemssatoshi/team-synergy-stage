@@ -1,0 +1,2635 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TEAM SYNERGY STAGE</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TSS">
+    <link rel="apple-touch-icon" sizes="180x180" href="../logo/tss_icon.png">
+    <link rel="icon" type="image/png" href="../logo/tss_icon.png">
+    <link rel="manifest" href="manifest.json">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --white: #FFFFFF;
+            --off-white: #FFFDF5;
+            --light-gray: #FFF9E6;
+            --primary: #D4AF37;
+            --primary-dark: #B8960C;
+            --primary-light: rgba(212, 175, 55, 0.15);
+            --primary-glow: rgba(212, 175, 55, 0.35);
+            --accent: #FFD700;
+            --accent-light: rgba(255, 215, 0, 0.15);
+            --text-dark: #1a1a1a;
+            --text-gray: #5a5a5a;
+            --border: rgba(26, 26, 26, 0.1);
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gradient-primary: linear-gradient(135deg, #D4AF37, #FFD700);
+            --gradient-dark: linear-gradient(135deg, #2D2308, #4A3D14);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--off-white);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .logo-container {
+            margin-bottom: 8px;
+        }
+
+        .logo-container img {
+            height: 45px;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-sub {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: var(--primary);
+            letter-spacing: 0.25em;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .user-badge {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            color: var(--text-gray);
+            margin-top: 10px;
+            padding: 5px 14px;
+            background: var(--light-gray);
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* TOKEN SYSTEM */
+        .token-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            padding: 6px 14px;
+            border-radius: 25px;
+            margin-top: 10px;
+            margin-left: 8px;
+        }
+
+        .token-icon {
+            font-size: 16px;
+            animation: coinSpin 3s linear infinite;
+        }
+
+        @keyframes coinSpin {
+
+            0%,
+            100% {
+                transform: rotateY(0deg);
+            }
+
+            50% {
+                transform: rotateY(180deg);
+            }
+        }
+
+        .token-balance {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--primary);
+        }
+
+        .token-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            color: var(--text-gray);
+        }
+
+        /* TOKEN EARNED ANIMATION */
+        .token-earned-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .token-earned-badge {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 30px;
+            background: var(--gradient-dark);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            box-shadow: 0 0 30px var(--primary-glow);
+            animation: tokenPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes tokenPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px var(--primary-glow);
+            }
+
+            50% {
+                box-shadow: 0 0 40px var(--primary), 0 0 60px var(--primary-glow);
+            }
+        }
+
+        .token-earned-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            animation: tokenBounce 0.6s ease-out;
+        }
+
+        @keyframes tokenBounce {
+            0% {
+                transform: scale(0) rotate(-45deg);
+            }
+
+            50% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+            }
+        }
+
+        .token-earned-amount {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .token-earned-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 4px;
+        }
+
+        main {
+            flex-grow: 1;
+            padding: 22px;
+            overflow-y: auto;
+            padding-bottom: 120px;
+            position: relative;
+            z-index: 0;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: var(--primary);
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .section-title::before,
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-dark);
+        }
+
+        .card-title .icon {
+            font-size: 18px;
+        }
+
+        /* REGISTRATION */
+        .register-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px 25px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .register-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .register-sub {
+            font-size: 13px;
+            color: var(--text-gray);
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: var(--primary);
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 600;
+        }
+
+        .text-input {
+            width: 100%;
+            background: var(--light-gray);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            /* Smaller font size as requested */
+        }
+
+        .text-input::placeholder {
+            color: var(--text-gray);
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea.text-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        /* BUTTONS */
+        .btn-main {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.1em;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            transition: all 0.2s;
+            margin-top: 18px;
+        }
+
+        .btn-main:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-main:hover:not(:disabled) {
+            box-shadow: 0 6px 25px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-main:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-gray);
+            padding: 11px;
+            border-radius: 50px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* NAVIGATION */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 10px 0;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            z-index: 10000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            color: var(--text-gray);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: 3px;
+        }
+
+        .nav-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            letter-spacing: 0.08em;
+            font-weight: 500;
+        }
+
+        /* YOUTUBE SECTION */
+        .youtube-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .youtube-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 12px;
+        }
+
+        /* BOARD / POSTS */
+        .post-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .post-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .post-meta {
+            flex: 1;
+        }
+
+        .post-author {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-dark);
+        }
+
+        .post-time {
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+
+        .post-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .post-action:hover {
+            color: var(--primary);
+        }
+
+        /* TO-DO LIST */
+        .todo-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .todo-tab {
+            flex: 1;
+            padding: 10px;
+            background: var(--light-gray);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .todo-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+        }
+
+        .todo-content {
+            display: none;
+        }
+
+        .todo-content.active {
+            display: block;
+        }
+
+        .todo-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .todo-input-row input {
+            flex: 1;
+        }
+
+        .todo-add-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--light-gray);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .todo-item.completed {
+            opacity: 0.5;
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+        }
+
+        .todo-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .todo-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .todo-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .todo-delete {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .todo-delete:hover {
+            color: var(--danger);
+        }
+
+        .todo-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-gray);
+            font-size: 13px;
+        }
+
+        /* AI CHAT */
+        .chat-container {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .chat-message {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-message.ai {
+            flex-direction: row;
+        }
+
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .chat-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .chat-message.ai .chat-avatar {
+            background: var(--gradient-primary);
+        }
+
+        .chat-message.user .chat-avatar {
+            background: var(--text-dark);
+        }
+
+        .chat-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .chat-message.ai .chat-bubble {
+            background: white;
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.user .chat-bubble {
+            background: var(--gradient-primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+        }
+
+        .chat-send-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            width: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* PROFILE PHOTO UPLOAD */
+        .profile-photo-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 4px 20px var(--primary-glow);
+            overflow: hidden;
+        }
+
+        .profile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .photo-upload-input {
+            display: none;
+        }
+
+        /* COMMENT SECTION */
+        .comments-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--primary);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-author {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .comment-text {
+            font-size: 12px;
+            color: var(--text-dark);
+            margin-top: 2px;
+        }
+
+        .comment-input-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .comment-input-row input {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .comment-submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* VERSION BADGE */
+        .version-badge {
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: var(--text-gray);
+            letter-spacing: 0.1em;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        .profile-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .profile-role {
+            font-size: 13px;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .profile-stat {
+            text-align: center;
+            padding: 16px;
+            background: var(--light-gray);
+            border-radius: 12px;
+        }
+
+        .profile-stat-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .profile-stat-label {
+            font-size: 10px;
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+
+        .profile-section {
+            margin-top: 20px;
+        }
+
+        .profile-section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            color: var(--primary);
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .profile-bio {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--light-gray);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        /* LOADING */
+        .loading {
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ACCORDION - MY VISION */
+        .vision-accordion {
+            margin-top: 12px;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .vision-accordion-header {
+            padding: 12px 16px;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .vision-accordion-header:hover {
+            background: rgba(212, 175, 55, 0.25);
+        }
+
+        .vision-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            margin-top: -1px;
+        }
+
+        .vision-accordion-content.open {
+            max-height: 500px;
+        }
+
+        .vision-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .vision-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .vision-arrow {
+            font-size: 12px;
+            color: var(--primary);
+            transition: transform 0.3s;
+        }
+
+        .vision-arrow.open {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="../logo/tss_logo.png" alt="TSS Logo" onerror="this.style.display='none'">
+        </div>
+        <h1>TEAM SYNERGY STAGE</h1>
+        <div class="header-sub">COMMUNITY APP</div>
+        <div class="user-badge" id="userBadge" style="display: none;"></div>
+        <div class="token-display" id="tokenDisplay" style="display: none;">
+            <span class="token-icon">🪙</span>
+            <span class="token-balance" id="tokenBalance">0</span>
+            <span class="token-label">TSST</span>
+        </div>
+        <div style="font-size: 10px; opacity: 0.5; margin-top: 5px; color: #fff; text-align: center;">v2.1 (Sync Fixed)
+        </div>
+
+        <!-- MY VISION Accordion -->
+        <div class="vision-accordion" id="visionAccordion" style="display: none;">
+            <!-- Hidden File Input for Quick Upload -->
+            <input type="file" id="visionPhotoUpload" style="display: none;" accept="image/*"
+                onchange="handleVisionPhotoUpload(event)">
+
+            <div class="vision-accordion-header" onclick="toggleVisionAccordion()">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="vision-photo" id="visionPhotoContainer" onclick="triggerVisionPhotoUpload(event)"
+                            style="cursor: pointer;">
+                            <img id="visionPhoto" src="" style="display: none;">
+                            <span id="visionPhotoPlaceholder" style="font-size: 20px; color: white;">👤</span>
+                        </div>
+                        <div
+                            style="font-family: 'Montserrat', sans-serif; font-size: 10px; color: var(--primary); letter-spacing: 0.1em; font-weight: 600;">
+                            📌 MY VISION
+                        </div>
+                    </div>
+                    <span class="vision-arrow" id="visionArrow">▼</span>
+                </div>
+            </div>
+            <div class="vision-accordion-content" id="visionAccordionContent">
+                <div style="padding: 12px 16px;">
+                    <div style="font-size: 11px;">
+                        <div style="color: var(--text-dark); margin-bottom: 10px;">
+                            <strong style="color: var(--primary);">✨ 3年後の自分</strong>
+                            <div id="futureVisionText" style="margin-top: 3px; color: var(--text-gray);">-</div>
+                        </div>
+                        <div style="color: var(--text-dark);">
+                            <strong style="color: var(--primary);">💼 役割</strong>
+                            <div id="roleVisionText" style="margin-top: 3px; color: var(--text-gray);">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- REGISTER SCREEN -->
+        <div class="screen active" id="screen-register">
+            <div class="register-card">
+                <div class="register-title">Welcome</div>
+                <div class="register-sub">TEAM SYNERGY STAGEへようこそ！<br>プロフィールを登録してください</div>
+
+                <div class="input-group">
+                    <label class="input-label">YOUR NAME</label>
+                    <input type="text" class="text-input" id="inputName" placeholder="名前を入力">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">PIN (4桁の数字など)</label>
+                    <input type="number" class="text-input" id="inputPin" placeholder="ログイン用の暗証番号" maxlength="4"
+                        oninput="validateRegistration()">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">ROLE / 役割</label>
+                    <input type="text" class="text-input" id="inputRole" placeholder="例: リーダー、メンバーなど">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">BIO / 自己紹介</label>
+                    <textarea class="text-input" id="inputBio" placeholder="あなたのことを教えてください"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">3年後の自分は？</label>
+                    <textarea class="text-input" id="inputFuture" placeholder="3年後、どんな自分になっていたい？"></textarea>
+                </div>
+
+                <button class="btn-main" id="registerBtn" onclick="register()" disabled>JOIN COMMUNITY</button>
+                <button class="btn-secondary" onclick="showScreen('screen-login')">すでにアカウントをお持ちの方 (LOGIN)</button>
+            </div>
+        </div>
+
+        <!-- LOGIN SCREEN -->
+        <div class="screen" id="screen-login">
+            <div class="register-card">
+                <div class="register-title">LOGIN</div>
+                <div class="register-sub">おかえりなさい！</div>
+
+                <div class="input-group">
+                    <label class="input-label">YOUR NAME</label>
+                    <input type="text" class="text-input" id="loginName" placeholder="登録した名前">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">PIN (4桁の数字など)</label>
+                    <input type="password" class="text-input" id="loginPin" placeholder="PINコード">
+                </div>
+
+                <button class="btn-main" onclick="login()">LOGIN</button>
+                <button class="btn-secondary" onclick="showScreen('screen-register')">新規登録はこちら</button>
+            </div>
+        </div>
+
+        <!-- HOME SCREEN -->
+        <div class="screen" id="screen-home">
+            <div class="section-title">🎬 FEATURED VIDEO</div>
+            <div class="card">
+                <div class="youtube-container" id="youtubeContainer">
+                    <iframe id="youtubeEmbed" src="" title="TEAM SYNERGY STAGE"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+                <p id="youtubeCaption"
+                    style="text-align: center; font-size: 12px; color: var(--text-gray); margin-top: 8px;"></p>
+            </div>
+
+            <div class="section-title">📢 ANNOUNCEMENTS</div>
+            <div id="announcementsList">
+                <!-- Announcements will be loaded dynamically -->
+                <div class="loading-text" style="text-align: center; color: var(--text-gray); padding: 20px;">読み込み中...
+                </div>
+            </div>
+        </div>
+
+        <!-- BOARD SCREEN -->
+        <div class="screen" id="screen-board">
+            <div class="section-title">💬 COMMUNITY BOARD</div>
+
+            <div class="card">
+                <div class="input-group">
+                    <textarea class="text-input" id="postContent" placeholder="投稿を書く..." rows="3"></textarea>
+                </div>
+                <button class="btn-main" onclick="submitPost()" style="margin-top: 0;">POST</button>
+            </div>
+
+            <div id="postsList">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TODO SCREEN -->
+        <div class="screen" id="screen-todo">
+            <div class="section-title">✅ TO-DO LIST</div>
+
+            <div class="card">
+                <div class="todo-tabs">
+                    <div class="todo-tab active" onclick="showTodoTab('daily')">DAILY</div>
+                    <div class="todo-tab" onclick="showTodoTab('weekly')">WEEKLY</div>
+                    <div class="todo-tab" onclick="showTodoTab('monthly')">MONTHLY</div>
+                </div>
+
+                <div class="todo-content active" id="todo-daily">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="dailyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('daily')">+</button>
+                    </div>
+                    <div id="dailyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <div class="todo-content" id="todo-weekly">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="weeklyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('weekly')">+</button>
+                    </div>
+                    <div id="weeklyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <div class="todo-content" id="todo-monthly">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="monthlyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('monthly')">+</button>
+                    </div>
+                    <div id="monthlyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI SCREEN -->
+        <div class="screen" id="screen-ai">
+            <div class="section-title">🤖 AI ASSISTANT</div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">💬</span>
+                    JINSEI AI
+                </div>
+                <div
+                    style="font-size: 10px; color: var(--primary); letter-spacing: 0.1em; margin-top: -8px; margin-bottom: 12px; text-align: center;">
+                    Powered by Gemini 3 Flash
+                </div>
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-message ai">
+                        <div class="chat-avatar">🤖</div>
+                        <div class="chat-bubble">
+                            こんにちは！JINSEI AIです。<br>
+                            ビジネスやコミュニティのこと、何でも気軽に相談してください。
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" class="text-input" id="chatInput" placeholder="メッセージを入力...">
+                    <button class="chat-send-btn" onclick="sendChat()">→</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen" id="screen-profile">
+            <div class="card">
+                <div class="profile-header">
+                    <div class="profile-photo-container">
+                        <div class="profile-avatar-large" id="profileAvatar">👤</div>
+                        <label class="photo-upload-btn" for="photoUpload">📷</label>
+                        <input type="file" id="photoUpload" class="photo-upload-input" accept="image/*"
+                            onchange="handlePhotoUpload(event)">
+                    </div>
+                    <div class="profile-name" id="profileName" onclick="openProfileEditor('editName')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                    <div class="profile-role" id="profileRole" onclick="openProfileEditor('editRole')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileTokens">0</div>
+                        <div class="profile-stat-label">トークン</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profilePosts">0</div>
+                        <div class="profile-stat-label">POSTS</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileDays">0</div>
+                        <div class="profile-stat-label">DAYS</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileTasks">0</div>
+                        <div class="profile-stat-label">TASKS</div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="profile-section-title">BIO</div>
+                    <div class="profile-bio" id="profileBio" onclick="openProfileEditor('editBio')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                </div>
+                <div class="profile-section">
+                    <div class="profile-section-title">3年後の自分は？</div>
+                    <div class="profile-bio" id="profileFuture" onclick="openProfileEditor('editFuture')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                </div>
+
+                <button class="btn-secondary" onclick="openProfileEditor()">プロフィールを編集</button>
+
+                <div class="version-badge">TSS v2.0 | Powered by ITO JINSEI</div>
+            </div>
+        </div>
+    </main>
+
+    <nav id="mainNav" style="display: none;">
+        <div class="nav-container">
+            <div class="nav-item active" onclick="showScreen('screen-home')">
+                <span class="nav-icon">⌂</span>
+                <span class="nav-label">HOME</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-board')">
+                <span class="nav-icon">≡</span>
+                <span class="nav-label">BOARD</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-todo')">
+                <span class="nav-icon">✓</span>
+                <span class="nav-label">TODO</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-ai')">
+                <span class="nav-icon">◈</span>
+                <span class="nav-label">AI</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-profile')">
+                <span class="nav-icon">●</span>
+                <span class="nav-label">PROFILE</span>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        // ============ CONFIGURATION ============
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec'; // Google Apps Script URL
+
+        // ============ STATE ============
+        let todos = {
+            daily: [],
+            weekly: [],
+            monthly: []
+        };
+
+        let posts = [];
+        let chatHistory = [];
+
+        // ============ INITIALIZATION ============
+        function init() {
+            loadTodos();
+            const profile = getProfile();
+            if (profile) {
+                // Migrate legacy profile data to separate storage if not exists
+                if (!localStorage.getItem('tss_future') && profile.future) {
+                    localStorage.setItem('tss_future', profile.future);
+                }
+                if (!localStorage.getItem('tss_role') && profile.role) {
+                    localStorage.setItem('tss_role', profile.role);
+                }
+                if (!localStorage.getItem('tss_profile_image') && localStorage.getItem('tss_profile_photo')) {
+                    localStorage.setItem('tss_profile_image', localStorage.getItem('tss_profile_photo'));
+                }
+
+                showUserBadge(profile);
+                updateTokenDisplay();
+                updateVisionDisplay(); // Show vision accordion
+                showScreen('screen-home');
+                document.getElementById('mainNav').style.display = 'block';
+                loadPosts();
+            } else {
+                showScreen('screen-register');
+            }
+        }
+
+        // ============ PROFILE ============
+        function getProfile() {
+            return JSON.parse(localStorage.getItem('tss_profile') || 'null');
+        }
+
+        function validateRegistration() {
+            const name = document.getElementById('inputName').value.trim();
+            const pin = document.getElementById('inputPin').value.trim();
+            document.getElementById('registerBtn').disabled = !(name && pin);
+        }
+
+        document.getElementById('inputName').addEventListener('input', validateRegistration);
+        document.getElementById('inputPin').addEventListener('input', validateRegistration);
+
+        // ============ PROFILE EDIT ============
+        function openProfileEditor(focusId = null) {
+            const profile = getProfile();
+            if (!profile) return;
+
+            // Create edit modal
+            const modal = document.createElement('div');
+            modal.id = 'editProfileModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); display: flex; align-items: center;
+                justify-content: center; z-index: 10000;
+            `;
+
+            modal.innerHTML = `
+                <div class="register-card" style="width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto;">
+                    <div class="register-title" style="font-size: 18px;">EDIT PROFILE</div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">YOUR NAME</label>
+                        <input type="text" class="text-input" id="editName" value="${escapeHtml(profile.name)}">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">ROLE / 役割</label>
+                        <input type="text" class="text-input" id="editRole" value="${escapeHtml(profile.role)}">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">BIO / 自己紹介</label>
+                        <textarea class="text-input" id="editBio" rows="3">${escapeHtml(profile.bio || '')}</textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">3年後の自分は？</label>
+                        <textarea class="text-input" id="editFuture" rows="3">${escapeHtml(profile.future || '')}</textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" onclick="document.getElementById('editProfileModal').remove()">CANCEL</button>
+                        <button class="btn-main" onclick="saveProfileEdit()">SAVE</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            if (focusId) {
+                const el = document.getElementById(focusId);
+                if (el) {
+                    setTimeout(() => {
+                        el.focus();
+                        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                            el.setSelectionRange(el.value.length, el.value.length);
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        function saveProfileEdit() {
+            const name = document.getElementById('editName').value.trim();
+            const role = document.getElementById('editRole').value.trim();
+            const bio = document.getElementById('editBio').value.trim();
+            const future = document.getElementById('editFuture').value.trim();
+
+            if (!name) {
+                alert('名前は必須です');
+                return;
+            }
+
+            const profile = getProfile();
+            profile.name = name;
+            profile.role = role || 'メンバー';
+            profile.bio = bio;
+            profile.future = future;
+
+            localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+            // Update vision accordion data
+            localStorage.setItem('tss_future', future);
+            localStorage.setItem('tss_role', role || 'メンバー');
+
+            showUserBadge(profile);
+            updateVisionDisplay(); // Refresh the vision accordion
+
+
+            document.getElementById('editProfileModal').remove();
+
+            // Backend Sync
+            syncProfileToBackend(profile);
+
+            alert('プロフィールを更新しました！✨');
+        }
+
+        function syncProfileToBackend(profile) {
+            if (!SCRIPT_URL.includes('http')) {
+                alert('エラー: SCRIPT_URLが設定されていません');
+                return;
+            }
+            // alert('Syncing...'); 
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Google Apps Script dislikes application/json sometimes, text/plain is safer for CORS
+                body: JSON.stringify({
+                    action: 'updateProfile',
+                    name: profile.name,
+                    pin: profile.pin || '', // Pass pin if exists
+                    role: profile.role,
+                    bio: profile.bio,
+                    future: profile.future,
+                    image: profile.image || '',
+                    profileImage: profile.image || '' // Redundant but safe
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Profile synced:', data);
+                    // Silent success
+                })
+                .catch(err => {
+                    console.error('Sync failed:', err);
+                });
+        }
+
+        // ============ YOUTUBE ============
+        function loadYouTubeSettings() {
+            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
+            const iframe = document.getElementById('youtubeEmbed');
+            const caption = document.getElementById('youtubeCaption');
+
+            // Default video if none set
+            const defaultVideoId = 'YOUR_VIDEO_ID';
+            const videoId = settings.videoId || defaultVideoId;
+
+            iframe.src = `https://www.youtube.com/embed/${videoId}`;
+            caption.textContent = settings.caption || '';
+
+            if (!settings.caption) {
+                caption.style.display = 'none';
+            } else {
+                caption.style.display = 'block';
+            }
+        }
+
+        async function register() {
+            const name = document.getElementById('inputName').value.trim();
+            const pin = document.getElementById('inputPin').value.trim();
+            const role = document.getElementById('inputRole').value.trim() || 'メンバー';
+            const bio = document.getElementById('inputBio').value.trim() || '';
+            const future = document.getElementById('inputFuture').value.trim() || '';
+
+            if (name && pin) {
+                const profile = {
+                    name,
+                    role,
+                    bio,
+                    future,
+                    pin: pin, // User defined PIN
+                    tokens: 10, // Welcome bonus
+                    joinedAt: new Date().toISOString()
+                };
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+                localStorage.setItem('tss_future', future);
+                localStorage.setItem('tss_role', role);
+
+                // Sync with Backend (This will create V2 user)
+                syncProfileToBackend(profile);
+
+                showTokenEarned(10, 'Welcome Bonus! 🎉');
+                setTimeout(() => {
+                    init();
+                }, 1500);
+            }
+        }
+
+        async function login() {
+            const name = document.getElementById('loginName').value.trim();
+            const pin = document.getElementById('loginPin').value.trim();
+
+            if (!name || !pin) {
+                alert('名前とPINを入力してください');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'LOGIN...';
+                btn.disabled = true;
+
+                const url = `${SCRIPT_URL}?action=login&name=${encodeURIComponent(name)}&pin=${encodeURIComponent(pin)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                btn.textContent = originalText;
+                btn.disabled = false;
+
+                if (data.success) {
+                    const profile = {
+                        name: data.name,
+                        role: data.role || 'メンバー',
+                        bio: data.bio || '',
+                        future: data.future || '',
+                        pin: pin, // Save used PIN
+                        tokens: data.tokenBalance || 0,
+                        image: data.profileImage || ''
+                    };
+
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
+                    if (data.profileImage) {
+                        localStorage.setItem('tss_profile_photo', data.profileImage);
+                        localStorage.setItem('tss_profile_image', data.profileImage);
+                    }
+                    if (data.future) localStorage.setItem('tss_future', data.future);
+                    if (data.role) localStorage.setItem('tss_role', data.role);
+
+                    // If migration message exists, show it
+                    if (data.message) {
+                        alert(data.message);
+                    } else {
+                        alert('おかえりなさい！ログインしました。');
+                    }
+                    location.reload();
+                } else {
+                    alert('ログイン失敗: ' + (data.error || '不明なエラー'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('ログイン・通信エラー: ' + e);
+                // Reset button
+                const btn = document.querySelector('#screen-login .btn-main'); // Fallback selector
+                if (btn) {
+                    btn.textContent = 'LOGIN';
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        function showUserBadge(profile) {
+            const badge = document.getElementById('userBadge');
+            badge.textContent = `${profile.name} - ${profile.role}`;
+            badge.style.display = 'inline-block';
+
+            // Update profile screen
+            document.getElementById('profileName').textContent = profile.name;
+            document.getElementById('profileRole').textContent = profile.role;
+            document.getElementById('profileBio').textContent = profile.bio || '自己紹介がありません';
+            document.getElementById('profileFuture').textContent = profile.future || '未設定';
+
+            // Check for profile photo
+            const photoData = localStorage.getItem('tss_profile_photo');
+            const avatarEl = document.getElementById('profileAvatar');
+            if (photoData) {
+                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+            } else {
+                avatarEl.textContent = profile.name.charAt(0).toUpperCase();
+            }
+        }
+
+        // ============ PROFILE PHOTO ============
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                alert('画像サイズは2MB以下にしてください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const photoData = e.target.result;
+                localStorage.setItem('tss_profile_photo', photoData);
+
+                // Update Profile Object
+                const profile = getProfile();
+                profile.image = photoData;
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                const avatarEl = document.getElementById('profileAvatar');
+                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+
+                // Backend Sync
+                syncProfileToBackend(profile);
+
+                showTokenEarned(5, 'Photo Uploaded! 📸');
+                addTokens(5);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateTokenDisplay() {
+            const profile = getProfile();
+            if (profile) {
+                document.getElementById('tokenDisplay').style.display = 'inline-flex';
+                document.getElementById('tokenBalance').textContent = profile.tokens || 0;
+                document.getElementById('profileTokens').textContent = profile.tokens || 0;
+            }
+        }
+
+        function addTokens(amount) {
+            const profile = getProfile();
+            if (profile) {
+                profile.tokens = (profile.tokens || 0) + amount;
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+                updateTokenDisplay();
+            }
+        }
+
+        function showTokenEarned(amount, message) {
+            const container = document.createElement('div');
+            container.className = 'token-earned-container';
+            container.innerHTML = `
+                <div class="token-earned-badge">
+                    <div class="token-earned-icon">💎</div>
+                    <div class="token-earned-amount">+${amount}</div>
+                    <div class="token-earned-label">${message}</div>
+                </div>
+            `;
+            container.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;';
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 3000);
+        }
+
+
+
+        // ============ NAVIGATION ============
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navItem = document.querySelector(`.nav-item[onclick="showScreen('${screenId}')"]`);
+            if (navItem) navItem.classList.add('active');
+        }
+
+        // ============ MY VISION ACCORDION ============
+        let visionAccordionOpen = false;
+
+        // ============ QUICK PHOTO UPLOAD ============
+        function triggerVisionPhotoUpload(e) {
+            e.stopPropagation();
+            document.getElementById('visionPhotoUpload').click();
+        }
+
+        function handleVisionPhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('画像サイズは5MB以下にしてください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64 = e.target.result;
+
+                // Save locally
+                localStorage.setItem('tss_profile_image', base64);
+                localStorage.setItem('tss_profile_photo', base64);
+
+                // Update Profile Object
+                const profile = getProfile();
+                if (profile) {
+                    profile.image = base64;
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                    // Backend Sync
+                    syncProfileToBackend(profile);
+                }
+
+                // Update UI
+                updateVisionDisplay();
+                updateProfileStats();
+                loadPosts(); // Update my avatar in posts
+
+                // Award Tokens
+                showTokenEarned(5, 'Nice Photo! 📸');
+                addTokens(5);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function toggleVisionAccordion() {
+            const content = document.getElementById('visionAccordionContent');
+            const arrow = document.getElementById('visionArrow');
+
+            visionAccordionOpen = !visionAccordionOpen;
+
+            if (visionAccordionOpen) {
+                content.classList.add('open');
+                arrow.classList.add('open');
+            } else {
+                content.classList.remove('open');
+                arrow.classList.remove('open');
+            }
+        }
+
+        function updateVisionDisplay() {
+            const accordion = document.getElementById('visionAccordion');
+            const futureText = document.getElementById('futureVisionText');
+            const roleText = document.getElementById('roleVisionText');
+            const photo = document.getElementById('visionPhoto');
+            const placeholder = document.getElementById('visionPhotoPlaceholder');
+
+            // Get profile for user name
+            const profile = getProfile();
+            const userName = profile ? profile.name : '';
+
+            // Get stored values
+            const future = localStorage.getItem('tss_future') || '-';
+            const role = localStorage.getItem('tss_role') || '-';
+            const profileImage = localStorage.getItem('tss_profile_image') || localStorage.getItem('tss_profile_photo') || '';
+
+            futureText.textContent = future || '-';
+            roleText.textContent = role || '-';
+
+            if (profileImage) {
+                photo.src = profileImage;
+                photo.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                photo.style.display = 'none';
+                placeholder.style.display = 'block';
+                // Show initial letter if userName exists
+                if (userName) {
+                    placeholder.textContent = userName.charAt(0).toUpperCase();
+                }
+            }
+
+            // Show accordion if user is registered
+            if (userName) {
+                accordion.style.display = 'block';
+            }
+        }
+
+        // ============ TO-DO LIST ============
+        function loadTodos() {
+            const saved = localStorage.getItem('tss_todos');
+            if (saved) {
+                todos = JSON.parse(saved);
+            }
+            renderTodos('daily');
+            renderTodos('weekly');
+            renderTodos('monthly');
+        }
+
+        function saveTodos() {
+            localStorage.setItem('tss_todos', JSON.stringify(todos));
+        }
+
+        function showTodoTab(tab) {
+            document.querySelectorAll('.todo-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.todo-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('todo-' + tab).classList.add('active');
+        }
+
+        function addTodo(type) {
+            const input = document.getElementById(type + 'TodoInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const newTodo = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            todos[type].unshift(newTodo);
+            saveTodos();
+            renderTodos(type);
+            input.value = '';
+
+            // Award token for adding task
+            addTokens(1);
+        }
+
+        function toggleTodo(type, id) {
+            const todo = todos[type].find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                saveTodos();
+                renderTodos(type);
+
+                // Award token for completing task
+                if (todo.completed) {
+                    addTokens(2);
+                    showTokenEarned(2, 'Task Complete! ✅');
+                }
+            }
+        }
+
+        function deleteTodo(type, id) {
+            todos[type] = todos[type].filter(t => t.id !== id);
+            saveTodos();
+            renderTodos(type);
+        }
+
+        function renderTodos(type) {
+            const list = document.getElementById(type + 'TodoList');
+            if (!list) return;
+
+            if (todos[type].length === 0) {
+                list.innerHTML = '<div class="todo-empty">タスクがありません</div>';
+                return;
+            }
+
+            list.innerHTML = todos[type].map(todo => `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                    <div class="todo-checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleTodo('${type}', ${todo.id})"></div>
+                    <span class="todo-text">${escapeHtml(todo.text)}</span>
+                    <button class="todo-delete" onclick="deleteTodo('${type}', ${todo.id})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============ BOARD / POSTS ============
+        function loadPosts() {
+            // 1. Load from localStorage for instant display
+            const saved = localStorage.getItem('tss_posts');
+            if (saved) {
+                posts = JSON.parse(saved);
+                renderPosts();
+            }
+
+            // 2. Background Sync with Backend
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                // Fetch all data (default action)
+                fetch(SCRIPT_URL)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.posts && Array.isArray(data.posts)) {
+                            posts = data.posts;
+                            localStorage.setItem('tss_posts', JSON.stringify(posts));
+                            renderPosts(); // Re-render with profile images
+                            updateProfileStats();
+                            console.log('Posts synced from backend:', posts);
+                        }
+                    })
+                    .catch(e => console.error('Background sync failed:', e));
+            } else {
+                updateProfileStats();
+            }
+        }
+
+        function submitPost() {
+            const content = document.getElementById('postContent').value.trim();
+            if (!content) return;
+
+            const profile = getProfile();
+            const newPost = {
+                id: Date.now(),
+                author: profile.name,
+                content: content,
+                createdAt: new Date().toISOString(),
+                likes: 0
+            };
+
+            posts.unshift(newPost);
+            localStorage.setItem('tss_posts', JSON.stringify(posts));
+            renderPosts();
+            document.getElementById('postContent').value = '';
+
+            // Update profile posts count
+            updateProfileStats();
+
+            // Backend Sync
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'post',
+                    author: profile.name,
+                    content: content
+                })
+            })
+                .then(res => res.json())
+                .then(data => console.log('Post synced:', data))
+                .catch(err => console.error('Post sync failed:', err));
+
+            // Award token for posting
+            addTokens(3);
+            showTokenEarned(3, 'Post Created! 📝');
+        }
+
+        // ============ BOARD COMMENTS ============
+        function togglePostComments(postId) {
+            const el = document.getElementById(`post-comments-${postId}`);
+            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function submitPostComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const content = input.value.trim();
+            if (!content) return;
+
+            const profile = getProfile();
+            if (!profile) return;
+
+            // Optimistic Update
+            const list = document.getElementById(`post-comments-list-${postId}`);
+            const tempHtml = `
+                <div class="comment-item" style="margin-bottom:8px; display:flex; gap:8px; opacity:0.7;">
+                    <div style="width:24px;height:24px;border-radius:50%;background:#eee;overflow:hidden;flex-shrink:0;">
+                         ${profile.image ? `<img src="${profile.image}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;font-size:10px;font-weight:bold;color:#888;">${profile.name.charAt(0)}</div>`}
+                    </div>
+                    <div style="flex:1; background:#f9f9f9; padding:8px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:bold; color:#555;">${escapeHtml(profile.name)} <span style="font-size:9px;color:#aaa;">Now</span></div>
+                        <div style="font-size:12px; color:#333;">${escapeHtml(content)}</div>
+                    </div>
+                </div>
+            `;
+            list.insertAdjacentHTML('beforeend', tempHtml);
+            input.value = '';
+
+            // Send to Backend
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'comment',
+                    postId: postId,
+                    author: profile.name,
+                    content: content
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Award tokens locally
+                        addTokens(1);
+                        showTokenEarned(1, 'Reply Bonus! 💬');
+                    } else {
+                        alert('コメント保存に失敗した可能性があります');
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        function updateProfileStats() {
+            const profile = getProfile();
+            if (!profile) return;
+
+            // Count user's posts
+            const userPosts = posts.filter(p => p.author === profile.name);
+            const postsEl = document.getElementById('profilePosts');
+            if (postsEl) postsEl.textContent = userPosts.length;
+
+            // Count completed todos
+            const allTodos = [...todos.daily, ...todos.weekly, ...todos.monthly];
+            const completedTasks = allTodos.filter(t => t.completed).length;
+            const tasksEl = document.getElementById('profileTasks');
+            if (tasksEl) tasksEl.textContent = completedTasks;
+        }
+
+        function renderPosts() {
+            const list = document.getElementById('postsList');
+
+            if (posts.length === 0) {
+                list.innerHTML = '<div class="todo-empty">投稿がありません。最初の投稿をしてみましょう！</div>';
+                return;
+            }
+
+            console.log('Rendering posts:', posts); // Debugging
+
+            list.innerHTML = posts.map(post => {
+                // Profile Avatar Logic
+                let avatarHtml = post.author.charAt(0).toUpperCase();
+                if (post.authorImage) {
+                    avatarHtml = `<img src="${post.authorImage}" alt="${post.author}" style="width:100%;height:100%;object-fit:cover;">`;
+                }
+
+                // Check my like count
+                const likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+                const myCount = likedCounts[post.id] || 0;
+                const canLike = myCount < 10;
+
+                return `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-avatar" style="overflow:hidden;">${avatarHtml}</div>
+                        <div class="post-meta">
+                            <div class="post-author">${escapeHtml(post.author)} <span style="font-size:10px;color:#aaa;">${escapeHtml(post.authorRole || '')}</span></div>
+                            <div class="post-time">${formatDate(post.createdAt)}</div>
+                        </div>
+                    </div>
+                    <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
+                    <div class="post-actions">
+                        <div class="post-action ${canLike ? '' : 'disabled'}" onclick="likePost(${post.id})" style="${canLike ? '' : 'opacity:0.5;cursor:default;'}">
+                            ❤️ ${post.likes} <span style="font-size:10px;margin-left:4px;">(You: ${myCount}/10)</span>
+                        </div>
+                        <div class="post-action" onclick="togglePostComments(${post.id})">
+                            💬 <span style="font-size:12px;">${(post.comments || []).length}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Comment Section -->
+                    <div id="post-comments-${post.id}" class="post-comments-section" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #eee;">
+                        <div id="post-comments-list-${post.id}">
+                            ${(post.comments || []).map(c => `
+                                <div class="comment-item" style="margin-bottom:8px; display:flex; gap:8px;">
+                                    <div style="width:24px;height:24px;border-radius:50%;background:#eee;overflow:hidden;flex-shrink:0;">
+                                        ${c.authorImage ? `<img src="${c.authorImage}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;font-size:10px;font-weight:bold;color:#888;">${c.author.charAt(0)}</div>`}
+                                    </div>
+                                    <div style="flex:1; background:#f9f9f9; padding:8px; border-radius:8px;">
+                                        <div style="font-size:11px; font-weight:bold; color:#555;">${escapeHtml(c.author)} <span style="font-size:9px;color:#aaa;">${formatDate(c.createdAt)}</span></div>
+                                        <div style="font-size:12px; color:#333;">${escapeHtml(c.content)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="display:flex; gap:8px; margin-top:8px;">
+                            <input type="text" id="comment-input-${post.id}" placeholder="コメントを書く..." style="flex:1; border:1px solid #ddd; border-radius:4px; padding:6px; font-size:12px;">
+                            <button onclick="submitPostComment(${post.id})" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:0 12px; font-size:12px; cursor:pointer;">送信</button>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        async function likePost(id) {
+            const post = posts.find(p => p.id === id);
+            if (!post) return;
+
+            // Check 10 likes limit
+            let likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+            const myCount = likedCounts[id] || 0;
+
+            if (myCount >= 10) {
+                alert('この投稿へのいいねは10回までです！たくさんの承認ありがとう！👏');
+                return;
+            }
+
+            // Update LOCAL state
+            post.likes++;
+            likedCounts[id] = myCount + 1;
+
+            localStorage.setItem('tss_posts', JSON.stringify(posts));
+            localStorage.setItem('tss_liked_post_counts', JSON.stringify(likedCounts));
+
+            renderPosts();
+
+            // Reward ME (Sender) +1 Token for Approval Action
+            addTokens(1);
+            showTokenEarned(1, `Nice! Like (${myCount + 1}/10) ❤️`);
+
+            // Sync with Backend (Also rewards Author in GAS)
+            try {
+                // Determine if SCRIPT_URL is valid
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    await fetch(`${SCRIPT_URL}?action=like&postId=${id}`);
+                }
+            } catch (e) {
+                console.error('Like sync failed', e);
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}.${m}.${d}`;
+        }
+
+        // ============ AI CHAT ============
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addChatMessage('user', message);
+            input.value = '';
+
+            // Show typing indicator
+            addChatMessage('ai', '考え中...');
+
+            try {
+                // Try to call GAS backend with Gemini 3 Flash
+                if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_GAS_URL_HERE') {
+                    const profile = getProfile();
+                    const userName = profile?.name || 'User';
+
+                    // Send up to last 10 messages for context
+                    const historyToSend = chatHistory.slice(-10);
+                    const response = await fetch(`${SCRIPT_URL}?action=chat&q=${encodeURIComponent(message)}&name=${encodeURIComponent(userName)}&history=${encodeURIComponent(JSON.stringify(historyToSend))}`);
+                    const data = await response.json();
+
+                    // Remove typing indicator and show response
+                    removeLastAIMessage();
+                    const aiResponse = data.response || generateLocalResponse(message);
+                    addChatMessage('ai', aiResponse);
+
+                    // Add to history
+                    chatHistory.push({ role: 'user', text: message });
+                    chatHistory.push({ role: 'model', text: aiResponse });
+                } else {
+                    // Use local response if no GAS URL configured
+                    removeLastAIMessage();
+                    const aiResponse = generateLocalResponse(message);
+                    addChatMessage('ai', aiResponse);
+
+                    // Add to history even for local response
+                    chatHistory.push({ role: 'user', text: message });
+                    chatHistory.push({ role: 'model', text: aiResponse });
+                }
+            } catch (error) {
+                console.error('AI Error:', error);
+                removeLastAIMessage();
+                addChatMessage('ai', generateLocalResponse(message));
+            }
+        }
+
+        function removeLastAIMessage() {
+            const container = document.getElementById('chatContainer');
+            const messages = container.querySelectorAll('.chat-message.ai');
+            if (messages.length > 0) {
+                messages[messages.length - 1].remove();
+            }
+        }
+
+        function addChatMessage(type, message) {
+            const container = document.getElementById('chatContainer');
+            const avatar = type === 'ai' ? '🤖' : getProfile()?.name?.charAt(0).toUpperCase() || '👤';
+
+            container.innerHTML += `
+                <div class="chat-message ${type}">
+                    <div class="chat-avatar">${avatar}</div>
+                    <div class="chat-bubble">${escapeHtml(message).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function generateLocalResponse(question) {
+            const q = question.toLowerCase();
+            const profile = getProfile();
+            const userName = profile?.name || 'あなた';
+
+            if (q.includes('こんにちは') || q.includes('はじめまして')) {
+                return `${userName}さん、こんにちは！JINSEI AIです😊 人生のこと、仕事のこと、チームのこと、何でも相談してくださいね。一緒に考えましょう！`;
+            }
+            if (q.includes('ありがとう') || q.includes('感謝')) {
+                return `${userName}さん、どういたしまして！また気軽に話しかけてくださいね。あなたの挑戦を応援しています🌟`;
+            }
+            if (q.includes('チーム') || q.includes('組織') || q.includes('メンバー')) {
+                return `${userName}さん、自走型組織を作るコツは「承認」です。メンバーの挑戦をまず認め、心理的安全性を高めること。失敗しても大丈夫という環境があれば、人は自然と主体的になります✨`;
+            }
+            if (q.includes('リーダー') || q.includes('上司') || q.includes('部下')) {
+                return `${userName}さん、良いリーダーは号令をかける人ではなく、共感できる人です。メンバー一人ひとりの声に耳を傾け、承認し、巻き込んでいく。そうすることで、チーム全体が自走し始めます🚀`;
+            }
+            if (q.includes('やる気') || q.includes('モチベーション') || q.includes('主体性')) {
+                return `${userName}さん、主体性を引き出す鍵は「使命」です。自分たちで決めたミッションがあると、「やらされ感」が「やりたい！」に変わります。一緒に目標を作ってみませんか？💪`;
+            }
+            if (q.includes('失敗') || q.includes('ミス') || q.includes('不安')) {
+                return `${userName}さん、失敗は学びのチャンスです。心理的安全性が高い組織では、失敗を恐れずチャレンジできます。まずあなたの挑戦を認めてくれる人を見つけましょう。きっといるはずです😊`;
+            }
+            if (q.includes('トークン') || q.includes('ポイント') || q.includes('TSST') || q.includes('tsst')) {
+                return `${userName}さん、TSSTは活動で獲得できます！\n📝 投稿: +3 TSST\n✅ タスク追加: +1 TSST\n🎯 タスク完了: +2 TSST\n📷 写真アップロード: +5 TSST\n积極的に活動して、コミュニティに貢献しましょう！`;
+            }
+            if (q.includes('使い方') || q.includes('ヘルプ')) {
+                return `${userName}さん、このアプリでは:\n🏠 HOME: お知らせ・動画\n💬 BOARD: 投稿・交流\n✅ TODO: タスク管理\n🤖 AI: 私に相談\n👤 PROFILE: プロフィール確認\nができます！`;
+            }
+
+            const responses = [
+                `${userName}さん、いい質問ですね！もう少し詳しく教えていただけますか？一緒に考えましょう✨`,
+                `なるほど、${userName}さん、その悩みは多くの人が持っています。まず「心理的安全性」を意識してみてください。自分を認めてくれる環境があると、人は変われます😊`,
+                `素晴らしい視点ですね！${userName}さん、自走型組織を作る第一歩は、共感してくれる仲間を見つけること。あなたはすでにその一歩を踏み出していますよ🚀`
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // Enter key for chat
+        document.getElementById('chatInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendChat();
+        });
+
+        // ============ ANNOUNCEMENT INTERACTIONS ============
+        let announcementLikes = JSON.parse(localStorage.getItem('tss_announcement_likes') || '{}');
+        let announcementComments = JSON.parse(localStorage.getItem('tss_announcement_comments') || '{}');
+        let likedAnnouncements = JSON.parse(localStorage.getItem('tss_liked_announcements') || '[]');
+
+        function likeAnnouncement(id) {
+            const profile = getProfile();
+            if (!profile) return;
+
+            // Check if already liked
+            if (likedAnnouncements.includes(id)) {
+                alert('すでにいいねしています！');
+                return;
+            }
+
+            // Add like
+            announcementLikes[id] = (announcementLikes[id] || 0) + 1;
+            likedAnnouncements.push(id);
+
+            localStorage.setItem('tss_announcement_likes', JSON.stringify(announcementLikes));
+            localStorage.setItem('tss_liked_announcements', JSON.stringify(likedAnnouncements));
+
+            // Update display
+            document.getElementById(`announcement-likes-${id}`).textContent = announcementLikes[id];
+
+            // Award 1 TSST for liking
+            addTokens(1);
+            showTokenEarned(1, 'Like Bonus! ❤️');
+        }
+
+        function toggleComments(id) {
+            const section = document.getElementById(`comments-section-${id}`);
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+            renderComments(id);
+        }
+
+        function submitComment(id) {
+            const input = document.getElementById(`comment-input-${id}`);
+            const content = input.value.trim();
+            if (!content) return;
+
+            const profile = getProfile();
+            if (!profile) return;
+
+            if (!announcementComments[id]) {
+                announcementComments[id] = [];
+            }
+
+            announcementComments[id].push({
+                id: Date.now(),
+                author: profile.name,
+                content: content,
+                time: new Date().toISOString(),
+                likes: 0
+            });
+
+            localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+            input.value = '';
+
+            renderComments(id);
+
+            // Award 1 TSST for commenting
+            addTokens(1);
+            showTokenEarned(1, 'Comment Bonus! 💬');
+        }
+
+        function likeAnnouncementComment(annId, commentId) {
+            const comments = announcementComments[annId];
+            if (!comments) return;
+
+            const comment = comments.find(c => c.id === commentId);
+            if (comment) {
+                // Check Limit
+                let likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
+                const myCount = likedCounts[commentId] || 0;
+
+                if (myCount >= 10) {
+                    alert('このコメントへのいいねは10回までです！たくさんの承認ありがとう！👏');
+                    return;
+                }
+
+                comment.likes = (comment.likes || 0) + 1;
+                likedCounts[commentId] = myCount + 1;
+
+                localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+                localStorage.setItem('tss_liked_comment_counts', JSON.stringify(likedCounts));
+
+                renderComments(annId);
+
+                // Award 1 Token for Liking Comment
+                addTokens(1);
+                showTokenEarned(1, `Nice! Comment Like (${myCount + 1}/10) ❤️`);
+            }
+        }
+
+        function renderComments(id) {
+            const list = document.getElementById(`comments-list-${id}`);
+            const comments = announcementComments[id] || [];
+
+            if (comments.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: var(--text-gray); padding: 10px; font-size: 12px;">コメントはまだありません</div>';
+                return;
+            }
+
+            list.innerHTML = comments.map(comment => {
+                const likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
+                const myCount = likedCounts[comment.id] || 0;
+                const canLike = myCount < 10;
+
+                return `
+                <div class="comment-item">
+                    <div class="comment-avatar">${comment.author.charAt(0).toUpperCase()}</div>
+                    <div class="comment-content">
+                        <div class="comment-author">${escapeHtml(comment.author)}</div>
+                        <div class="comment-text">${escapeHtml(comment.content)}</div>
+                        <div style="margin-top: 4px; display: flex; gap: 10px; align-items: center;">
+                            <span class="comment-like-btn" onclick="likeAnnouncementComment(${id}, ${comment.id || 0})" style="font-size: 12px; color: ${canLike ? 'var(--text-gray)' : '#ccc'}; cursor: ${canLike ? 'pointer' : 'default'}; opacity: ${canLike ? 1 : 0.6}; display: flex; align-items: center; gap: 4px;">
+                                ❤️ <span style="font-weight: bold;">${comment.likes || 0}</span> <span style="font-size:10px;">(You: ${myCount}/10)</span>
+                            </span>
+                            <span style="font-size: 10px; color: #ccc;">${formatDate(comment.time)}</span>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // Load and render announcements from localStorage
+        function loadAnnouncements() {
+            const container = document.getElementById('announcementsList');
+            const announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
+
+            // Add default announcement if none exist
+            if (announcements.length === 0) {
+                announcements.push({
+                    id: 1,
+                    author: 'TSS運営',
+                    content: '🎉 TSS v2.0がリリースされました！\n新機能：JINSEI AI、プロフィール写真アップロード、いいね・コメント機能\n積極的に活動してTSSTを貯めましょう！',
+                    date: '2026-01-19T00:00:00.000Z',
+                    likes: 0
+                });
+            }
+
+            container.innerHTML = announcements.map(ann => {
+                // Format date
+                const date = new Date(ann.date);
+                const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+
+                // Format content with line breaks and auto-link URLs
+                const formattedContent = escapeHtml(ann.content)
+                    .replace(/\n/g, '<br>')
+                    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color: var(--primary);">$1</a>');
+
+                // Build attachments HTML
+                let attachmentsHtml = '';
+                if (ann.attachments && ann.attachments.length > 0) {
+                    attachmentsHtml = '<div class="announcement-attachments" style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">';
+
+                    ann.attachments.forEach(att => {
+                        if (att.type === 'link') {
+                            attachmentsHtml += `
+                                <a href="${escapeHtml(att.url)}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: var(--primary-light); border-radius: 8px; text-decoration: none; color: var(--primary);">
+                                    <span>🔗</span>
+                                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(att.label || att.url)}</span>
+                                    <span style="font-size: 10px;">↗</span>
+                                </a>
+                            `;
+                        } else if (att.type === 'image') {
+                            attachmentsHtml += `
+                                <div style="border-radius: 8px; overflow: hidden;">
+                                    <img src="${att.data}" alt="添付画像" style="max-width: 100%; border-radius: 8px; cursor: pointer;" onclick="window.open('${att.data}', '_blank')">
+                                </div>
+                            `;
+                        } else if (att.type === 'pdf') {
+                            attachmentsHtml += `
+                                <a href="${escapeHtml(att.url)}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #FEE2E2; border-radius: 8px; text-decoration: none; color: #DC2626;">
+                                    <span>📄</span>
+                                    <span style="flex: 1;">${escapeHtml(att.label || 'PDF資料')}</span>
+                                    <span style="font-size: 10px;">↗</span>
+                                </a>
+                            `;
+                        }
+                    });
+
+                    attachmentsHtml += '</div>';
+                }
+
+                return `
+                    <div class="post-card" data-announcement-id="${ann.id}">
+                        <div class="post-header">
+                            <div class="post-avatar">${(ann.author || 'T').charAt(0).toUpperCase()}</div>
+                            <div class="post-meta">
+                                <div class="post-author">${escapeHtml(ann.author || 'TSS運営')}</div>
+                                <div class="post-time">${dateStr}</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            ${formattedContent}
+                            ${attachmentsHtml}
+                        </div>
+                        <div class="post-actions">
+                            <div class="post-action" onclick="likeAnnouncement(${ann.id})">
+                                ❤️ <span id="announcement-likes-${ann.id}">${announcementLikes[ann.id] || 0}</span>
+                            </div>
+                            <div class="post-action" onclick="toggleComments(${ann.id})">
+                                💬 コメント
+                            </div>
+                        </div>
+                        <div class="comments-section" id="comments-section-${ann.id}" style="display: none;">
+                            <div id="comments-list-${ann.id}"></div>
+                            <div class="comment-input-row">
+                                <input type="text" class="text-input" id="comment-input-${ann.id}" placeholder="コメントを入力..." onkeypress="if(event.key==='Enter')submitComment(${ann.id})">
+                                <button class="comment-submit-btn" onclick="submitComment(${ann.id})">送信</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize announcement interactions
+        function initAnnouncementInteractions() {
+            loadAnnouncements();
+        }
+
+        // ============ PIN AUTHENTICATION ============
+        function checkPinAuth() {
+            const storedPin = localStorage.getItem('tss_pin');
+            const isAuthenticated = sessionStorage.getItem('tss_authenticated');
+
+            if (storedPin && !isAuthenticated) {
+                showPinModal('login');
+                return false;
+            }
+            return true;
+        }
+
+        function showPinModal(mode) {
+            const modal = document.createElement('div');
+            modal.id = 'pinModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8); display: flex; align-items: center;
+                justify-content: center; z-index: 99999;
+            `;
+
+            const title = mode === 'login' ? 'PINを入力' : 'PINを設定';
+            const btnText = mode === 'login' ? 'ログイン' : '設定';
+
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 16px; text-align: center; width: 280px;">
+                    <h3 style="font-family: 'Montserrat', sans-serif; color: var(--primary); margin-bottom: 20px;">${title}</h3>
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                        <input type="password" maxlength="1" class="pin-input" style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input" style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input" style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input" style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                    </div>
+                    <button onclick="handlePin('${mode}')" style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">${btnText}</button>
+                    ${mode === 'setup' ? '<p style="margin-top: 15px; font-size: 12px; color: var(--text-gray);">セキュリティのため4桁のPINを設定してください</p>' : ''}
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Auto-focus and auto-advance
+            const inputs = modal.querySelectorAll('.pin-input');
+            inputs[0].focus();
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    if (e.target.value && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+        }
+
+        function handlePin(mode) {
+            const inputs = document.querySelectorAll('.pin-input');
+            const pin = Array.from(inputs).map(i => i.value).join('');
+
+            if (pin.length !== 4) {
+                alert('4桁のPINを入力してください');
+                return;
+            }
+
+            if (mode === 'setup') {
+                localStorage.setItem('tss_pin', pin);
+                sessionStorage.setItem('tss_authenticated', 'true');
+                document.getElementById('pinModal').remove();
+                showTokenEarned(5, 'PIN設定完了! 🔐');
+                addTokens(5);
+            } else {
+                const storedPin = localStorage.getItem('tss_pin');
+                if (pin === storedPin) {
+                    sessionStorage.setItem('tss_authenticated', 'true');
+                    document.getElementById('pinModal').remove();
+                } else {
+                    alert('PINが正しくありません');
+                    inputs.forEach(i => i.value = '');
+                    inputs[0].focus();
+                }
+            }
+        }
+
+        // Modified init to include PIN check
+        const originalInit = init;
+        init = function () {
+            const profile = getProfile();
+            const storedPin = localStorage.getItem('tss_pin');
+
+            if (profile && storedPin) {
+                if (!checkPinAuth()) {
+                    // Wait for PIN authentication
+                    const checkAuth = setInterval(() => {
+                        if (sessionStorage.getItem('tss_authenticated')) {
+                            clearInterval(checkAuth);
+                            originalInit();
+                            initAnnouncementInteractions();
+                        }
+                    }, 100);
+                    return;
+                }
+            }
+
+            loadYouTubeSettings();
+            originalInit();
+            initAnnouncementInteractions();
+
+            // Offer PIN setup after registration if not set
+            if (profile && !storedPin) {
+                setTimeout(() => {
+                    if (confirm('セキュリティ強化のためPINを設定しますか？（後で設定も可能）')) {
+                        showPinModal('setup');
+                    }
+                }, 2000);
+            }
+        };
+
+        // ============ START ============
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
