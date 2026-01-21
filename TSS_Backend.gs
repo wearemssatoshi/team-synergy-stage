@@ -851,7 +851,6 @@ function loginUser(params) {
           themeSongUrl: data[i][7] || ''
         });
       }
-      }
     }
 
     // --- LEGACY FALLBACK (Auto-Migrate) ---
