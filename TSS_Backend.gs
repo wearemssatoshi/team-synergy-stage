@@ -27,6 +27,13 @@ function doPost(e) {
         return handleLike(ss, data);
       case 'comment':
         return handleComment(ss, data);
+      // ============ TO-DO ============
+      case 'addTodo':
+        return handleAddTodo(ss, data);
+      case 'completeTodo':
+        return handleCompleteTodo(ss, data);
+      case 'deleteTodo':
+        return handleDeleteTodo(ss, data);
       default:
         return createResponse({ error: 'Unknown action' });
     }
@@ -42,6 +49,30 @@ function doGet(e) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
     switch (action) {
+      // ============ VERSION ============
+      case 'version':
+        return createResponse({
+          version: '2.0.0',
+          name: 'TSS Backend with PIN Auth',
+          features: ['PIN認証', 'プロフィール同期', 'To-Do同期', 'JINSEI AI'],
+          deployedAt: '2026-01-21'
+        });
+      
+      // ============ PIN AUTH ============
+      case 'register':
+        return registerUser(e.parameter);
+      case 'login':
+        return loginUser(e.parameter);
+      case 'sync':
+        return syncUserData(e.parameter);
+      case 'changePin':
+        return changePinForUser(e.parameter);
+      case 'updateProfile':
+        return updateProfile(e.parameter);
+      case 'getTodos':
+        return getTodos(ss, e.parameter);
+      
+      // ============ EXISTING ============
       case 'members':
         return getMembers(ss);
       case 'posts':
@@ -424,5 +455,533 @@ function testSetup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   console.log('Spreadsheet ID:', ss.getId());
   console.log('Spreadsheet URL:', ss.getUrl());
-  console.log('TSS Backend v2.0 - JINSEI AI Ready');
+  console.log('TSS Backend v2.0 - PIN Auth Ready');
+  
+  // Create sheets if needed
+  getUsersSheet(ss);
+  getTodosSheet(ss);
+  console.log('All sheets initialized!');
+}
+
+function testPinHash() {
+  const hash = hashPin('1234');
+  console.log('PIN Hash:', hash);
+  console.log('Hash length:', hash.length); // 64文字（SHA-256）
+}
+
+// ============ PIN AUTHENTICATION SYSTEM ============
+
+/**
+ * ユーザーシートを取得または作成
+ */
+function getUsersSheet(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('TSS_Users');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Users');
+    sheet.getRange(1, 1, 1, 10).setValues([[
+      'Name', 'PIN_Hash', 'Role', 'Bio', 
+      'Token_Balance', 'Profile_Image', 'Theme_Song_URL',
+      'Created_At', 'Last_Login', 'Settings_JSON'
+    ]]);
+    sheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+  }
+  return sheet;
+}
+
+/**
+ * To-Doシートを取得または作成
+ */
+function getTodosSheet(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('TSS_Todos');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Todos');
+    sheet.getRange(1, 1, 1, 7).setValues([[
+      'Timestamp', 'User', 'Content', 'Type', 'Completed', 'CompletedAt', 'TodoId'
+    ]]);
+    sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+  }
+  return sheet;
+}
+
+/**
+ * 簡易ハッシュ関数（SHA-256）
+ */
+function hashPin(pin) {
+  const hash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, pin);
+  return hash.map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
+}
+
+/**
+ * ユーザー登録（PIN付き）
+ */
+function registerUser(params) {
+  try {
+    const name = params?.name || '';
+    const pin = params?.pin || '';
+    const role = params?.role || 'メンバー';
+    const bio = params?.bio || '';
+    
+    if (!name || !pin) {
+      return createResponse({ 
+        success: false, 
+        error: '名前とPINを入力してください' 
+      });
+    }
+    
+    if (pin.length < 4) {
+      return createResponse({ 
+        success: false, 
+        error: 'PINは4桁以上で設定してください' 
+      });
+    }
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = getUsersSheet(ss);
+    const data = sheet.getDataRange().getValues();
+    
+    // 既存ユーザーチェック
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === name) {
+        return createResponse({ 
+          success: false, 
+          error: 'この名前は既に登録されています。ログインしてください。',
+          exists: true
+        });
+      }
+    }
+    
+    // 新規ユーザー登録
+    const pinHash = hashPin(pin);
+    const now = new Date().toISOString();
+    
+    sheet.appendRow([name, pinHash, role, bio, 10, '', '', now, now, '{}']);
+    
+    // TSS_Membersにも追加（後方互換性）
+    addToLegacyMembers(ss, name, role, bio);
+    
+    return createResponse({ 
+      success: true, 
+      message: '登録完了！Welcome Bonus +10 TSST',
+      tokenBalance: 10
+    });
+    
+  } catch (error) {
+    return createResponse({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+}
+
+/**
+ * 後方互換: TSS_Membersにも追加
+ */
+function addToLegacyMembers(ss, name, role, bio) {
+  let sheet = ss.getSheetByName('TSS_Members');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Members');
+    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'Name', 'Role', 'Bio', 'Tokens', 'JoinedAt']]);
+    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+  }
+  
+  const now = new Date().toISOString();
+  sheet.appendRow([now, name, role, bio, 10, now]);
+}
+
+/**
+ * ログイン
+ */
+function loginUser(params) {
+  try {
+    const name = params?.name || '';
+    const pin = params?.pin || '';
+    
+    if (!name || !pin) {
+      return createResponse({ 
+        success: false, 
+        error: '名前とPINを入力してください' 
+      });
+    }
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = getUsersSheet(ss);
+    const data = sheet.getDataRange().getValues();
+    const pinHash = hashPin(pin);
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === name && data[i][1] === pinHash) {
+        // ログイン成功 - 最終ログイン時刻を更新
+        sheet.getRange(i + 1, 9).setValue(new Date().toISOString());
+        
+        // ユーザーデータを返す
+        return createResponse({ 
+          success: true, 
+          name: name,
+          role: data[i][2] || 'メンバー',
+          bio: data[i][3] || '',
+          tokenBalance: data[i][4] || 0,
+          profileImage: data[i][5] || '',
+          themeSongUrl: data[i][6] || ''
+        });
+      }
+    }
+    
+    // ログイン失敗
+    return createResponse({ 
+      success: false, 
+      error: '名前またはPINが正しくありません'
+    });
+    
+  } catch (error) {
+    return createResponse({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+}
+
+/**
+ * データ同期（現在のユーザーデータを取得）
+ */
+function syncUserData(params) {
+  try {
+    const name = params?.name || '';
+    const pin = params?.pin || '';
+    
+    if (!name || !pin) {
+      return createResponse({ 
+        success: false, 
+        error: '認証情報が必要です' 
+      });
+    }
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = getUsersSheet(ss);
+    const data = sheet.getDataRange().getValues();
+    const pinHash = hashPin(pin);
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === name && data[i][1] === pinHash) {
+        // To-Doを取得
+        const todos = getUserTodos(ss, name);
+        
+        return createResponse({ 
+          success: true,
+          tokenBalance: data[i][4] || 0,
+          profileImage: data[i][5] || '',
+          themeSongUrl: data[i][6] || '',
+          todos: todos
+        });
+      }
+    }
+    
+    return createResponse({ 
+      success: false, 
+      error: '認証に失敗しました'
+    });
+    
+  } catch (error) {
+    return createResponse({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+}
+
+/**
+ * PIN変更
+ */
+function changePinForUser(params) {
+  try {
+    const name = params?.name || '';
+    const currentPin = params?.currentPin || '';
+    const newPin = params?.newPin || '';
+    
+    if (!name || !currentPin || !newPin) {
+      return createResponse({ 
+        success: false, 
+        error: '必要な情報が不足しています' 
+      });
+    }
+    
+    if (newPin.length < 4) {
+      return createResponse({ 
+        success: false, 
+        error: '新しいPINは4桁以上で設定してください' 
+      });
+    }
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = getUsersSheet(ss);
+    const data = sheet.getDataRange().getValues();
+    const currentPinHash = hashPin(currentPin);
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === name) {
+        // 現在のPINを確認
+        if (data[i][1] !== currentPinHash) {
+          return createResponse({ 
+            success: false, 
+            error: '現在のPINが正しくありません'
+          });
+        }
+        
+        // 新しいPINを保存
+        const newPinHash = hashPin(newPin);
+        sheet.getRange(i + 1, 2).setValue(newPinHash);
+        
+        return createResponse({ 
+          success: true, 
+          message: 'PINを変更しました'
+        });
+      }
+    }
+    
+    return createResponse({ 
+      success: false, 
+      error: 'ユーザーが見つかりません'
+    });
+    
+  } catch (error) {
+    return createResponse({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+}
+
+/**
+ * プロフィール更新
+ */
+function updateProfile(params) {
+  try {
+    const name = params?.name || '';
+    const pin = params?.pin || '';
+    const bio = params?.bio;
+    const role = params?.role;
+    const profileImage = params?.profileImage;
+    const themeSongUrl = params?.themeSongUrl;
+    
+    if (!name || !pin) {
+      return createResponse({ 
+        success: false, 
+        error: '認証情報が必要です' 
+      });
+    }
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = getUsersSheet(ss);
+    const data = sheet.getDataRange().getValues();
+    const pinHash = hashPin(pin);
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === name && data[i][1] === pinHash) {
+        // 更新
+        if (role !== undefined) sheet.getRange(i + 1, 3).setValue(role);
+        if (bio !== undefined) sheet.getRange(i + 1, 4).setValue(bio);
+        if (profileImage !== undefined) sheet.getRange(i + 1, 6).setValue(profileImage);
+        if (themeSongUrl !== undefined) sheet.getRange(i + 1, 7).setValue(themeSongUrl);
+        
+        return createResponse({ 
+          success: true, 
+          message: 'プロフィールを更新しました'
+        });
+      }
+    }
+    
+    return createResponse({ 
+      success: false, 
+      error: '認証に失敗しました'
+    });
+    
+  } catch (error) {
+    return createResponse({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+}
+
+// ============ TO-DO MANAGEMENT ============
+
+/**
+ * ユーザーのTo-Doを取得
+ */
+function getUserTodos(ss, userName) {
+  const sheet = ss.getSheetByName('TSS_Todos');
+  if (!sheet) return [];
+  
+  const data = sheet.getDataRange().getValues();
+  const todos = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1] === userName) {
+      todos.push({
+        id: data[i][6],
+        content: data[i][2],
+        type: data[i][3],
+        completed: data[i][4] === true || data[i][4] === 'true',
+        timestamp: data[i][0],
+        completedAt: data[i][5]
+      });
+    }
+  }
+  
+  return todos;
+}
+
+/**
+ * To-Do一覧取得（API）
+ */
+function getTodos(ss, params) {
+  const name = params?.name || '';
+  const type = params?.type || 'all';
+  
+  if (!name) {
+    return createResponse({ todos: [] });
+  }
+  
+  let todos = getUserTodos(ss, name);
+  
+  if (type !== 'all') {
+    todos = todos.filter(t => t.type === type);
+  }
+  
+  return createResponse({ todos });
+}
+
+/**
+ * To-Do追加
+ */
+function handleAddTodo(ss, data) {
+  try {
+    const userName = data.name;
+    const content = data.content;
+    const type = data.type || 'personal';
+    
+    if (!userName || !content) {
+      return createResponse({ error: 'ユーザー名とタスク内容が必要です' });
+    }
+    
+    const sheet = getTodosSheet(ss);
+    const todoId = Date.now();
+    const now = new Date().toISOString();
+    
+    sheet.appendRow([now, userName, content, type, false, '', todoId]);
+    
+    // トークン付与（+1 TSST）
+    updateUserTokens(ss, userName, 1);
+    
+    return createResponse({ 
+      success: true, 
+      todoId: todoId,
+      tokensEarned: 1
+    });
+    
+  } catch (error) {
+    return createResponse({ error: error.message });
+  }
+}
+
+/**
+ * To-Do完了
+ */
+function handleCompleteTodo(ss, data) {
+  try {
+    const userName = data.name;
+    const todoId = data.todoId;
+    
+    if (!userName || !todoId) {
+      return createResponse({ error: 'ユーザー名とタスクIDが必要です' });
+    }
+    
+    const sheet = ss.getSheetByName('TSS_Todos');
+    if (!sheet) return createResponse({ error: 'Todos sheet not found' });
+    
+    const allData = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < allData.length; i++) {
+      if (String(allData[i][6]) === String(todoId) && allData[i][1] === userName) {
+        // 既に完了済みかチェック
+        if (allData[i][4] === true || allData[i][4] === 'true') {
+          return createResponse({ success: true, alreadyCompleted: true });
+        }
+        
+        // 完了に更新
+        sheet.getRange(i + 1, 5).setValue(true);
+        sheet.getRange(i + 1, 6).setValue(new Date().toISOString());
+        
+        // トークン付与（+2 TSST）
+        updateUserTokens(ss, userName, 2);
+        
+        return createResponse({ 
+          success: true, 
+          tokensEarned: 2
+        });
+      }
+    }
+    
+    return createResponse({ error: 'タスクが見つかりません' });
+    
+  } catch (error) {
+    return createResponse({ error: error.message });
+  }
+}
+
+/**
+ * To-Do削除
+ */
+function handleDeleteTodo(ss, data) {
+  try {
+    const userName = data.name;
+    const todoId = data.todoId;
+    
+    if (!userName || !todoId) {
+      return createResponse({ error: 'ユーザー名とタスクIDが必要です' });
+    }
+    
+    const sheet = ss.getSheetByName('TSS_Todos');
+    if (!sheet) return createResponse({ error: 'Todos sheet not found' });
+    
+    const allData = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < allData.length; i++) {
+      if (String(allData[i][6]) === String(todoId) && allData[i][1] === userName) {
+        sheet.deleteRow(i + 1);
+        return createResponse({ success: true });
+      }
+    }
+    
+    return createResponse({ error: 'タスクが見つかりません' });
+    
+  } catch (error) {
+    return createResponse({ error: error.message });
+  }
+}
+
+/**
+ * ユーザートークンを更新（TSS_Users）
+ */
+function updateUserTokens(ss, name, amount) {
+  const sheet = ss.getSheetByName('TSS_Users');
+  if (!sheet) return false;
+  
+  const data = sheet.getDataRange().getValues();
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name) {
+      const currentTokens = data[i][4] || 0;
+      const newTokens = currentTokens + amount;
+      sheet.getRange(i + 1, 5).setValue(newTokens);
+      
+      // TSS_Membersも更新（後方互換）
+      addTokensToUser(ss, name, amount);
+      
+      return true;
+    }
+  }
+  
+  return false;
 }
