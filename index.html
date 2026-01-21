@@ -1757,6 +1757,9 @@
                 posts = JSON.parse(saved);
             }
             renderPosts();
+
+            // Update profile stats after posts are loaded
+            updateProfileStats();
         }
 
         function submitPost() {
@@ -1777,9 +1780,26 @@
             renderPosts();
             document.getElementById('postContent').value = '';
 
+            // Update profile posts count
+            updateProfileStats();
+
             // Award token for posting
             addTokens(3);
             showTokenEarned(3, 'Post Created! 📝');
+        }
+
+        function updateProfileStats() {
+            const profile = getProfile();
+            if (!profile) return;
+
+            // Count user's posts
+            const userPosts = posts.filter(p => p.author === profile.name);
+            document.getElementById('profilePosts').textContent = userPosts.length;
+
+            // Count completed todos
+            const allTodos = [...todos.daily, ...todos.weekly, ...todos.monthly];
+            const completedTasks = allTodos.filter(t => t.completed).length;
+            document.getElementById('profileTasks').textContent = completedTasks;
         }
 
         function renderPosts() {
