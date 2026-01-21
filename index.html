@@ -1121,6 +1121,28 @@
                 </div>
 
                 <button class="btn-main" id="registerBtn" onclick="register()" disabled>JOIN COMMUNITY</button>
+                <button class="btn-secondary" onclick="showScreen('screen-login')">すでにアカウントをお持ちの方 (LOGIN)</button>
+            </div>
+        </div>
+
+        <!-- LOGIN SCREEN -->
+        <div class="screen" id="screen-login">
+            <div class="register-card">
+                <div class="register-title">LOGIN</div>
+                <div class="register-sub">おかえりなさい！</div>
+
+                <div class="input-group">
+                    <label class="input-label">YOUR NAME</label>
+                    <input type="text" class="text-input" id="loginName" placeholder="登録した名前">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">PIN (4桁の数字など)</label>
+                    <input type="password" class="text-input" id="loginPin" placeholder="PINコード">
+                </div>
+
+                <button class="btn-main" onclick="login()">LOGIN</button>
+                <button class="btn-secondary" onclick="showScreen('screen-register')">新規登録はこちら</button>
             </div>
         </div>
 
@@ -1516,38 +1538,96 @@
             const future = document.getElementById('inputFuture').value.trim() || '';
 
             if (name) {
-                // Sync with Backend
-                try {
-                    const response = await fetch(`${SCRIPT_URL}?action=register&name=${encodeURIComponent(name)}&role=${encodeURIComponent(role)}&bio=${encodeURIComponent(bio)}&future=${encodeURIComponent(future)}`);
-                    const data = await response.json();
-                    console.log('Registration response:', data);
-                } catch (error) {
-                    console.error('Registration sync error:', error);
-                }
+                // For new users, we don't have a PIN yet. 
+                // They can set it later, or we can ask for it now?
+                // For now, let's keep it simple and allow "No PIN" registration locally,
+                // BUT syncProfileToBackend will send it.
+                // Todo: Add PIN input to registration?
 
                 const profile = {
                     name,
                     role,
                     bio,
                     future,
+                    pin: '0000', // Default PIN for new users
                     tokens: 10, // Welcome bonus
                     joinedAt: new Date().toISOString()
                 };
                 localStorage.setItem('tss_profile', JSON.stringify(profile));
-
-                // Save vision data separately for accordion display
                 localStorage.setItem('tss_future', future);
                 localStorage.setItem('tss_role', role);
 
-                showUserBadge(profile);
-                updateTokenDisplay();
-                updateVisionDisplay(); // Update vision accordion
-                showScreen('screen-home');
-                document.getElementById('mainNav').style.display = 'block';
-                loadPosts();
+                // Sync with Backend (This will create V2 user)
+                syncProfileToBackend(profile);
 
-                // Show welcome token animation
                 showTokenEarned(10, 'Welcome Bonus! 🎉');
+                setTimeout(() => {
+                    init();
+                }, 1500);
+            }
+        }
+
+        async function login() {
+            const name = document.getElementById('loginName').value.trim();
+            const pin = document.getElementById('loginPin').value.trim();
+
+            if (!name || !pin) {
+                alert('名前とPINを入力してください');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'LOGIN...';
+                btn.disabled = true;
+
+                const url = `${SCRIPT_URL}?action=login&name=${encodeURIComponent(name)}&pin=${encodeURIComponent(pin)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                btn.textContent = originalText;
+                btn.disabled = false;
+
+                if (data.success) {
+                    const profile = {
+                        name: data.name,
+                        role: data.role || 'メンバー',
+                        bio: data.bio || '',
+                        future: data.future || '',
+                        pin: pin, // Save used PIN
+                        tokens: data.tokenBalance || 0,
+                        image: data.profileImage || ''
+                    };
+
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
+                    if (data.profileImage) {
+                        localStorage.setItem('tss_profile_photo', data.profileImage);
+                        localStorage.setItem('tss_profile_image', data.profileImage);
+                    }
+                    if (data.future) localStorage.setItem('tss_future', data.future);
+                    if (data.role) localStorage.setItem('tss_role', data.role);
+
+                    // If migration message exists, show it
+                    if (data.message) {
+                        alert(data.message);
+                    } else {
+                        alert('おかえりなさい！ログインしました。');
+                    }
+                    location.reload();
+                } else {
+                    alert('ログイン失敗: ' + (data.error || '不明なエラー'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('ログイン・通信エラー: ' + e);
+                // Reset button
+                const btn = document.querySelector('#screen-login .btn-main'); // Fallback selector
+                if (btn) {
+                    btn.textContent = 'LOGIN';
+                    btn.disabled = false;
+                }
             }
         }
 
