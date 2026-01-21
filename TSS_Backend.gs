@@ -307,28 +307,53 @@ function getComments(ss, postId) {
   return createResponse({ comments });
 }
 
-// ============ JINSEI AI ============
+// ============ JINSEI AI v3.0 (Based on MINDFUL SATOSHI AI pattern) ============
 
-function askJinseiAI(question, userName) {
+function askJinseiAI(question, userName, userContext = {}) {
   try {
     const GEMINI_API_KEY = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
     
     if (!GEMINI_API_KEY) {
-      return createResponse({ 
-        response: generateJinseiResponse(question),
+      return ContentService.createTextOutput(JSON.stringify({ 
+        response: generateLocalJinseiResponse(question),
         source: 'local'
-      });
+      })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    // 相談者コンテキスト
+    // 相談者コンテキストを構築
     let contextInfo = '';
     if (userName && userName !== 'User') {
-      contextInfo = `相談者: ${userName}さん\n`;
+      contextInfo += `相談者: ${userName}さん\n`;
+    }
+    if (userContext.role) {
+      contextInfo += `役割: ${userContext.role}\n`;
     }
     
-    const systemPrompt = `あなたはチームビルディングと組織づくりの専門家です。TEAM SYNERGY STAGEコミュニティのメンバーをサポートします。
+    const systemPrompt = `あなたは「JINSEI」です。チームビルディングと自走型組織づくりの専門家として、働く仲間をサポートするAIメンターです。
 
-## 基本姿勢
+## 仁成（JINSEI）メソッドの核心
+
+### 自走型組織とは
+- 経営者が指示・命令しなくても社員が自ら考えて行動できる組織
+- チーム全体で「右腕」として機能する組織づくり
+- 個人プレイではなく、チームで協力し力を結集させる
+
+### 心理的安全性の重要性
+- 人が主体的に行動するには心理的安全性が必須
+- 「無知だと思われる不安」「無能だと思われる不安」を取り除く
+- 失敗しても大丈夫という安心感がチャレンジを生む
+
+### 承認の力
+- 相手の挑戦や取り組みをまず「認める」ことが大切
+- 叱る前に褒める、結果より過程を評価
+- 心理的安全性を高める最も効果的な方法
+
+### ミッション・ビジョンの重要性
+- 使命があることで「やらされ感」が「やりたい」に変わる
+- 自分たちで決めたミッションだからこそ習慣化しやすい
+- ビジョンに共感する人材が集まる
+
+## あなたの基本姿勢
 - **まず聴く**: 相談者の話の意図を正確に理解することを最優先にする
 - **押し付けない**: 「こうすべき」ではなく「こういう方法もある」と選択肢を提示
 - **実用的**: 抽象論より、明日から使える具体的なアドバイスを優先
@@ -337,26 +362,26 @@ function askJinseiAI(question, userName) {
 
 ## 対応できるトピック
 
-### チームワーク・組織
+### チームビルディング
 - 自走型組織づくり
 - 心理的安全性の確保
-- チームビルディング
+- リーダーシップ開発
 - コミュニケーション改善
-- リーダーシップ
+- チームの一体感づくり
 
 ### キャリア・成長
 - スキルアップの方法
 - 将来のキャリアパス
 - モチベーション維持
-- 目標設定
+- 目標設定と達成
 
 ### 仕事の悩み
-- 人間関係
+- 人間関係の改善
 - 業務改善
 - タイムマネジメント
 - ストレス対処
 
-## 相談者情報
+## 相談者の情報
 ${contextInfo || '（初めての相談者です）'}
 
 ## 回答ガイドライン
@@ -385,60 +410,81 @@ ${contextInfo || '（初めての相談者です）'}
       }
     );
     
-    const result = JSON.parse(response.getContentText());
-    const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || generateJinseiResponse(question);
+    const responseText = response.getContentText();
+    console.log('API Response:', responseText);
     
-    return createResponse({ 
+    const result = JSON.parse(responseText);
+    console.log('Parsed result:', JSON.stringify(result));
+    
+    const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || generateLocalJinseiResponse(question);
+    
+    return ContentService.createTextOutput(JSON.stringify({ 
       response: aiText,
       source: 'gemini'
-    });
+    })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (error) {
-    return createResponse({ 
-      response: generateJinseiResponse(question),
+    console.log('Error in askJinseiAI:', error.message);
+    return ContentService.createTextOutput(JSON.stringify({ 
+      response: generateLocalJinseiResponse(question),
       source: 'local',
       error: error.message
-    });
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-function generateJinseiResponse(question) {
+function generateLocalJinseiResponse(question) {
+  // キーワードに基づいて適切な回答を選択（寄り添い型）
   const q = question.toLowerCase();
   
-  if (q.includes('こんにちは') || q.includes('はじめまして')) {
-    return 'こんにちは！JINSEI AIです😊 人生のこと、仕事のこと、チームのこと、何でも相談してくださいね。一緒に考えましょう！';
-  }
-  
-  if (q.includes('ありがとう') || q.includes('感謝')) {
-    return 'どういたしまして！また気軽に話しかけてくださいね。あなたの挑戦を応援しています🌟';
-  }
-  
   if (q.includes('チーム') || q.includes('組織') || q.includes('メンバー')) {
-    return '自走型組織を作るコツは「承認」です。メンバーの挑戦をまず認め、心理的安全性を高めること。失敗しても大丈夫という環境があれば、人は自然と主体的になります✨';
+    return '自走型組織についての相談だね。一つ提案があるよ。まずメンバーの小さな挑戦を「認める」ことから始めてみて。承認から始めると、心理的安全性が高まって、自然とチームが動き出すよ。';
   }
   
   if (q.includes('リーダー') || q.includes('上司') || q.includes('部下')) {
-    return '良いリーダーは号令をかける人ではなく、共感できる人です。メンバー一人ひとりの声に耳を傾け、承認し、巻き込んでいく。そうすることで、チーム全体が自走し始めます🚀';
+    return 'リーダーシップについての相談だね。良いリーダーは号令をかける人じゃなくて、共感できる人だよ。メンバーの声に耳を傾けて、まず認める。そこから信頼関係が生まれる。';
   }
   
   if (q.includes('やる気') || q.includes('モチベーション') || q.includes('主体性')) {
-    return '主体性を引き出す鍵は「使命」です。自分たちで決めたミッションがあると、「やらされ感」が「やりたい！」に変わります。一緒に目標を作ってみませんか？💪';
+    return '主体性を引き出すには「使命」が大切。自分たちで決めたミッションがあると「やらされ感」が「やりたい！」に変わるよ。何を目指したいか、一緒に考えてみない？';
+  }
+  
+  if (q.includes('心理的安全性') || q.includes('安心') || q.includes('安全')) {
+    return '心理的安全性は自走型組織の土台だよ。「失敗しても大丈夫」という安心感があれば、人はチャレンジできる。まず自分が失敗を認められる環境を作ることから始めてみて。';
   }
   
   if (q.includes('失敗') || q.includes('ミス') || q.includes('不安')) {
-    return '失敗は学びのチャンスです。心理的安全性が高い組織では、失敗を恐れずチャレンジできます。まずあなたの挑戦を認めてくれる人を見つけましょう。きっといるはずです😊';
+    return '失敗は学びのチャンスだよ。心理的安全性が高い組織では、失敗を恐れずチャレンジできる。まずあなたの挑戦を認めてくれる人を見つけよう。きっといるはずだよ。';
   }
   
-  if (q.includes('トークン') || q.includes('ポイント') || q.includes('TSST')) {
-    return 'TSSトークン(TSST)は活動で獲得できます！\n📝 投稿: +3 TSST\n✅ タスク追加: +1 TSST\n🎯 タスク完了: +2 TSST\n💬 コメント: +1 TSST\n積極的に活動して、コミュニティに貢献しましょう！';
+  if (q.includes('コミュニケーション') || q.includes('伝え') || q.includes('話し')) {
+    return 'コミュニケーションの悩みだね。大切なのは「伝える」より「聴く」こと。相手の話を最後まで聴いて、まず認める。そこから対話が始まるよ。';
   }
   
+  if (q.includes('目標') || q.includes('ビジョン') || q.includes('ミッション')) {
+    return 'ビジョンやミッションは組織の羅針盤だよ。でも押し付けじゃなくて、みんなで決めることが大切。自分たちで決めたからこそ、習慣化しやすいんだ。';
+  }
+  
+  // デフォルトの回答（謙虚・寄り添い型）
   const responses = [
-    'いい質問ですね！もう少し詳しく教えていただけますか？一緒に考えましょう✨',
-    'なるほど、その悩みは多くの人が持っています。まず「心理的安全性」を意識してみてください。自分を認めてくれる環境があると、人は変われます😊',
-    '素晴らしい視点ですね！自走型組織を作る第一歩は、共感してくれる仲間を見つけること。あなたはすでにその一歩を踏み出していますよ🚀'
+    'いい質問だね。もう少し詳しく状況を教えてもらえる？具体的なアドバイスができると思う。',
+    'その悩み、しっかり聞きたい。背景や状況をもう少し教えてくれると、一緒に考えられるよ。',
+    '分かった、考えてみよう。何か特に気になっていることや、試してみたいことはある？',
+    '相談してくれてありがとう。どんな結果を目指しているか教えてもらえると、具体的な提案ができそう。'
   ];
   return responses[Math.floor(Math.random() * responses.length)];
+}
+
+// テスト用関数
+function testJinseiAI() {
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  console.log('API Key exists:', !!key);
+  console.log('Key starts with:', key ? key.substring(0, 10) : 'null');
+  
+  if (key) {
+    const result = askJinseiAI('チームビルディングについて教えて', 'テストユーザー');
+    console.log('Result:', result.getContent());
+  }
 }
 
 // ============ UTILITIES ============
