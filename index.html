@@ -1242,8 +1242,10 @@
                         <input type="file" id="photoUpload" class="photo-upload-input" accept="image/*"
                             onchange="handlePhotoUpload(event)">
                     </div>
-                    <div class="profile-name" id="profileName">-</div>
-                    <div class="profile-role" id="profileRole">-</div>
+                    <div class="profile-name" id="profileName" onclick="openProfileEditor('editName')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                    <div class="profile-role" id="profileRole" onclick="openProfileEditor('editRole')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
                 </div>
 
                 <div class="profile-stats">
@@ -1267,14 +1269,16 @@
 
                 <div class="profile-section">
                     <div class="profile-section-title">BIO</div>
-                    <div class="profile-bio" id="profileBio">-</div>
+                    <div class="profile-bio" id="profileBio" onclick="openProfileEditor('editBio')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
                 </div>
                 <div class="profile-section">
                     <div class="profile-section-title">3年後の自分は？</div>
-                    <div class="profile-bio" id="profileFuture">-</div>
+                    <div class="profile-bio" id="profileFuture" onclick="openProfileEditor('editFuture')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
                 </div>
 
-                <button class="btn-secondary" onclick="confirmEditProfile()">プロフィールを編集</button>
+                <button class="btn-secondary" onclick="openProfileEditor()">プロフィールを編集</button>
 
                 <div class="version-badge">TSS v2.0 | Powered by ITO JINSEI</div>
             </div>
@@ -1360,7 +1364,7 @@
         document.getElementById('inputName').addEventListener('input', validateRegistration);
 
         // ============ PROFILE EDIT ============
-        function confirmEditProfile() {
+        function openProfileEditor(focusId = null) {
             const profile = getProfile();
             if (!profile) return;
 
@@ -1404,6 +1408,18 @@
                 </div>
             `;
             document.body.appendChild(modal);
+
+            if (focusId) {
+                const el = document.getElementById(focusId);
+                if (el) {
+                    setTimeout(() => {
+                        el.focus();
+                        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                            el.setSelectionRange(el.value.length, el.value.length);
+                        }
+                    }, 100);
+                }
+            }
         }
 
         function saveProfileEdit() {
@@ -1576,19 +1592,7 @@
             setTimeout(() => container.remove(), 3000);
         }
 
-        function confirmEditProfile() {
-            if (confirm('プロフィールを編集しますか？')) {
-                const profile = getProfile();
-                if (profile) {
-                    document.getElementById('inputName').value = profile.name;
-                    document.getElementById('inputRole').value = profile.role;
-                    document.getElementById('inputBio').value = profile.bio;
-                }
-                localStorage.removeItem('tss_profile');
-                document.getElementById('mainNav').style.display = 'none';
-                showScreen('screen-register');
-            }
-        }
+
 
         // ============ NAVIGATION ============
         function showScreen(screenId) {
