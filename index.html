@@ -1448,8 +1448,41 @@
             showUserBadge(profile);
             updateVisionDisplay(); // Refresh the vision accordion
 
+
             document.getElementById('editProfileModal').remove();
+
+            // Backend Sync
+            syncProfileToBackend(profile);
+
             alert('プロフィールを更新しました！✨');
+        }
+
+        function syncProfileToBackend(profile) {
+            if (!SCRIPT_URL.includes('http')) {
+                console.log('Skipping backend sync, invalid URL');
+                return;
+            }
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'updateProfile',
+                    name: profile.name,
+                    pin: profile.pin || '', // Pass pin if exists
+                    role: profile.role,
+                    bio: profile.bio,
+                    future: profile.future,
+                    image: profile.image || '',
+                    profileImage: profile.image || '' // Redundant but safe
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Profile synced:', data);
+                    // If migration created new user (V2), maybe we should store default PIN if returned?
+                    // For now, it works silently.
+                })
+                .catch(err => console.error('Sync failed:', err));
         }
 
         // ============ YOUTUBE ============
@@ -1550,8 +1583,16 @@
                 const photoData = e.target.result;
                 localStorage.setItem('tss_profile_photo', photoData);
 
+                // Update Profile Object
+                const profile = getProfile();
+                profile.image = photoData;
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+
                 const avatarEl = document.getElementById('profileAvatar');
                 avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+
+                // Backend Sync
+                syncProfileToBackend(profile);
 
                 showTokenEarned(5, 'Photo Uploaded! 📸');
                 addTokens(5);
@@ -1635,11 +1676,15 @@
                 if (profile) {
                     profile.image = base64;
                     localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                    // Backend Sync
+                    syncProfileToBackend(profile);
                 }
 
                 // Update UI
                 updateVisionDisplay();
                 updateProfileStats();
+                loadPosts(); // Update my avatar in posts
 
                 // Award Tokens
                 showTokenEarned(5, 'Nice Photo! 📸');

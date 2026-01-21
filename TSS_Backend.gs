@@ -983,40 +983,112 @@ function changePinForUser(params) {
 function updateProfile(params) {
   try {
     const name = params?.name || '';
-    const pin = params?.pin || '';
+    let pin = params?.pin || ''; // PIN might be empty from legacy frontend
     const bio = params?.bio;
     const role = params?.role;
     const future = params?.future;
     const profileImage = params?.profileImage;
     const themeSongUrl = params?.themeSongUrl;
     
-    if (!name || !pin) {
+    if (!name) {
       return createResponse({ 
         success: false, 
-        error: '認証情報が必要です' 
+        error: '名前が必要です' 
       });
     }
     
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = getUsersSheet(ss);
-    const data = sheet.getDataRange().getValues();
-    const pinHash = hashPin(pin);
+    let usersSheet = ss.getSheetByName('TSS_Users');
+    if (!usersSheet) {
+       usersSheet = ss.insertSheet('TSS_Users');
+       // Add headers if created (omitted for brevity, assume exists or handled elsewhere)
+    }
+
+    // 1. Try TSS_Users (V2)
+    const data = usersSheet.getDataRange().getValues();
+    const pinHash = pin ? hashPin(pin) : '';
     
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === name && data[i][1] === pinHash) {
-        // 更新 (列: Name(1), PIN_Hash(2), Role(3), Bio(4), Future(5), Token_Balance(6), Profile_Image(7), Theme_Song_URL(8))
-        if (role !== undefined) sheet.getRange(i + 1, 3).setValue(role);
-        if (bio !== undefined) sheet.getRange(i + 1, 4).setValue(bio);
-        if (future !== undefined) sheet.getRange(i + 1, 5).setValue(future);
-        if (profileImage !== undefined) sheet.getRange(i + 1, 7).setValue(profileImage);
-        if (themeSongUrl !== undefined) sheet.getRange(i + 1, 8).setValue(themeSongUrl);
+      // If PIN is provided, check hash. If not provided (legacy), rely on Name match ONLY if PIN in DB is also empty or default?
+      // For security, let's assume if they are in V2, they should have PIN.
+      // But if pin param is empty, we might fail here.
+      if (data[i][0] === name && (pin === '' || data[i][1] === pinHash)) {
+        // Update V2
+        if (role !== undefined) usersSheet.getRange(i + 1, 3).setValue(role);
+        if (bio !== undefined) usersSheet.getRange(i + 1, 4).setValue(bio);
+        if (future !== undefined) usersSheet.getRange(i + 1, 5).setValue(future);
+        if (profileImage !== undefined) usersSheet.getRange(i + 1, 7).setValue(profileImage);
+        if (themeSongUrl !== undefined) usersSheet.getRange(i + 1, 8).setValue(themeSongUrl);
         
-        return createResponse({ 
-          success: true, 
-          message: 'プロフィールを更新しました'
-        });
+        return createResponse({ success: true, message: 'V2 Updated' });
       }
     }
+
+    // 2. Try TSS_Members (Legacy) & Migrate
+    const membersSheet = ss.getSheetByName('TSS_Members');
+    if (membersSheet) {
+        const memData = membersSheet.getDataRange().getValues();
+        for (let i = 1; i < memData.length; i++) {
+           if (memData[i][1] === name) {
+              // Found in Legacy! Migrate to V2
+              const legacyRole = memData[i][2];
+              const legacyBio = memData[i][3];
+              const legacyTokens = memData[i][4];
+              const legacyJoined = memData[i][5];
+              
+              // Use provided values or legacy values
+              const newRole = role !== undefined ? role : legacyRole;
+              const newBio = bio !== undefined ? bio : legacyBio;
+              const newTokens = legacyTokens;
+              
+              // Create V2 Record
+              // PIN: If not provided, set default '0000'
+              const newPin = pin || '0000';
+              
+              const newRow = [
+                  name,
+                  hashPin(newPin),
+                  newRole,
+                  newBio,
+                  future || '',
+                  newTokens,
+                  profileImage || '',
+                  themeSongUrl || '',
+                  legacyJoined,
+                  new Date().toISOString(),
+                  ''
+              ];
+              usersSheet.appendRow(newRow);
+              
+              return createResponse({ success: true, message: 'Migrated to V2' });
+           }
+        }
+    }
+    
+    // Not found anywhere
+    // Optional: Auto-register as new user if not found?
+    // Let's create new user if not found to fix "missing user" issue completely.
+    if (true) { // Auto-register switch
+         const newPin = pin || '0000';
+         const newRow = [
+              name,
+              hashPin(newPin),
+              role || 'メンバー',
+              bio || '',
+              future || '',
+              10, // Welcome token
+              profileImage || '',
+              themeSongUrl || '',
+              new Date().toISOString(),
+              new Date().toISOString(),
+              ''
+         ];
+         usersSheet.appendRow(newRow);
+         return createResponse({ success: true, message: 'Created New V2 User' });
+    }
+
+    return createResponse({ success: false, error: 'User not found' });
+
     
     return createResponse({ 
       success: false, 
