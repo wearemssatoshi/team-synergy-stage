@@ -1254,6 +1254,10 @@
                         <div class="profile-stat-value" id="profileDays">0</div>
                         <div class="profile-stat-label">DAYS</div>
                     </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileTasks">0</div>
+                        <div class="profile-stat-label">TASKS</div>
+                    </div>
                 </div>
 
                 <div class="profile-section">
@@ -1780,12 +1784,14 @@
 
             // Count user's posts
             const userPosts = posts.filter(p => p.author === profile.name);
-            document.getElementById('profilePosts').textContent = userPosts.length;
+            const postsEl = document.getElementById('profilePosts');
+            if (postsEl) postsEl.textContent = userPosts.length;
 
             // Count completed todos
             const allTodos = [...todos.daily, ...todos.weekly, ...todos.monthly];
             const completedTasks = allTodos.filter(t => t.completed).length;
-            document.getElementById('profileTasks').textContent = completedTasks;
+            const tasksEl = document.getElementById('profileTasks');
+            if (tasksEl) tasksEl.textContent = completedTasks;
         }
 
         function renderPosts() {
