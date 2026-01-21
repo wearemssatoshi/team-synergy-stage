@@ -1106,6 +1106,12 @@
                 </div>
 
                 <div class="input-group">
+                    <label class="input-label">PIN (4桁の数字など)</label>
+                    <input type="number" class="text-input" id="inputPin" placeholder="ログイン用の暗証番号" maxlength="4"
+                        oninput="validateRegistration()">
+                </div>
+
+                <div class="input-group">
                     <label class="input-label">ROLE / 役割</label>
                     <input type="text" class="text-input" id="inputRole" placeholder="例: リーダー、メンバーなど">
                 </div>
@@ -1382,10 +1388,12 @@
 
         function validateRegistration() {
             const name = document.getElementById('inputName').value.trim();
-            document.getElementById('registerBtn').disabled = !name;
+            const pin = document.getElementById('inputPin').value.trim();
+            document.getElementById('registerBtn').disabled = !(name && pin);
         }
 
         document.getElementById('inputName').addEventListener('input', validateRegistration);
+        document.getElementById('inputPin').addEventListener('input', validateRegistration);
 
         // ============ PROFILE EDIT ============
         function openProfileEditor(focusId = null) {
@@ -1533,23 +1541,18 @@
 
         async function register() {
             const name = document.getElementById('inputName').value.trim();
+            const pin = document.getElementById('inputPin').value.trim();
             const role = document.getElementById('inputRole').value.trim() || 'メンバー';
             const bio = document.getElementById('inputBio').value.trim() || '';
             const future = document.getElementById('inputFuture').value.trim() || '';
 
-            if (name) {
-                // For new users, we don't have a PIN yet. 
-                // They can set it later, or we can ask for it now?
-                // For now, let's keep it simple and allow "No PIN" registration locally,
-                // BUT syncProfileToBackend will send it.
-                // Todo: Add PIN input to registration?
-
+            if (name && pin) {
                 const profile = {
                     name,
                     role,
                     bio,
                     future,
-                    pin: '0000', // Default PIN for new users
+                    pin: pin, // User defined PIN
                     tokens: 10, // Welcome bonus
                     joinedAt: new Date().toISOString()
                 };
