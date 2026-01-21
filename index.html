@@ -1133,34 +1133,7 @@
             <div class="section-title">📢 ANNOUNCEMENTS</div>
             <div id="announcementsList">
                 <!-- Announcements will be loaded dynamically -->
-                <div class="post-card" data-announcement-id="1">
-                    <div class="post-header">
-                        <div class="post-avatar">T</div>
-                        <div class="post-meta">
-                            <div class="post-author">TSS運営</div>
-                            <div class="post-time">2026.01.19</div>
-                        </div>
-                    </div>
-                    <div class="post-content">
-                        🎉 TSS v2.0がリリースされました！<br>
-                        新機能：JINSEI AI、プロフィール写真アップロード、いいね・コメント機能<br>
-                        積極的に活動してTSSTを貯めましょう！
-                    </div>
-                    <div class="post-actions">
-                        <div class="post-action" onclick="likeAnnouncement(1)">
-                            ❤️ <span id="announcement-likes-1">0</span>
-                        </div>
-                        <div class="post-action" onclick="toggleComments(1)">
-                            💬 コメント
-                        </div>
-                    </div>
-                    <div class="comments-section" id="comments-section-1" style="display: none;">
-                        <div id="comments-list-1"></div>
-                        <div class="comment-input-row">
-                            <input type="text" class="text-input" id="comment-input-1" placeholder="コメントを入力...">
-                            <button class="comment-submit-btn" onclick="submitComment(1)">送信</button>
-                        </div>
-                    </div>
+                <div class="loading-text" style="text-align: center; color: var(--text-gray); padding: 20px;">読み込み中...
                 </div>
             </div>
         </div>
@@ -2048,12 +2021,102 @@
             `).join('');
         }
 
-        // Initialize announcement likes display
+        // Load and render announcements from localStorage
+        function loadAnnouncements() {
+            const container = document.getElementById('announcementsList');
+            const announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
+
+            // Add default announcement if none exist
+            if (announcements.length === 0) {
+                announcements.push({
+                    id: 1,
+                    author: 'TSS運営',
+                    content: '🎉 TSS v2.0がリリースされました！\n新機能：JINSEI AI、プロフィール写真アップロード、いいね・コメント機能\n積極的に活動してTSSTを貯めましょう！',
+                    date: '2026-01-19T00:00:00.000Z',
+                    likes: 0
+                });
+            }
+
+            container.innerHTML = announcements.map(ann => {
+                // Format date
+                const date = new Date(ann.date);
+                const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+
+                // Format content with line breaks and auto-link URLs
+                const formattedContent = escapeHtml(ann.content)
+                    .replace(/\n/g, '<br>')
+                    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color: var(--primary);">$1</a>');
+
+                // Build attachments HTML
+                let attachmentsHtml = '';
+                if (ann.attachments && ann.attachments.length > 0) {
+                    attachmentsHtml = '<div class="announcement-attachments" style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">';
+
+                    ann.attachments.forEach(att => {
+                        if (att.type === 'link') {
+                            attachmentsHtml += `
+                                <a href="${escapeHtml(att.url)}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: var(--primary-light); border-radius: 8px; text-decoration: none; color: var(--primary);">
+                                    <span>🔗</span>
+                                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(att.label || att.url)}</span>
+                                    <span style="font-size: 10px;">↗</span>
+                                </a>
+                            `;
+                        } else if (att.type === 'image') {
+                            attachmentsHtml += `
+                                <div style="border-radius: 8px; overflow: hidden;">
+                                    <img src="${att.data}" alt="添付画像" style="max-width: 100%; border-radius: 8px; cursor: pointer;" onclick="window.open('${att.data}', '_blank')">
+                                </div>
+                            `;
+                        } else if (att.type === 'pdf') {
+                            attachmentsHtml += `
+                                <a href="${escapeHtml(att.url)}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #FEE2E2; border-radius: 8px; text-decoration: none; color: #DC2626;">
+                                    <span>📄</span>
+                                    <span style="flex: 1;">${escapeHtml(att.label || 'PDF資料')}</span>
+                                    <span style="font-size: 10px;">↗</span>
+                                </a>
+                            `;
+                        }
+                    });
+
+                    attachmentsHtml += '</div>';
+                }
+
+                return `
+                    <div class="post-card" data-announcement-id="${ann.id}">
+                        <div class="post-header">
+                            <div class="post-avatar">${(ann.author || 'T').charAt(0).toUpperCase()}</div>
+                            <div class="post-meta">
+                                <div class="post-author">${escapeHtml(ann.author || 'TSS運営')}</div>
+                                <div class="post-time">${dateStr}</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            ${formattedContent}
+                            ${attachmentsHtml}
+                        </div>
+                        <div class="post-actions">
+                            <div class="post-action" onclick="likeAnnouncement(${ann.id})">
+                                ❤️ <span id="announcement-likes-${ann.id}">${announcementLikes[ann.id] || 0}</span>
+                            </div>
+                            <div class="post-action" onclick="toggleComments(${ann.id})">
+                                💬 コメント
+                            </div>
+                        </div>
+                        <div class="comments-section" id="comments-section-${ann.id}" style="display: none;">
+                            <div id="comments-list-${ann.id}"></div>
+                            <div class="comment-input-row">
+                                <input type="text" class="text-input" id="comment-input-${ann.id}" placeholder="コメントを入力..." onkeypress="if(event.key==='Enter')submitComment(${ann.id})">
+                                <button class="comment-submit-btn" onclick="submitComment(${ann.id})">送信</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize announcement interactions
         function initAnnouncementInteractions() {
-            Object.keys(announcementLikes).forEach(id => {
-                const el = document.getElementById(`announcement-likes-${id}`);
-                if (el) el.textContent = announcementLikes[id];
-            });
+            loadAnnouncements();
         }
 
         // ============ PIN AUTHENTICATION ============
