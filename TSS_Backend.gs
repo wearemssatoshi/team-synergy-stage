@@ -206,38 +206,51 @@ function addTokensToUser(ss, name, amount) {
 // ============ GETTERS ============
 
 function getMembers(ss) {
-  // Try TSS_Users first (new system), fallback to TSS_Members (legacy)
-  let sheet = ss.getSheetByName('TSS_Users');
-  if (!sheet) {
-    sheet = ss.getSheetByName('TSS_Members');
-    if (!sheet) return createResponse({ members: [] });
-    
-    // Legacy format
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
-    const members = data.slice(1).map(row => {
-      const obj = {};
-      headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s/g, '')] = row[i]);
-      return obj;
+  let membersMap = new Map();
+
+  // 1. Fetch from TSS_Users (V2)
+  const usersSheet = ss.getSheetByName('TSS_Users');
+  if (usersSheet) {
+    const data = usersSheet.getDataRange().getValues().slice(1);
+    data.forEach(row => {
+        if (!row[0]) return;
+        membersMap.set(row[0], {
+            name: row[0],
+            role: row[2] || 'メンバー',
+            bio: row[3] || '',
+            future: row[4] || '',
+            tokens: row[5] || 0,
+            profileImage: row[6] || '',
+            themeSongUrl: row[7] || '',
+            joinedAt: row[8] || '',
+            lastLogin: row[9] || ''
+        });
     });
-    return createResponse({ members });
+  }
+
+  // 2. Fetch from TSS_Members (Legacy)
+  const membersSheet = ss.getSheetByName('TSS_Members');
+  if (membersSheet) {
+    const data = membersSheet.getDataRange().getValues().slice(1);
+    data.forEach(row => {
+        const name = row[1];
+        if (name && !membersMap.has(name)) { // Merge only new unique users
+             membersMap.set(name, {
+                  name: name,
+                  role: row[2] || 'メンバー',
+                  bio: row[3] || '',
+                  future: '', // No future in legacy
+                  tokens: row[4] || 0,
+                  profileImage: '',
+                  themeSongUrl: '',
+                  joinedAt: row[5] || '',
+                  lastLogin: ''
+             });
+        }
+    });
   }
   
-  // New TSS_Users format: Name, PIN_Hash, Role, Bio, Future, Token_Balance, Profile_Image, Theme_Song_URL, Created_At, Last_Login, Settings_JSON
-  const data = sheet.getDataRange().getValues();
-  const members = data.slice(1).map(row => ({
-    name: row[0],
-    role: row[2] || 'メンバー',
-    bio: row[3] || '',
-    future: row[4] || '',
-    tokens: row[5] || 0,
-    profileImage: row[6] || '',
-    themeSongUrl: row[7] || '',
-    joinedAt: row[8] || '',
-    lastLogin: row[9] || ''
-  }));
-  
-  return createResponse({ members });
+  return createResponse({ members: Array.from(membersMap.values()) });
 }
 
 function getPosts(ss) {
@@ -301,31 +314,49 @@ function getPosts(ss) {
 }
 
 function getStats(ss) {
-  // Try TSS_Users first (new system), fallback to TSS_Members (legacy)
-  let usersSheet = ss.getSheetByName('TSS_Users');
-  if (!usersSheet) {
-    usersSheet = ss.getSheetByName('TSS_Members');
+  // Merge Users
+  let userNames = new Set();
+  let totalTokens = 0;
+  let topMembersData = [];
+
+  // V2 Users
+  const usersSheet = ss.getSheetByName('TSS_Users');
+  if (usersSheet) {
+      const data = usersSheet.getDataRange().getValues().slice(1);
+      data.forEach(row => {
+          if (!row[0]) return;
+          userNames.add(row[0]);
+          totalTokens += (row[5] || 0);
+          topMembersData.push({ name: row[0], role: row[2] || 'メンバー', tokens: row[5] || 0 });
+      });
   }
+
+  // Legacy Users
+  const membersSheet = ss.getSheetByName('TSS_Members');
+  if (membersSheet) {
+      const data = membersSheet.getDataRange().getValues().slice(1);
+      data.forEach(row => {
+          const name = row[1];
+          // If name is unique, add stats
+          if (name && !userNames.has(name)) {
+              userNames.add(name);
+              totalTokens += (row[4] || 0);
+              topMembersData.push({ name: name, role: row[2] || 'メンバー', tokens: row[4] || 0 });
+          }
+      });
+  }
+
   const postsSheet = ss.getSheetByName('TSS_Posts');
   const todosSheet = ss.getSheetByName('TSS_Todos');
   
-  const usersData = usersSheet ? usersSheet.getDataRange().getValues().slice(1) : [];
   const postsData = postsSheet ? postsSheet.getDataRange().getValues().slice(1) : [];
   const todosData = todosSheet ? todosSheet.getDataRange().getValues().slice(1) : [];
   
-  const totalMembers = usersData.length;
-  
-  // Token column is index 5 for TSS_Users, index 4 for TSS_Members
-  const tokenIndex = ss.getSheetByName('TSS_Users') ? 5 : 4;
-  const totalTokens = usersData.reduce((sum, row) => sum + (row[tokenIndex] || 0), 0);
+  const totalMembers = topMembersData.length;
   const totalPosts = postsData.length;
-  const completedTasks = todosData.filter(row => row[4] === true || row[4] === 'true').length;
+  const completedTasks = todosData.filter(row => row[4] === true || row[4] === 'true').length; 
   
-  // Top members by tokens
-  const nameIndex = ss.getSheetByName('TSS_Users') ? 0 : 1;
-  const roleIndex = ss.getSheetByName('TSS_Users') ? 2 : 2;
-  const topMembers = usersData
-    .map(row => ({ name: row[nameIndex], role: row[roleIndex] || 'メンバー', tokens: row[tokenIndex] || 0 }))
+  const topMembers = topMembersData
     .sort((a, b) => b.tokens - a.tokens)
     .slice(0, 10);
   
