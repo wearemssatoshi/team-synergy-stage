@@ -1802,31 +1802,71 @@
                 return;
             }
 
-            list.innerHTML = posts.map(post => `
+            list.innerHTML = posts.map(post => {
+                // Profile Avatar Logic
+                let avatarHtml = post.author.charAt(0).toUpperCase();
+                if (post.authorImage) {
+                    avatarHtml = `<img src="${post.authorImage}" alt="${post.author}" style="width:100%;height:100%;object-fit:cover;">`;
+                }
+
+                // Check my like count
+                const likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+                const myCount = likedCounts[post.id] || 0;
+                const canLike = myCount < 10;
+
+                return `
                 <div class="post-card">
                     <div class="post-header">
-                        <div class="post-avatar">${post.author.charAt(0).toUpperCase()}</div>
+                        <div class="post-avatar" style="overflow:hidden;">${avatarHtml}</div>
                         <div class="post-meta">
-                            <div class="post-author">${escapeHtml(post.author)}</div>
+                            <div class="post-author">${escapeHtml(post.author)} <span style="font-size:10px;color:#aaa;">${escapeHtml(post.authorRole || '')}</span></div>
                             <div class="post-time">${formatDate(post.createdAt)}</div>
                         </div>
                     </div>
                     <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
                     <div class="post-actions">
-                        <div class="post-action" onclick="likePost(${post.id})">
-                            ❤️ ${post.likes}
+                        <div class="post-action ${canLike ? '' : 'disabled'}" onclick="likePost(${post.id})" style="${canLike ? '' : 'opacity:0.5;cursor:default;'}">
+                            ❤️ ${post.likes} <span style="font-size:10px;margin-left:4px;">(You: ${myCount}/10)</span>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
-        function likePost(id) {
+        async function likePost(id) {
             const post = posts.find(p => p.id === id);
-            if (post) {
-                post.likes++;
-                localStorage.setItem('tss_posts', JSON.stringify(posts));
-                renderPosts();
+            if (!post) return;
+
+            // Check 10 likes limit
+            let likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+            const myCount = likedCounts[id] || 0;
+
+            if (myCount >= 10) {
+                alert('この投稿へのいいねは10回までです！たくさんの承認ありがとう！👏');
+                return;
+            }
+
+            // Update LOCAL state
+            post.likes++;
+            likedCounts[id] = myCount + 1;
+
+            localStorage.setItem('tss_posts', JSON.stringify(posts));
+            localStorage.setItem('tss_liked_post_counts', JSON.stringify(likedCounts));
+
+            renderPosts();
+
+            // Reward ME (Sender) +1 Token for Approval Action
+            addTokens(1);
+            showTokenEarned(1, `Nice! Like (${myCount + 1}/10) ❤️`);
+
+            // Sync with Backend (Also rewards Author in GAS)
+            try {
+                // Determine if SCRIPT_URL is valid
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    await fetch(`${SCRIPT_URL}?action=like&postId=${id}`);
+                }
+            } catch (e) {
+                console.error('Like sync failed', e);
             }
         }
 
