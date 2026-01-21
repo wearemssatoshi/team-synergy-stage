@@ -1438,7 +1438,13 @@
             profile.future = future;
 
             localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+            // Update vision accordion data
+            localStorage.setItem('tss_future', future);
+            localStorage.setItem('tss_role', role || 'メンバー');
+
             showUserBadge(profile);
+            updateVisionDisplay(); // Refresh the vision accordion
 
             document.getElementById('editProfileModal').remove();
             alert('プロフィールを更新しました！✨');
