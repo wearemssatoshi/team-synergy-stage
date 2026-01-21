@@ -182,16 +182,36 @@ function addTokensToUser(ss, name, amount) {
 // ============ GETTERS ============
 
 function getMembers(ss) {
-  const sheet = ss.getSheetByName('TSS_Members');
-  if (!sheet) return createResponse({ members: [] });
+  // Try TSS_Users first (new system), fallback to TSS_Members (legacy)
+  let sheet = ss.getSheetByName('TSS_Users');
+  if (!sheet) {
+    sheet = ss.getSheetByName('TSS_Members');
+    if (!sheet) return createResponse({ members: [] });
+    
+    // Legacy format
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const members = data.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s/g, '')] = row[i]);
+      return obj;
+    });
+    return createResponse({ members });
+  }
   
+  // New TSS_Users format: Name, PIN_Hash, Role, Bio, Future, Token_Balance, Profile_Image, Theme_Song_URL, Created_At, Last_Login, Settings_JSON
   const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  const members = data.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s/g, '')] = row[i]);
-    return obj;
-  });
+  const members = data.slice(1).map(row => ({
+    name: row[0],
+    role: row[2] || 'メンバー',
+    bio: row[3] || '',
+    future: row[4] || '',
+    tokens: row[5] || 0,
+    profileImage: row[6] || '',
+    themeSongUrl: row[7] || '',
+    joinedAt: row[8] || '',
+    lastLogin: row[9] || ''
+  }));
   
   return createResponse({ members });
 }
@@ -212,19 +232,31 @@ function getPosts(ss) {
 }
 
 function getStats(ss) {
-  const membersSheet = ss.getSheetByName('TSS_Members');
+  // Try TSS_Users first (new system), fallback to TSS_Members (legacy)
+  let usersSheet = ss.getSheetByName('TSS_Users');
+  if (!usersSheet) {
+    usersSheet = ss.getSheetByName('TSS_Members');
+  }
   const postsSheet = ss.getSheetByName('TSS_Posts');
+  const todosSheet = ss.getSheetByName('TSS_Todos');
   
-  const membersData = membersSheet ? membersSheet.getDataRange().getValues().slice(1) : [];
+  const usersData = usersSheet ? usersSheet.getDataRange().getValues().slice(1) : [];
   const postsData = postsSheet ? postsSheet.getDataRange().getValues().slice(1) : [];
+  const todosData = todosSheet ? todosSheet.getDataRange().getValues().slice(1) : [];
   
-  const totalMembers = membersData.length;
-  const totalTokens = membersData.reduce((sum, row) => sum + (row[4] || 0), 0);
+  const totalMembers = usersData.length;
+  
+  // Token column is index 5 for TSS_Users, index 4 for TSS_Members
+  const tokenIndex = ss.getSheetByName('TSS_Users') ? 5 : 4;
+  const totalTokens = usersData.reduce((sum, row) => sum + (row[tokenIndex] || 0), 0);
   const totalPosts = postsData.length;
+  const completedTasks = todosData.filter(row => row[4] === true || row[4] === 'true').length;
   
   // Top members by tokens
-  const topMembers = membersData
-    .map(row => ({ name: row[1], role: row[2], tokens: row[4] }))
+  const nameIndex = ss.getSheetByName('TSS_Users') ? 0 : 1;
+  const roleIndex = ss.getSheetByName('TSS_Users') ? 2 : 2;
+  const topMembers = usersData
+    .map(row => ({ name: row[nameIndex], role: row[roleIndex] || 'メンバー', tokens: row[tokenIndex] || 0 }))
     .sort((a, b) => b.tokens - a.tokens)
     .slice(0, 10);
   
@@ -232,6 +264,7 @@ function getStats(ss) {
     totalMembers,
     totalTokens,
     totalPosts,
+    completedTasks,
     topMembers
   });
 }

@@ -1447,13 +1447,22 @@
             }
         }
 
-        function register() {
+        async function register() {
             const name = document.getElementById('inputName').value.trim();
             const role = document.getElementById('inputRole').value.trim() || 'メンバー';
             const bio = document.getElementById('inputBio').value.trim() || '';
             const future = document.getElementById('inputFuture').value.trim() || '';
 
             if (name) {
+                // Sync with Backend
+                try {
+                    const response = await fetch(`${SCRIPT_URL}?action=register&name=${encodeURIComponent(name)}&role=${encodeURIComponent(role)}&bio=${encodeURIComponent(bio)}&future=${encodeURIComponent(future)}`);
+                    const data = await response.json();
+                    console.log('Registration response:', data);
+                } catch (error) {
+                    console.error('Registration sync error:', error);
+                }
+
                 const profile = {
                     name,
                     role,
