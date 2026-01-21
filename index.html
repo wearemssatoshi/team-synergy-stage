@@ -1868,17 +1868,29 @@
                 if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_GAS_URL_HERE') {
                     const profile = getProfile();
                     const userName = profile?.name || 'User';
-                    const response = await fetch(`${SCRIPT_URL}?action=chat&q=${encodeURIComponent(message)}&name=${encodeURIComponent(userName)}`);
+
+                    // Send up to last 10 messages for context
+                    const historyToSend = chatHistory.slice(-10);
+                    const response = await fetch(`${SCRIPT_URL}?action=chat&q=${encodeURIComponent(message)}&name=${encodeURIComponent(userName)}&history=${encodeURIComponent(JSON.stringify(historyToSend))}`);
                     const data = await response.json();
 
                     // Remove typing indicator and show response
                     removeLastAIMessage();
-                    addChatMessage('ai', data.response || generateLocalResponse(message));
+                    const aiResponse = data.response || generateLocalResponse(message);
+                    addChatMessage('ai', aiResponse);
+
+                    // Add to history
+                    chatHistory.push({ role: 'user', text: message });
+                    chatHistory.push({ role: 'model', text: aiResponse });
                 } else {
                     // Use local response if no GAS URL configured
                     removeLastAIMessage();
-                    const response = generateLocalResponse(message);
-                    addChatMessage('ai', response);
+                    const aiResponse = generateLocalResponse(message);
+                    addChatMessage('ai', aiResponse);
+
+                    // Add to history even for local response
+                    chatHistory.push({ role: 'user', text: message });
+                    chatHistory.push({ role: 'model', text: aiResponse });
                 }
             } catch (error) {
                 console.error('AI Error:', error);

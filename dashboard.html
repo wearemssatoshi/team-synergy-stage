@@ -16,12 +16,17 @@
             --primary: #D4AF37;
             --primary-dark: #B8960C;
             --primary-light: rgba(212, 175, 55, 0.15);
+            --primary-glow: rgba(212, 175, 55, 0.35);
             --accent: #FFD700;
+            --accent-light: rgba(255, 215, 0, 0.15);
             --text-dark: #1a1a1a;
             --text-gray: #5a5a5a;
             --border: rgba(26, 26, 26, 0.1);
             --success: #22C55E;
+            --warning: #F59E0B;
+            --danger: #EF4444;
             --gradient-primary: linear-gradient(135deg, #D4AF37, #FFD700);
+            --gradient-dark: linear-gradient(135deg, #2D2308, #4A3D14);
         }
 
         * {
@@ -42,6 +47,7 @@
             text-align: center;
             background: var(--gradient-primary);
             color: white;
+            box-shadow: 0 4px 20px var(--primary-glow);
         }
 
         h1 {
@@ -49,12 +55,13 @@
             font-size: 28px;
             font-weight: 700;
             letter-spacing: 0.05em;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .header-sub {
             font-family: 'Montserrat', sans-serif;
             font-size: 12px;
-            opacity: 0.8;
+            opacity: 0.9;
             margin-top: 5px;
             letter-spacing: 0.2em;
         }
@@ -78,6 +85,13 @@
             padding: 25px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px var(--primary-glow);
         }
 
         .stat-icon {
@@ -89,14 +103,18 @@
             font-family: 'Montserrat', sans-serif;
             font-size: 36px;
             font-weight: 700;
-            color: var(--primary);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .stat-label {
-            font-size: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
             color: var(--text-gray);
             margin-top: 5px;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.15em;
         }
 
         .section {
@@ -105,14 +123,15 @@
             padding: 25px;
             margin-bottom: 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
         }
 
         .section-title {
             font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--primary);
-            letter-spacing: 0.1em;
+            letter-spacing: 0.15em;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
@@ -123,7 +142,7 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: var(--border);
+            background: linear-gradient(90deg, var(--primary-light), transparent);
         }
 
         /* MEMBERS TABLE */
@@ -134,17 +153,18 @@
 
         .members-table th,
         .members-table td {
-            padding: 12px 15px;
+            padding: 14px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
 
         .members-table th {
             font-family: 'Montserrat', sans-serif;
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-gray);
-            letter-spacing: 0.1em;
+            letter-spacing: 0.15em;
             font-weight: 600;
+            text-transform: uppercase;
         }
 
         .members-table td {
@@ -173,6 +193,7 @@
             font-size: 14px;
             margin-right: 10px;
             vertical-align: middle;
+            box-shadow: 0 2px 8px var(--primary-glow);
         }
 
         .member-name {
@@ -184,12 +205,13 @@
             align-items: center;
             gap: 4px;
             background: var(--primary-light);
-            color: var(--primary);
-            padding: 4px 10px;
+            color: var(--primary-dark);
+            padding: 5px 12px;
             border-radius: 20px;
             font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 12px;
+            border: 1px solid var(--primary);
         }
 
         /* RANKING */
@@ -201,7 +223,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 12px 0;
+            padding: 14px 0;
             border-bottom: 1px solid var(--border);
         }
 
@@ -210,8 +232,8 @@
         }
 
         .ranking-number {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: var(--light-gray);
             display: flex;
@@ -226,6 +248,7 @@
         .ranking-item:nth-child(1) .ranking-number {
             background: linear-gradient(135deg, #FFD700, #FFA500);
             color: white;
+            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.4);
         }
 
         .ranking-item:nth-child(2) .ranking-number {
@@ -267,7 +290,7 @@
         .activity-item {
             display: flex;
             gap: 12px;
-            padding: 12px 0;
+            padding: 14px 0;
             border-bottom: 1px solid var(--border);
         }
 
@@ -276,8 +299,8 @@
         }
 
         .activity-icon {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: var(--primary-light);
             display: flex;
@@ -295,13 +318,13 @@
         }
 
         .activity-text strong {
-            color: var(--primary);
+            color: var(--primary-dark);
         }
 
         .activity-time {
             font-size: 11px;
             color: var(--text-gray);
-            margin-top: 2px;
+            margin-top: 3px;
         }
 
         /* EMPTY STATE */
@@ -338,22 +361,30 @@
             }
         }
 
-        /* REFRESH BUTTON */
-        .refresh-btn {
+        /* BUTTONS */
+        .btn-primary {
             background: var(--gradient-primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 25px;
             font-family: 'Montserrat', sans-serif;
             font-weight: 600;
             font-size: 12px;
             cursor: pointer;
-            margin-top: 20px;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            transition: all 0.2s;
         }
 
-        .refresh-btn:hover {
-            opacity: 0.9;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px var(--primary-glow);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
         @media (max-width: 768px) {
@@ -363,6 +394,10 @@
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -379,39 +414,34 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
-                <div class="stat-value" id="totalMembers">0</div>
+                <div class="stat-value" id="totalMembers">-</div>
                 <div class="stat-label">TOTAL MEMBERS</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">💎</div>
-                <div class="stat-value" id="totalTokens">0</div>
-                <div class="stat-label">TOTAL TOKENS</div>
+                <div class="stat-value" id="totalTokens">-</div>
+                <div class="stat-label">TOTAL TSST</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📝</div>
-                <div class="stat-value" id="totalPosts">0</div>
+                <div class="stat-value" id="totalPosts">-</div>
                 <div class="stat-label">TOTAL POSTS</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
-                <div class="stat-value" id="completedTasks">0</div>
+                <div class="stat-value" id="completedTasks">-</div>
                 <div class="stat-label">COMPLETED TASKS</div>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="two-column">
             <!-- TOKEN RANKING -->
             <div class="section">
                 <div class="section-title">🏆 TOKEN RANKING</div>
                 <ul class="ranking-list" id="rankingList">
-                    <li class="ranking-item">
-                        <div class="ranking-number">1</div>
-                        <div class="ranking-info">
-                            <div class="ranking-name">-</div>
-                            <div class="ranking-role">-</div>
-                        </div>
-                        <div class="ranking-tokens">0</div>
-                    </li>
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
                 </ul>
             </div>
 
@@ -429,13 +459,13 @@
 
         <!-- MEMBERS TABLE -->
         <div class="section">
-            <div class="section-title">👥 MEMBERS</div>
+            <div class="section-title">👥 ALL MEMBERS</div>
             <table class="members-table">
                 <thead>
                     <tr>
                         <th>NAME</th>
                         <th>ROLE</th>
-                        <th>TOKENS</th>
+                        <th>TSST</th>
                         <th>JOINED</th>
                     </tr>
                 </thead>
@@ -449,88 +479,78 @@
                     </tr>
                 </tbody>
             </table>
-            <center>
-                <button class="refresh-btn" onclick="loadData()">🔄 REFRESH DATA</button>
+            <center style="margin-top: 20px;">
+                <button class="btn-primary" onclick="loadData()">🔄 REFRESH DATA</button>
             </center>
-        </div>
-
-        <!-- ANNOUNCEMENT POSTING -->
-        <div class="section">
-            <div class="section-title">📢 POST ANNOUNCEMENT</div>
-            <div style="margin-bottom: 15px;">
-                <label
-                    style="display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 5px; letter-spacing: 0.1em;">ANNOUNCEMENT
-                    CONTENT</label>
-                <textarea id="announcementContent" rows="4"
-                    style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 14px; resize: vertical;"
-                    <button onclick="postAnnouncement()"
-                    style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">📢
-                POST ANNOUNCEMENT</button>
-            <p style="margin-top: 10px; font-size: 11px; color: var(--text-gray);">※ 投稿されたアナウンスメントはメインアプリのHOME画面に表示されます
-            </p>
-        </div>
-
-        <!-- YOUTUBE SETTINGS -->
-        <div class="section">
-            <div class="section-title">🎬 YOUTUBE SETTINGS</div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 5px; letter-spacing: 0.1em;">VIDEO ID</label>
-                <input type="text" id="youtubeVideoId" class="text-input" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px;" placeholder="YouTube Video ID (e.g. dQw4w9WgXcQ)">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 5px; letter-spacing: 0.1em;">CAPTION / キャプション</label>
-                <input type="text" id="youtubeCaptionInput" class="text-input" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px;" placeholder="キャプションを入力...">
-            </div>
-            <button onclick="saveYouTubeSettings()" style="background: var(--navy); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">SAVE SETTINGS</button>
         </div>
     </main>
 
     <script>
         // ============ CONFIGURATION ============
-        const SCRIPT_URL = 'YOUR_GAS_URL_HERE';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhhXgDQvr-vc_on3dKsmIk4iwKY9MrYNHJfINr3YlBoWe6FU9ilaI_VwyJePq5a04O3Q/exec';
 
         // ============ LOAD DATA ============
         async function loadData() {
-            // For now, simulated data - replace with actual API call
-            const sampleMembers = [
-                { name: 'SAT', role: 'リーダー', tokens: 150, joinedAt: '2026-01-13' },
-                { name: 'Member A', role: 'メンバー', tokens: 85, joinedAt: '2026-01-14' },
-                { name: 'Member B', role: 'メンバー', tokens: 72, joinedAt: '2026-01-14' },
-                { name: 'Member C', role: 'メンバー', tokens: 45, joinedAt: '2026-01-15' },
-                { name: 'Member D', role: 'メンバー', tokens: 30, joinedAt: '2026-01-16' }
-            ];
+            try {
+                // Fetch stats from Backend
+                const statsRes = await fetch(`${SCRIPT_URL}?action=stats`);
+                const statsData = await statsRes.json();
 
-            const sampleActivity = [
-                { type: 'post', user: 'SAT', action: 'が新しい投稿をしました', time: '5分前' },
-                { type: 'task', user: 'Member A', action: 'がタスクを完了しました', time: '15分前' },
-                { type: 'join', user: 'Member D', action: 'がコミュニティに参加しました', time: '1時間前' }
-            ];
+                // Fetch members
+                const membersRes = await fetch(`${SCRIPT_URL}?action=members`);
+                const membersData = await membersRes.json();
 
-            renderStats(sampleMembers);
-            renderRanking(sampleMembers);
-            renderMembers(sampleMembers);
-            renderActivity(sampleActivity);
+                // Fetch posts
+                const postsRes = await fetch(`${SCRIPT_URL}?action=posts`);
+                const postsData = await postsRes.json();
+
+                const members = membersData.members || [];
+                const posts = postsData.posts || [];
+
+                renderStats(statsData, members, posts);
+                renderRanking(statsData.topMembers || members);
+                renderMembers(members);
+                renderActivity(posts);
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                // Show error state
+                document.getElementById('totalMembers').textContent = '!';
+                document.getElementById('totalTokens').textContent = '!';
+                document.getElementById('totalPosts').textContent = '!';
+                document.getElementById('completedTasks').textContent = '!';
+            }
         }
 
-        function renderStats(members) {
-            document.getElementById('totalMembers').textContent = members.length;
-            document.getElementById('totalTokens').textContent = members.reduce((sum, m) => sum + m.tokens, 0);
-            document.getElementById('totalPosts').textContent = Math.floor(Math.random() * 50) + 10;
-            document.getElementById('completedTasks').textContent = Math.floor(Math.random() * 100) + 20;
+        function renderStats(stats, members, posts) {
+            document.getElementById('totalMembers').textContent = stats.totalMembers || members.length || 0;
+            document.getElementById('totalTokens').textContent = stats.totalTokens || members.reduce((sum, m) => sum + (m.tokens || 0), 0);
+            document.getElementById('totalPosts').textContent = stats.totalPosts || posts.length || 0;
+            document.getElementById('completedTasks').textContent = stats.completedTasks || '-';
         }
 
         function renderRanking(members) {
-            const sorted = [...members].sort((a, b) => b.tokens - a.tokens).slice(0, 5);
+            const sorted = [...members].sort((a, b) => (b.tokens || 0) - (a.tokens || 0)).slice(0, 5);
             const list = document.getElementById('rankingList');
+
+            if (sorted.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏆</div>
+                        <div>まだメンバーがいません</div>
+                    </div>
+                `;
+                return;
+            }
 
             list.innerHTML = sorted.map((member, index) => `
                 <li class="ranking-item">
                     <div class="ranking-number">${index + 1}</div>
                     <div class="ranking-info">
-                        <div class="ranking-name">${member.name}</div>
-                        <div class="ranking-role">${member.role}</div>
+                        <div class="ranking-name">${escapeHtml(member.name)}</div>
+                        <div class="ranking-role">${escapeHtml(member.role || 'メンバー')}</div>
                     </div>
-                    <div class="ranking-tokens">${member.tokens}</div>
+                    <div class="ranking-tokens">${member.tokens || 0}</div>
                 </li>
             `).join('');
         }
@@ -538,110 +558,107 @@
         function renderMembers(members) {
             const table = document.getElementById('membersTable');
 
+            if (members.length === 0) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">👥</div>
+                                <div>メンバーがいません</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             table.innerHTML = members.map(member => `
                 <tr class="member-row">
                     <td>
-                        <span class="member-avatar">${member.name.charAt(0)}</span>
-                        <span class="member-name">${member.name}</span>
+                        <span class="member-avatar">${(member.name || '?').charAt(0).toUpperCase()}</span>
+                        <span class="member-name">${escapeHtml(member.name)}</span>
                     </td>
-                    <td>${member.role}</td>
-                    <td><span class="token-badge">💎 ${member.tokens}</span></td>
-                    <td>${member.joinedAt}</td>
+                    <td>${escapeHtml(member.role || 'メンバー')}</td>
+                    <td><span class="token-badge">💎 ${member.tokens || 0}</span></td>
+                    <td>${formatDate(member.joinedat || member.joinedAt || member.timestamp)}</td>
                 </tr>
             `).join('');
         }
 
-        function renderActivity(activities) {
+        function renderActivity(posts) {
             const list = document.getElementById('activityList');
+
+            if (posts.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>アクティビティがありません</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const activities = posts.slice(0, 5).map(post => ({
+                type: 'post',
+                user: post.author,
+                action: 'が投稿しました',
+                time: formatRelativeTime(post.timestamp),
+                content: (post.content || '').substring(0, 30) + '...'
+            }));
 
             const icons = {
                 post: '📝',
                 task: '✅',
                 join: '👋',
-                token: '💎',
-                announcement: '📢'
+                token: '💎'
             };
 
             list.innerHTML = activities.map(activity => `
                 <li class="activity-item">
                     <div class="activity-icon">${icons[activity.type] || '📌'}</div>
                     <div class="activity-content">
-                        <div class="activity-text"><strong>${activity.user}</strong>${activity.action}</div>
+                        <div class="activity-text"><strong>${escapeHtml(activity.user)}</strong>${activity.action}</div>
                         <div class="activity-time">${activity.time}</div>
                     </div>
                 </li>
             `).join('');
         }
 
-        // ============ ANNOUNCEMENT POSTING ============
-        function postAnnouncement() {
-            const content = document.getElementById('announcementContent').value.trim();
-            if (!content) {
-                alert('アナウンスメントの内容を入力してください');
-                return;
-            }
-
-            // Store announcement in localStorage (to be shared with main app)
-            const announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
-
-            const newAnnouncement = {
-                id: Date.now(),
-                author: 'TSS運営',
-                content: content,
-                date: new Date().toISOString(),
-                likes: 0
-            };
-
-            announcements.unshift(newAnnouncement);
-            localStorage.setItem('tss_announcements', JSON.stringify(announcements));
-
-            document.getElementById('announcementContent').value = '';
-            alert('✅ アナウンスメントを投稿しました！\nメインアプリのHOME画面に表示されます。');
-
-            // Add to activity feed
-            renderActivity([
-                { type: 'announcement', user: 'TSS運営', action: 'が新しいアナウンスメントを投稿しました', time: 'たった今' },
-                ...JSON.parse(localStorage.getItem('tss_activity') || '[]')
-            ]);
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        // ============ YOUTUBE SETTINGS ============
-        function loadYouTubeSettings() {
-            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
-            document.getElementById('youtubeVideoId').value = settings.videoId || '';
-            document.getElementById('youtubeCaptionInput').value = settings.caption || '';
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const date = new Date(dateStr);
+                return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+            } catch {
+                return '-';
+            }
         }
 
-        function saveYouTubeSettings() {
-            const videoId = document.getElementById('youtubeVideoId').value.trim();
-            const caption = document.getElementById('youtubeCaptionInput').value.trim();
+        function formatRelativeTime(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                const now = new Date();
+                const diff = Math.floor((now - date) / 1000);
 
-            if (!videoId) {
-                alert('Video ID is required');
-                return;
+                if (diff < 60) return 'たった今';
+                if (diff < 3600) return `${Math.floor(diff / 60)}分前`;
+                if (diff < 86400) return `${Math.floor(diff / 3600)}時間前`;
+                return `${Math.floor(diff / 86400)}日前`;
+            } catch {
+                return '';
             }
-
-            const settings = {
-                videoId: videoId,
-                caption: caption
-            };
-
-            localStorage.setItem('tss_youtube_settings', JSON.stringify(settings));
-
-            // Add to activity feed
-            renderActivity([
-                { type: 'post', user: 'TSS運営', action: 'がYouTube設定を更新しました', time: 'たった今' },
-                ...JSON.parse(localStorage.getItem('tss_activity') || '[]')
-            ]);
-
-            alert('✅ YouTube設定を保存しました！\nメインアプリのHOME画面に反映されます。');
         }
 
         // ============ INIT ============
-        document.addEventListener('DOMContentLoaded', () => {
-            loadData();
-            loadYouTubeSettings();
-        });
+        document.addEventListener('DOMContentLoaded', loadData);
     </script>
 </body>
 

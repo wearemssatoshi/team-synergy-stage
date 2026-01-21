@@ -82,7 +82,8 @@ function doGet(e) {
       case 'chat':
         const question = e?.parameter?.q || '';
         const userName = e?.parameter?.name || 'User';
-        return askJinseiAI(question, userName);
+        const history = e?.parameter?.history || '[]';
+        return askJinseiAI(question, userName, JSON.parse(history));
       case 'comments':
         const postId = e?.parameter?.postId || '';
         return getComments(ss, postId);
@@ -392,12 +393,35 @@ ${contextInfo || '（初めての相談者です）'}
 5. 押し付けがましい励ましは不要（自然な言葉で締める）
 6. 相談者の名前が分かる場合は名前で呼びかける`;
 
+    // 履歴を含めたコンテンツを構築
+    const contents = [];
+    
+    if (userContext && Array.isArray(userContext) && userContext.length > 0) {
+      userContext.forEach(msg => {
+        contents.push({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }]
+        });
+      });
+    }
+
+    // 現在の質問を追加（システムプロンプトを先頭に付与）
+    const currentQuestionText = contents.length === 0 
+      ? systemPrompt + '\n\n相談内容: ' + question 
+      : question;
+      
+    contents.push({
+      role: 'user',
+      parts: [{ text: currentQuestionText }]
+    });
+
     const payload = {
-      contents: [{
-        parts: [{
-          text: systemPrompt + '\n\n相談内容: ' + question
-        }]
-      }]
+      contents: contents,
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+      }
     };
     
     const response = UrlFetchApp.fetch(
@@ -524,12 +548,12 @@ function getUsersSheet(ss) {
   let sheet = ss.getSheetByName('TSS_Users');
   if (!sheet) {
     sheet = ss.insertSheet('TSS_Users');
-    sheet.getRange(1, 1, 1, 10).setValues([[
-      'Name', 'PIN_Hash', 'Role', 'Bio', 
+    sheet.getRange(1, 1, 1, 11).setValues([[
+      'Name', 'PIN_Hash', 'Role', 'Bio', 'Future',
       'Token_Balance', 'Profile_Image', 'Theme_Song_URL',
       'Created_At', 'Last_Login', 'Settings_JSON'
     ]]);
-    sheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, 11).setFontWeight('bold');
   }
   return sheet;
 }
@@ -567,6 +591,7 @@ function registerUser(params) {
     const pin = params?.pin || '';
     const role = params?.role || 'メンバー';
     const bio = params?.bio || '';
+    const future = params?.future || '';
     
     if (!name || !pin) {
       return createResponse({ 
@@ -601,7 +626,8 @@ function registerUser(params) {
     const pinHash = hashPin(pin);
     const now = new Date().toISOString();
     
-    sheet.appendRow([name, pinHash, role, bio, 10, '', '', now, now, '{}']);
+    // Name, PIN_Hash, Role, Bio, Future, Token_Balance, Profile_Image, Theme_Song_URL, Created_At, Last_Login, Settings_JSON
+    sheet.appendRow([name, pinHash, role, bio, future, 10, '', '', now, now, '{}']);
     
     // TSS_Membersにも追加（後方互換性）
     addToLegacyMembers(ss, name, role, bio);
@@ -657,18 +683,20 @@ function loginUser(params) {
     
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === name && data[i][1] === pinHash) {
-        // ログイン成功 - 最終ログイン時刻を更新
-        sheet.getRange(i + 1, 9).setValue(new Date().toISOString());
+        // ログイン成功 - 最終ログイン時刻を更新 (列10: Last_Login)
+        sheet.getRange(i + 1, 10).setValue(new Date().toISOString());
         
         // ユーザーデータを返す
+        // Name(0), PIN_Hash(1), Role(2), Bio(3), Future(4), Token_Balance(5), Profile_Image(6), Theme_Song_URL(7)
         return createResponse({ 
           success: true, 
           name: name,
           role: data[i][2] || 'メンバー',
           bio: data[i][3] || '',
-          tokenBalance: data[i][4] || 0,
-          profileImage: data[i][5] || '',
-          themeSongUrl: data[i][6] || ''
+          future: data[i][4] || '',
+          tokenBalance: data[i][5] || 0,
+          profileImage: data[i][6] || '',
+          themeSongUrl: data[i][7] || ''
         });
       }
     }
@@ -712,11 +740,13 @@ function syncUserData(params) {
         // To-Doを取得
         const todos = getUserTodos(ss, name);
         
+        // Name(0), PIN_Hash(1), Role(2), Bio(3), Future(4), Token_Balance(5), Profile_Image(6), Theme_Song_URL(7)
         return createResponse({ 
           success: true,
-          tokenBalance: data[i][4] || 0,
-          profileImage: data[i][5] || '',
-          themeSongUrl: data[i][6] || '',
+          future: data[i][4] || '',
+          tokenBalance: data[i][5] || 0,
+          profileImage: data[i][6] || '',
+          themeSongUrl: data[i][7] || '',
           todos: todos
         });
       }
@@ -806,6 +836,7 @@ function updateProfile(params) {
     const pin = params?.pin || '';
     const bio = params?.bio;
     const role = params?.role;
+    const future = params?.future;
     const profileImage = params?.profileImage;
     const themeSongUrl = params?.themeSongUrl;
     
@@ -823,11 +854,12 @@ function updateProfile(params) {
     
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === name && data[i][1] === pinHash) {
-        // 更新
+        // 更新 (列: Name(1), PIN_Hash(2), Role(3), Bio(4), Future(5), Token_Balance(6), Profile_Image(7), Theme_Song_URL(8))
         if (role !== undefined) sheet.getRange(i + 1, 3).setValue(role);
         if (bio !== undefined) sheet.getRange(i + 1, 4).setValue(bio);
-        if (profileImage !== undefined) sheet.getRange(i + 1, 6).setValue(profileImage);
-        if (themeSongUrl !== undefined) sheet.getRange(i + 1, 7).setValue(themeSongUrl);
+        if (future !== undefined) sheet.getRange(i + 1, 5).setValue(future);
+        if (profileImage !== undefined) sheet.getRange(i + 1, 7).setValue(profileImage);
+        if (themeSongUrl !== undefined) sheet.getRange(i + 1, 8).setValue(themeSongUrl);
         
         return createResponse({ 
           success: true, 
