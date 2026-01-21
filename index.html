@@ -1480,16 +1480,12 @@
                 .then(res => res.json())
                 .then(data => {
                     console.log('Profile synced:', data);
-                    if (data.success) {
-                        alert('【成功】サーバー同期完了！🎉\n' + (data.message || ''));
-                    } else {
-                        alert('【失敗】サーバー同期エラー...\n' + (data.error || '不明なエラー'));
-                    }
+                    // Silent success
                 })
                 .catch(err => {
                     console.error('Sync failed:', err);
-                    alert('【通信エラー】接続できませんでした。\n' + err);
                 });
+        }
         }
 
         // ============ YOUTUBE ============
