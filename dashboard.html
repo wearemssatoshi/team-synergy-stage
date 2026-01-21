@@ -381,6 +381,38 @@
             box-shadow: 0 6px 25px var(--primary-glow);
         }
 
+        /* FORM INPUTS */
+        .input-label {
+            display: block;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            color: var(--primary);
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .text-input {
+            width: 100%;
+            background: var(--light-gray);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea.text-input {
+            min-height: 100px;
+            resize: vertical;
+        }
+
         .two-column {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -482,6 +514,33 @@
             <center style="margin-top: 20px;">
                 <button class="btn-primary" onclick="loadData()">🔄 REFRESH DATA</button>
             </center>
+        </div>
+
+        <!-- ANNOUNCEMENT POSTING -->
+        <div class="section">
+            <div class="section-title">📢 POST ANNOUNCEMENT</div>
+            <div style="margin-bottom: 15px;">
+                <label class="input-label">ANNOUNCEMENT CONTENT</label>
+                <textarea id="announcementContent" rows="4" class="text-input" placeholder="アナウンスメントを入力..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="postAnnouncement()">📢 POST ANNOUNCEMENT</button>
+            <p style="margin-top: 12px; font-size: 11px; color: var(--text-gray);">※ 投稿されたアナウンスメントはメインアプリのHOME画面に表示されます
+            </p>
+        </div>
+
+        <!-- YOUTUBE SETTINGS -->
+        <div class="section">
+            <div class="section-title">🎬 YOUTUBE SETTINGS</div>
+            <div style="margin-bottom: 15px;">
+                <label class="input-label">VIDEO ID</label>
+                <input type="text" id="youtubeVideoId" class="text-input"
+                    placeholder="YouTube Video ID (e.g. dQw4w9WgXcQ)">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label class="input-label">CAPTION / キャプション</label>
+                <input type="text" id="youtubeCaptionInput" class="text-input" placeholder="キャプションを入力...">
+            </div>
+            <button class="btn-primary" onclick="saveYouTubeSettings()">💾 SAVE SETTINGS</button>
         </div>
     </main>
 
@@ -657,8 +716,62 @@
             }
         }
 
+        // ============ ANNOUNCEMENT POSTING ============
+        function postAnnouncement() {
+            const content = document.getElementById('announcementContent').value.trim();
+            if (!content) {
+                alert('アナウンスメントの内容を入力してください');
+                return;
+            }
+
+            // Store announcement in localStorage (to be shared with main app)
+            const announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
+
+            const newAnnouncement = {
+                id: Date.now(),
+                author: 'TSS運営',
+                content: content,
+                date: new Date().toISOString(),
+                likes: 0
+            };
+
+            announcements.unshift(newAnnouncement);
+            localStorage.setItem('tss_announcements', JSON.stringify(announcements));
+
+            document.getElementById('announcementContent').value = '';
+            alert('✅ アナウンスメントを投稿しました！\nメインアプリのHOME画面に表示されます。');
+        }
+
+        // ============ YOUTUBE SETTINGS ============
+        function loadYouTubeSettings() {
+            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
+            document.getElementById('youtubeVideoId').value = settings.videoId || '';
+            document.getElementById('youtubeCaptionInput').value = settings.caption || '';
+        }
+
+        function saveYouTubeSettings() {
+            const videoId = document.getElementById('youtubeVideoId').value.trim();
+            const caption = document.getElementById('youtubeCaptionInput').value.trim();
+
+            if (!videoId) {
+                alert('Video IDを入力してください');
+                return;
+            }
+
+            const settings = {
+                videoId: videoId,
+                caption: caption
+            };
+
+            localStorage.setItem('tss_youtube_settings', JSON.stringify(settings));
+            alert('✅ YouTube設定を保存しました！\nメインアプリのHOME画面に反映されます。');
+        }
+
         // ============ INIT ============
-        document.addEventListener('DOMContentLoaded', loadData);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            loadYouTubeSettings();
+        });
     </script>
 </body>
 
