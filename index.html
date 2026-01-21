@@ -1741,15 +1741,31 @@
 
         // ============ BOARD / POSTS ============
         function loadPosts() {
-            // Load from localStorage for now
+            // 1. Load from localStorage for instant display
             const saved = localStorage.getItem('tss_posts');
             if (saved) {
                 posts = JSON.parse(saved);
+                renderPosts();
             }
-            renderPosts();
 
-            // Update profile stats after posts are loaded
-            updateProfileStats();
+            // 2. Background Sync with Backend
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                // Fetch all data (default action)
+                fetch(SCRIPT_URL)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.posts && Array.isArray(data.posts)) {
+                            posts = data.posts;
+                            localStorage.setItem('tss_posts', JSON.stringify(posts));
+                            renderPosts(); // Re-render with profile images
+                            updateProfileStats();
+                            console.log('Posts synced from backend:', posts);
+                        }
+                    })
+                    .catch(e => console.error('Background sync failed:', e));
+            } else {
+                updateProfileStats();
+            }
         }
 
         function submitPost() {
