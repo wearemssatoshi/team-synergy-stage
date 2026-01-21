@@ -1844,6 +1844,60 @@
             showTokenEarned(3, 'Post Created! 📝');
         }
 
+        // ============ BOARD COMMENTS ============
+        function togglePostComments(postId) {
+            const el = document.getElementById(`post-comments-${postId}`);
+            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function submitPostComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const content = input.value.trim();
+            if (!content) return;
+
+            const profile = getProfile();
+            if (!profile) return;
+
+            // Optimistic Update
+            const list = document.getElementById(`post-comments-list-${postId}`);
+            const tempHtml = `
+                <div class="comment-item" style="margin-bottom:8px; display:flex; gap:8px; opacity:0.7;">
+                    <div style="width:24px;height:24px;border-radius:50%;background:#eee;overflow:hidden;flex-shrink:0;">
+                         ${profile.image ? `<img src="${profile.image}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;font-size:10px;font-weight:bold;color:#888;">${profile.name.charAt(0)}</div>`}
+                    </div>
+                    <div style="flex:1; background:#f9f9f9; padding:8px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:bold; color:#555;">${escapeHtml(profile.name)} <span style="font-size:9px;color:#aaa;">Now</span></div>
+                        <div style="font-size:12px; color:#333;">${escapeHtml(content)}</div>
+                    </div>
+                </div>
+            `;
+            list.insertAdjacentHTML('beforeend', tempHtml);
+            input.value = '';
+
+            // Send to Backend
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'comment',
+                    postId: postId,
+                    author: profile.name,
+                    content: content
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Award tokens locally
+                        addTokens(1);
+                        showTokenEarned(1, 'Reply Bonus! 💬');
+                    } else {
+                        alert('コメント保存に失敗した可能性があります');
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
         function updateProfileStats() {
             const profile = getProfile();
             if (!profile) return;
@@ -1895,6 +1949,30 @@
                     <div class="post-actions">
                         <div class="post-action ${canLike ? '' : 'disabled'}" onclick="likePost(${post.id})" style="${canLike ? '' : 'opacity:0.5;cursor:default;'}">
                             ❤️ ${post.likes} <span style="font-size:10px;margin-left:4px;">(You: ${myCount}/10)</span>
+                        </div>
+                        <div class="post-action" onclick="togglePostComments(${post.id})">
+                            💬 <span style="font-size:12px;">${(post.comments || []).length}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Comment Section -->
+                    <div id="post-comments-${post.id}" class="post-comments-section" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #eee;">
+                        <div id="post-comments-list-${post.id}">
+                            ${(post.comments || []).map(c => `
+                                <div class="comment-item" style="margin-bottom:8px; display:flex; gap:8px;">
+                                    <div style="width:24px;height:24px;border-radius:50%;background:#eee;overflow:hidden;flex-shrink:0;">
+                                        ${c.authorImage ? `<img src="${c.authorImage}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;font-size:10px;font-weight:bold;color:#888;">${c.author.charAt(0)}</div>`}
+                                    </div>
+                                    <div style="flex:1; background:#f9f9f9; padding:8px; border-radius:8px;">
+                                        <div style="font-size:11px; font-weight:bold; color:#555;">${escapeHtml(c.author)} <span style="font-size:9px;color:#aaa;">${formatDate(c.createdAt)}</span></div>
+                                        <div style="font-size:12px; color:#333;">${escapeHtml(c.content)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="display:flex; gap:8px; margin-top:8px;">
+                            <input type="text" id="comment-input-${post.id}" placeholder="コメントを書く..." style="flex:1; border:1px solid #ddd; border-radius:4px; padding:6px; font-size:12px;">
+                            <button onclick="submitPostComment(${post.id})" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:0 12px; font-size:12px; cursor:pointer;">送信</button>
                         </div>
                     </div>
                 </div>

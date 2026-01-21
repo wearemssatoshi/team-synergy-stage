@@ -89,6 +89,8 @@ function doGet(e) {
         return getComments(ss, postId);
       case 'like':
         return handleLike(ss, e.parameter);
+      case 'comment':
+        return handleComment(ss, e.parameter);
       default:
         return getAllData(ss);
     }
@@ -159,6 +161,26 @@ function handlePost(ss, data) {
   return createResponse({ success: true, postId: postId, tokensEarned: 3 });
 }
 
+function handleComment(ss, data) {
+  let sheet = ss.getSheetByName('TSS_Comments');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Comments');
+    sheet.getRange(1, 1, 1, 5).setValues([['Timestamp', 'PostId', 'Author', 'Content', 'CommentId']]);
+    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+  }
+  
+  const commentId = Date.now();
+  const row = [
+    new Date().toISOString(),
+    data.postId,
+    data.author,
+    data.content,
+    commentId
+  ];
+  sheet.appendRow(row);
+  return createResponse({ success: true, commentId: commentId, tokens: 1 });
+}
+
 function handleAddToken(ss, data) {
   const result = addTokensToUser(ss, data.name, data.amount || 1);
   return createResponse(result);
@@ -223,17 +245,41 @@ function getPosts(ss) {
   if (!postsSheet) return createResponse({ posts: [] });
 
   // Get users for profile images and roles
+  // Get users for profile images and roles
   let userInfo = {};
   const usersSheet = ss.getSheetByName('TSS_Users');
   if (usersSheet) {
     const userData = usersSheet.getDataRange().getValues().slice(1);
     userData.forEach(row => {
-      // Name(0), Role(2), Profile_Image(6)
       userInfo[row[0]] = {
         image: row[6] || '',
         role: row[2] || 'メンバー'
       };
     });
+  }
+
+  // Fetch Comments
+  const commentsSheet = ss.getSheetByName('TSS_Comments');
+  let commentsMap = {};
+  if (commentsSheet) {
+    const commData = commentsSheet.getDataRange().getValues();
+    for (let i = 1; i < commData.length; i++) {
+       const cRow = commData[i];
+       const pId = String(cRow[1]);
+       if (!commentsMap[pId]) commentsMap[pId] = [];
+       
+       const cAuthor = cRow[2];
+       const cUserInfo = userInfo[cAuthor] || {};
+       
+       commentsMap[pId].push({
+         createdAt: cRow[0],
+         author: cAuthor,
+         content: cRow[3],
+         id: cRow[4],
+         authorImage: cUserInfo.image || '',
+         authorRole: cUserInfo.role || ''
+       });
+    }
   }
 
   const data = postsSheet.getDataRange().getValues();
@@ -246,7 +292,8 @@ function getPosts(ss) {
     const info = userInfo[obj['author']] || {};
     obj['authorImage'] = info.image || '';
     obj['authorRole'] = info.role || '';
-    
+    obj['comments'] = commentsMap[String(obj['postid'])] || [];
+
     return obj;
   }).reverse(); // Latest first
   
