@@ -851,6 +851,51 @@ function loginUser(params) {
           themeSongUrl: data[i][7] || ''
         });
       }
+      }
+    }
+
+    // --- LEGACY FALLBACK (Auto-Migrate) ---
+    const legacySheet = ss.getSheetByName('TSS_Members');
+    if (legacySheet) {
+      const legacyData = legacySheet.getDataRange().getValues();
+      for (let i = 1; i < legacyData.length; i++) {
+        // Legacy: Name is col index 1
+        if (legacyData[i][1] === name) {
+             // Found in Legacy! Migrate to V2
+             const newPin = pin; 
+             const newRole = legacyData[i][2] || 'メンバー';
+             const newBio = legacyData[i][3] || '';
+             const newTokens = legacyData[i][4] || 0;
+             const joinedAt = legacyData[i][5] || new Date().toISOString();
+             
+             const v2Row = [
+                  name,
+                  hashPin(newPin),
+                  newRole,
+                  newBio,
+                  '', // Future
+                  newTokens,
+                  '', // Image
+                  '', // ThemeSong
+                  joinedAt,
+                  new Date().toISOString(), // Last Login
+                  ''
+             ];
+             sheet.appendRow(v2Row);
+             
+             return createResponse({
+                 success: true,
+                 name: name,
+                 role: newRole,
+                 bio: newBio,
+                 future: '',
+                 tokenBalance: newTokens,
+                 profileImage: '',
+                 themeSongUrl: '',
+                 message: 'ようこそ！アカウントをアップグレードしました。次回からこのPINでログインできます。'
+             });
+        }
+      }
     }
     
     // ログイン失敗
