@@ -1054,10 +1054,15 @@
 
         <!-- MY VISION Accordion -->
         <div class="vision-accordion" id="visionAccordion" style="display: none;">
+            <!-- Hidden File Input for Quick Upload -->
+            <input type="file" id="visionPhotoUpload" style="display: none;" accept="image/*"
+                onchange="handleVisionPhotoUpload(event)">
+
             <div class="vision-accordion-header" onclick="toggleVisionAccordion()">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="vision-photo" id="visionPhotoContainer">
+                        <div class="vision-photo" id="visionPhotoContainer" onclick="triggerVisionPhotoUpload(event)"
+                            style="cursor: pointer;">
                             <img id="visionPhoto" src="" style="display: none;">
                             <span id="visionPhotoPlaceholder" style="font-size: 20px; color: white;">👤</span>
                         </div>
@@ -1597,6 +1602,47 @@
 
         // ============ MY VISION ACCORDION ============
         let visionAccordionOpen = false;
+
+        // ============ QUICK PHOTO UPLOAD ============
+        function triggerVisionPhotoUpload(e) {
+            e.stopPropagation();
+            document.getElementById('visionPhotoUpload').click();
+        }
+
+        function handleVisionPhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('画像サイズは5MB以下にしてください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64 = e.target.result;
+
+                // Save locally
+                localStorage.setItem('tss_profile_image', base64);
+                localStorage.setItem('tss_profile_photo', base64);
+
+                // Update Profile Object
+                const profile = getProfile();
+                if (profile) {
+                    profile.image = base64;
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
+                }
+
+                // Update UI
+                updateVisionDisplay();
+                updateProfileStats();
+
+                // Award Tokens
+                showTokenEarned(5, 'Nice Photo! 📸');
+                addTokens(5);
+            };
+            reader.readAsDataURL(file);
+        }
 
         function toggleVisionAccordion() {
             const content = document.getElementById('visionAccordionContent');
