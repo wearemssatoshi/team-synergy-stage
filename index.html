@@ -1802,6 +1802,8 @@
                 return;
             }
 
+            console.log('Rendering posts:', posts); // Debugging
+
             list.innerHTML = posts.map(post => {
                 // Profile Avatar Logic
                 let avatarHtml = post.author.charAt(0).toUpperCase();
@@ -2041,9 +2043,11 @@
             }
 
             announcementComments[id].push({
+                id: Date.now(),
                 author: profile.name,
                 content: content,
-                time: new Date().toISOString()
+                time: new Date().toISOString(),
+                likes: 0
             });
 
             localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
@@ -2054,6 +2058,22 @@
             // Award 1 TSST for commenting
             addTokens(1);
             showTokenEarned(1, 'Comment Bonus! 💬');
+        }
+
+        function likeAnnouncementComment(annId, commentId) {
+            const comments = announcementComments[annId];
+            if (!comments) return;
+
+            const comment = comments.find(c => c.id === commentId);
+            if (comment) {
+                comment.likes = (comment.likes || 0) + 1;
+                localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+                renderComments(annId);
+
+                // Award 1 Token for Liking Comment
+                addTokens(1);
+                showTokenEarned(1, 'Nice! Comment Like ❤️');
+            }
         }
 
         function renderComments(id) {
@@ -2071,6 +2091,12 @@
                     <div class="comment-content">
                         <div class="comment-author">${escapeHtml(comment.author)}</div>
                         <div class="comment-text">${escapeHtml(comment.content)}</div>
+                        <div style="margin-top: 4px; display: flex; gap: 10px; align-items: center;">
+                            <span class="comment-like-btn" onclick="likeAnnouncementComment(${id}, ${comment.id || 0})" style="font-size: 12px; color: var(--text-gray); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                ❤️ <span style="font-weight: bold;">${comment.likes || 0}</span>
+                            </span>
+                            <span style="font-size: 10px; color: #ccc;">${formatDate(comment.time)}</span>
+                        </div>
                     </div>
                 </div>
             `).join('');
