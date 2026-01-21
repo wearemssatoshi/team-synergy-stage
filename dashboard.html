@@ -521,8 +521,41 @@
             <div class="section-title">📢 POST ANNOUNCEMENT</div>
             <div style="margin-bottom: 15px;">
                 <label class="input-label">ANNOUNCEMENT CONTENT</label>
-                <textarea id="announcementContent" rows="4" class="text-input" placeholder="アナウンスメントを入力..."></textarea>
+                <textarea id="announcementContent" rows="4" class="text-input"
+                    placeholder="アナウンスメントを入力...（URLは自動的にリンクになります）"></textarea>
             </div>
+
+            <!-- Link Attachment -->
+            <div style="margin-bottom: 15px;">
+                <label class="input-label">🔗 LINK URL（任意）</label>
+                <input type="url" id="announcementLink" class="text-input" placeholder="https://example.com">
+                <input type="text" id="announcementLinkLabel" class="text-input" style="margin-top: 8px;"
+                    placeholder="リンクのラベル（任意）">
+            </div>
+
+            <!-- Image Upload -->
+            <div style="margin-bottom: 15px;">
+                <label class="input-label">📷 IMAGE（任意 / 2MB以下推奨）</label>
+                <input type="file" id="announcementImage" accept="image/*" class="text-input"
+                    onchange="previewImage(this)">
+                <div id="imagePreview" style="margin-top: 10px; display: none;">
+                    <img id="previewImg"
+                        style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid var(--border);">
+                    <button type="button" onclick="clearImage()"
+                        style="margin-left: 10px; background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px;">✕
+                        削除</button>
+                </div>
+            </div>
+
+            <!-- PDF/Document Link -->
+            <div style="margin-bottom: 15px;">
+                <label class="input-label">📄 PDF / DOCUMENT LINK（任意）</label>
+                <input type="url" id="announcementPdfLink" class="text-input"
+                    placeholder="Google Drive / Dropbox などの共有リンク">
+                <p style="margin-top: 5px; font-size: 10px; color: var(--text-gray);">💡 PDFはGoogle
+                    DriveやDropboxにアップロードし、共有リンクを貼り付けてください</p>
+            </div>
+
             <button class="btn-primary" onclick="postAnnouncement()">📢 POST ANNOUNCEMENT</button>
             <p style="margin-top: 12px; font-size: 11px; color: var(--text-gray);">※ 投稿されたアナウンスメントはメインアプリのHOME画面に表示されます
             </p>
@@ -717,11 +750,70 @@
         }
 
         // ============ ANNOUNCEMENT POSTING ============
+        let currentImageData = null;
+
+        function previewImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Check file size (2MB limit)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('⚠️ 画像サイズは2MB以下にしてください');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                currentImageData = e.target.result;
+                document.getElementById('previewImg').src = currentImageData;
+                document.getElementById('imagePreview').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearImage() {
+            currentImageData = null;
+            document.getElementById('announcementImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+
         function postAnnouncement() {
             const content = document.getElementById('announcementContent').value.trim();
             if (!content) {
                 alert('アナウンスメントの内容を入力してください');
                 return;
+            }
+
+            // Get attachment data
+            const linkUrl = document.getElementById('announcementLink').value.trim();
+            const linkLabel = document.getElementById('announcementLinkLabel').value.trim() || linkUrl;
+            const pdfLink = document.getElementById('announcementPdfLink').value.trim();
+
+            // Build attachments array
+            const attachments = [];
+
+            if (linkUrl) {
+                attachments.push({
+                    type: 'link',
+                    url: linkUrl,
+                    label: linkLabel
+                });
+            }
+
+            if (currentImageData) {
+                attachments.push({
+                    type: 'image',
+                    data: currentImageData
+                });
+            }
+
+            if (pdfLink) {
+                attachments.push({
+                    type: 'pdf',
+                    url: pdfLink,
+                    label: 'PDF資料'
+                });
             }
 
             // Store announcement in localStorage (to be shared with main app)
@@ -731,6 +823,7 @@
                 id: Date.now(),
                 author: 'TSS運営',
                 content: content,
+                attachments: attachments,
                 date: new Date().toISOString(),
                 likes: 0
             };
@@ -738,7 +831,13 @@
             announcements.unshift(newAnnouncement);
             localStorage.setItem('tss_announcements', JSON.stringify(announcements));
 
+            // Clear form
             document.getElementById('announcementContent').value = '';
+            document.getElementById('announcementLink').value = '';
+            document.getElementById('announcementLinkLabel').value = '';
+            document.getElementById('announcementPdfLink').value = '';
+            clearImage();
+
             alert('✅ アナウンスメントを投稿しました！\nメインアプリのHOME画面に表示されます。');
         }
 
