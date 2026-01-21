@@ -1465,8 +1465,8 @@
             // alert('Syncing...'); 
             fetch(SCRIPT_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Google Apps Script dislikes application/json sometimes, text/plain is safer for CORS
+                body: JSON.stringify({
                     action: 'updateProfile',
                     name: profile.name,
                     pin: profile.pin || '', // Pass pin if exists

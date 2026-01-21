@@ -27,6 +27,8 @@ function doPost(e) {
         return handleLike(ss, data);
       case 'comment':
         return handleComment(ss, data);
+      case 'updateProfile':
+        return updateProfile(data);
       // ============ TO-DO ============
       case 'addTodo':
         return handleAddTodo(ss, data);
