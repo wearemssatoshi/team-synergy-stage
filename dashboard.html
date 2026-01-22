@@ -951,7 +951,7 @@
             document.getElementById('youtubeCaptionInput').value = settings.caption || '';
         }
 
-        function saveYouTubeSettings() {
+        async function saveYouTubeSettings() {
             const videoId = document.getElementById('youtubeVideoId').value.trim();
             const caption = document.getElementById('youtubeCaptionInput').value.trim();
 
@@ -965,8 +965,34 @@
                 caption: caption
             };
 
+            // Save locally
             localStorage.setItem('tss_youtube_settings', JSON.stringify(settings));
-            alert('✅ YouTube設定を保存しました！\nメインアプリのHOME画面に反映されます。');
+
+            // Sync to Backend
+            try {
+                const btn = document.querySelector('button[onclick="saveYouTubeSettings()"]');
+                const originalText = btn.textContent;
+                btn.textContent = '保存中...';
+                btn.disabled = true;
+
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'saveSettings',
+                        key: 'youtube_settings',
+                        value: settings
+                    })
+                });
+
+                btn.textContent = originalText;
+                btn.disabled = false;
+                alert('✅ YouTube設定を全ユーザーに反映しました！');
+
+            } catch (e) {
+                console.error(e);
+                alert('保存エラー: ' + e);
+            }
         }
 
         // ============ INIT ============

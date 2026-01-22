@@ -32,6 +32,9 @@ function doPost(e) {
       // ============ ANNOUNCEMENTS ============
       case 'postAnnouncement':
         return handlePostAnnouncement(ss, data);
+      // ============ SETTINGS (YouTube etc) ============
+      case 'saveSettings':
+        return handleSaveSettings(ss, data);
       // ============ TO-DO ============
       case 'addTodo':
         return handleAddTodo(ss, data);
@@ -86,6 +89,8 @@ function doGet(e) {
         return getEvents(ss, e.parameter);
       case 'announcements':
         return getAnnouncements(ss);
+      case 'settings':
+        return getSettings(ss);
       
       // ============ EXISTING ============
       case 'members':
@@ -116,6 +121,63 @@ function doGet(e) {
 }
 
 // ============ HANDLERS ============
+
+function handleSaveSettings(ss, data) {
+  let sheet = ss.getSheetByName('TSS_Settings');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Settings');
+    sheet.getRange(1, 1, 1, 3).setValues([['Key', 'Value', 'Updated_At']]);
+    sheet.getRange(1, 1, 1, 3).setFontWeight('bold');
+  }
+  
+  const key = data.key;
+  const value = typeof data.value === 'object' ? JSON.stringify(data.value) : String(data.value);
+  const now = new Date().toISOString();
+  
+  const allData = sheet.getDataRange().getValues();
+  let found = false;
+  
+  // Update existing
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][0] === key) {
+      sheet.getRange(i + 1, 2).setValue(value);
+      sheet.getRange(i + 1, 3).setValue(now);
+      found = true;
+      break;
+    }
+  }
+  
+  // Insert new
+  if (!found) {
+    sheet.appendRow([key, value, now]);
+  }
+  
+  return createResponse({ success: true });
+}
+
+function getSettings(ss) {
+  const sheet = ss.getSheetByName('TSS_Settings');
+  const settings = {};
+  
+  if (sheet) {
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const key = data[i][0];
+      let value = data[i][1];
+      
+      // Try to parse JSON if it looks like one
+      try {
+        if (value.startsWith('{') || value.startsWith('[')) {
+          value = JSON.parse(value);
+        }
+      } catch (e) {}
+      
+      settings[key] = value;
+    }
+  }
+  
+  return createResponse({ settings: settings });
+}
 
 function handlePostAnnouncement(ss, data) {
   let sheet = ss.getSheetByName('TSS_Announcements');

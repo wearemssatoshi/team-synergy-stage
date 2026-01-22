@@ -3421,7 +3421,28 @@
                     }
                 }, 2000);
             }
+            
+            // Background sync settings
+            loadSettings();
         };
+
+        async function loadSettings() {
+            if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_GAS_URL')) return;
+            
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=settings`);
+                const data = await res.json();
+                
+                if (data.settings && data.settings.youtube_settings) {
+                    const ytSettings = data.settings.youtube_settings;
+                    localStorage.setItem('tss_youtube_settings', JSON.stringify(ytSettings));
+                    // Reload YouTube with new settings
+                    loadYouTubeSettings();
+                }
+            } catch (e) {
+                console.log('Settings sync failed', e);
+            }
+        }
 
         function loadNoteRSS() {
             const RSS_URL = 'https://note.com/ito_office0419/rss';
