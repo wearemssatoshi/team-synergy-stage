@@ -36,6 +36,11 @@ function doPost(e) {
         return handleCompleteTodo(ss, data);
       case 'deleteTodo':
         return handleDeleteTodo(ss, data);
+      // ============ SCHEDULE ============
+      case 'addEvent':
+        return handleAddEvent(ss, data);
+      case 'deleteEvent':
+        return handleDeleteEvent(ss, data);
       default:
         return createResponse({ error: 'Unknown action' });
     }
@@ -74,6 +79,8 @@ function doGet(e) {
         return updateProfile(e.parameter);
       case 'getTodos':
         return getTodos(ss, e.parameter);
+      case 'getEvents':
+        return getEvents(ss);
       
       // ============ EXISTING ============
       case 'members':
