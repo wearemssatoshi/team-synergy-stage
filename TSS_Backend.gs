@@ -204,6 +204,7 @@ function addTokensToUser(ss, name, amount, action = 'manual', description = '') 
   let userFound = false;
   let newBalance = 0;
   
+  // Legacy Sheet Update
   const allData = sheet.getDataRange().getValues();
   for (let i = 1; i < allData.length; i++) {
     if (allData[i][1] === name) {
@@ -215,15 +216,31 @@ function addTokensToUser(ss, name, amount, action = 'manual', description = '') 
     }
   }
   
-  // Also update V2 sheet if exists
+  // Update V2 Sheet (TSS_Users) with Total Earned Logic
   const v2Sheet = ss.getSheetByName('TSS_Users');
   if (v2Sheet) {
+      // Ensure header exists for Total_Earned (Col 12 / Index 11)
+      const header = v2Sheet.getRange(1, 12).getValue();
+      if (header !== 'Total_Earned') {
+          v2Sheet.getRange(1, 12).setValue('Total_Earned').setFontWeight('bold');
+      }
+
       const v2Data = v2Sheet.getDataRange().getValues();
       for (let i = 1; i < v2Data.length; i++) {
           if (v2Data[i][0] === name) {
-              const current = v2Data[i][5] || 0; // Token_Balance col index 5
-              v2Sheet.getRange(i + 1, 6).setValue(current + amount);
-              newBalance = current + amount; // Prioritize V2 balance
+              const currentBalance = Number(v2Data[i][5] || 0); // Token_Balance (Col 6)
+              const currentTotalEarned = Number(v2Data[i][11] || currentBalance); // Total_Earned (Col 12) - Fallback to balance if empty
+              
+              // Update Balance
+              const updatedBalance = currentBalance + amount;
+              v2Sheet.getRange(i + 1, 6).setValue(updatedBalance);
+              newBalance = updatedBalance; // Prioritize V2 balance
+              
+              // Update Total Earned (Only if amount is positive)
+              if (amount > 0) {
+                  v2Sheet.getRange(i + 1, 12).setValue(currentTotalEarned + amount);
+              }
+              
               userFound = true;
               break;
           }
@@ -267,6 +284,7 @@ function getMembers(ss) {
             bio: row[3] || '',
             future: row[4] || '',
             tokens: row[5] || 0,
+            totalEarned: row[11] || row[5] || 0, // Col 12 is index 11
             profileImage: row[6] || '',
             themeSongUrl: row[7] || '',
             joinedAt: row[8] || '',
@@ -373,8 +391,17 @@ function getStats(ss) {
       data.forEach(row => {
           if (!row[0]) return;
           userNames.add(row[0]);
-          totalTokens += (row[5] || 0);
-          topMembersData.push({ name: row[0], role: row[2] || 'メンバー', tokens: row[5] || 0 });
+          const balance = row[5] || 0;
+          const earned = row[11] || balance; // Col 12
+          
+          totalTokens += balance; // Current Balance Sum
+          
+          topMembersData.push({ 
+              name: row[0], 
+              role: row[2] || 'メンバー', 
+              tokens: balance,
+              totalEarned: earned
+          });
       });
   }
 
@@ -387,8 +414,14 @@ function getStats(ss) {
           // If name is unique, add stats
           if (name && !userNames.has(name)) {
               userNames.add(name);
-              totalTokens += (row[4] || 0);
-              topMembersData.push({ name: name, role: row[2] || 'メンバー', tokens: row[4] || 0 });
+              const balance = row[4] || 0;
+              totalTokens += balance;
+              topMembersData.push({ 
+                  name: name, 
+                  role: row[2] || 'メンバー', 
+                  tokens: balance,
+                  totalEarned: balance // Legacy fallback
+              });
           }
       });
   }
@@ -403,22 +436,21 @@ function getStats(ss) {
   const totalPosts = postsData.length;
   const completedTasks = todosData.filter(row => row[4] === true || row[4] === 'true').length; 
   
+  // Calculate Total Issued from Users' Total Earned (More accurate/fast than logs)
+  const totalTokensIssued = topMembersData.reduce((sum, m) => sum + (m.totalEarned || 0), 0);
+
+  // Sort by Total Earned (Contribution) instead of Balance
+  const topMembers = topMembersData
+    .sort((a, b) => (b.totalEarned || 0) - (a.totalEarned || 0))
+    .slice(0, 10);
+
   // Fetch Token Logs for Activity Stream
   const logSheet = ss.getSheetByName('TSS_TokenLogs');
   let recentActivity = [];
-  let totalTokensIssued = 0;
 
   if (logSheet) {
       const logData = logSheet.getDataRange().getValues();
-      // Skip header
       const logs = logData.slice(1);
-      
-      // Calculate Total Issued (Sum of positive amounts)
-      totalTokensIssued = logs.reduce((sum, row) => {
-          const amount = Number(row[2]); // Amount is col 2
-          return amount > 0 ? sum + amount : sum;
-      }, 0);
-
       const last20 = logs.slice(-20).reverse();
       
       recentActivity = last20.map(row => ({
@@ -428,15 +460,12 @@ function getStats(ss) {
           action: row[3],
           description: row[4] || ''
       }));
-  } else {
-      // Fallback
-      totalTokensIssued = totalTokens;
   }
   
   return createResponse({
     totalMembers,
     totalTokens,
-    totalTokensIssued, // New field
+    totalTokensIssued, 
     totalPosts,
     completedTasks,
     topMembers,
@@ -1042,8 +1071,8 @@ function registerUser(params) {
     const pinHash = hashPin(pin);
     const now = new Date().toISOString();
     
-    // Name, PIN_Hash, Role, Bio, Future, Token_Balance, Profile_Image, Theme_Song_URL, Created_At, Last_Login, Settings_JSON
-    sheet.appendRow([name, pinHash, role, bio, future, 10, '', '', now, now, '{}']);
+    // Name, PIN_Hash, Role, Bio, Future, Token_Balance, Profile_Image, Theme_Song_URL, Created_At, Last_Login, Settings_JSON, Total_Earned
+    sheet.appendRow([name, pinHash, role, bio, future, 10, '', '', now, now, '{}', 10]);
     
     // TSS_Membersにも追加（後方互換性）
     addToLegacyMembers(ss, name, role, bio);

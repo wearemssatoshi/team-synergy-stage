@@ -636,7 +636,8 @@
         }
 
         function renderRanking(members) {
-            const sorted = [...members].sort((a, b) => (b.tokens || 0) - (a.tokens || 0)).slice(0, 5);
+            // Sort by Total Earned (Lifetime Contribution)
+            const sorted = [...members].sort((a, b) => (b.totalEarned || b.tokens || 0) - (a.totalEarned || a.tokens || 0)).slice(0, 5);
             const list = document.getElementById('rankingList');
 
             if (sorted.length === 0) {
@@ -656,7 +657,10 @@
                         <div class="ranking-name">${escapeHtml(member.name)}</div>
                         <div class="ranking-role">${escapeHtml(member.role || 'メンバー')}</div>
                     </div>
-                    <div class="ranking-tokens">${member.tokens || 0}</div>
+                    <div style="text-align:right;">
+                        <div class="ranking-tokens">${member.totalEarned || member.tokens || 0}</div>
+                        <div style="font-size:9px; color:#aaa;">LIFETIME</div>
+                    </div>
                 </li>
             `).join('');
         }
