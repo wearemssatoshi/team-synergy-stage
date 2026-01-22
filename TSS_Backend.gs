@@ -806,6 +806,70 @@ function testSetup() {
   console.log('All sheets initialized!');
 }
 
+// ============ SCHEDULE HANDLERS ============
+
+function handleAddEvent(ss, data) {
+  let sheet = ss.getSheetByName('TSS_Schedule');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Schedule');
+    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId']]);
+    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+  }
+  
+  const eventId = String(Date.now());
+  const row = [
+    new Date().toISOString(),
+    data.title,
+    data.start,
+    data.allDay,
+    data.author || 'Anonymous',
+    eventId
+  ];
+  
+  sheet.appendRow(row);
+  
+  // Reward for scheduling
+  if (data.author) {
+    addTokensToUser(ss, data.author, 1);
+  }
+  
+  return createResponse({ success: true, eventId: eventId, tokensEarned: 1 });
+}
+
+function handleDeleteEvent(ss, data) {
+  const sheet = ss.getSheetByName('TSS_Schedule');
+  if (!sheet) return createResponse({ error: 'Schedule sheet not found' });
+  
+  const allData = sheet.getDataRange().getValues();
+  const targetId = String(data.eventId);
+  
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][5]) === targetId) { // EventId column index 5
+      sheet.deleteRow(i + 1);
+      return createResponse({ success: true, message: 'Event deleted' });
+    }
+  }
+  return createResponse({ error: 'Event not found' });
+}
+
+function getEvents(ss) {
+  const sheet = ss.getSheetByName('TSS_Schedule');
+  if (!sheet) return createResponse({ events: [] });
+  
+  const data = sheet.getDataRange().getValues();
+  // Columns: Timestamp[0], Title[1], Start[2], AllDay[3], Author[4], EventId[5]
+  const events = data.slice(1).map(row => ({
+    id: row[5],
+    title: row[1],
+    start: row[2],
+    allDay: row[3],
+    author: row[4],
+    createdAt: row[0]
+  }));
+  
+  return createResponse({ events });
+}
+
 function testPinHash() {
   const hash = hashPin('1234');
   console.log('PIN Hash:', hash);
