@@ -425,28 +425,44 @@
         btnRecord.addEventListener('click', startRecording);
 
         function startRecording() {
-            if (!confirm("Start recording? Audio will restart.")) return;
+            if (!confirm("録画を開始しますか？音声が最初から再生されます。\n(Safariでは音声が録音できない場合があります。Chrome推奨)")) return;
 
             music.currentTime = 0;
             resetToTime(0);
 
             const canvasStream = renderer.domElement.captureStream(60);
             let finalStream = canvasStream;
+            let hasAudio = false;
 
+            // Try to capture audio (Chrome/Firefox)
             if (music.captureStream) {
                 const audioStream = music.captureStream();
                 finalStream = new MediaStream([...canvasStream.getTracks(), ...audioStream.getTracks()]);
+                hasAudio = true;
             } else if (music.mozCaptureStream) {
                 const audioStream = music.mozCaptureStream();
                 finalStream = new MediaStream([...canvasStream.getTracks(), ...audioStream.getTracks()]);
+                hasAudio = true;
+            } else {
+                console.warn("Audio capture not supported in this browser (likely Safari). Recording video only.");
             }
 
-            const options = { mimeType: 'video/webm; codecs=vp9' };
             recordedChunks = [];
             try {
-                mediaRecorder = new MediaRecorder(finalStream, options);
+                // Try preferred codecs
+                if (MediaRecorder.isTypeSupported('video/webm; codecs=vp9')) {
+                    mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm; codecs=vp9' });
+                } else if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8')) {
+                    mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm; codecs=vp8' });
+                } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                    mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/mp4' });
+                } else {
+                    // Fallback to browser default
+                    mediaRecorder = new MediaRecorder(finalStream);
+                }
             } catch (e) {
-                mediaRecorder = new MediaRecorder(finalStream, { mimeType: 'video/webm; codecs=vp8' });
+                alert("録画の初期化に失敗しました。\nChromeブラウザでお試しください。\n" + e);
+                return;
             }
 
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -457,22 +473,32 @@
             btnRecord.style.background = "#500";
 
             music.play();
-
             music.addEventListener('ended', stopRecording);
         }
 
         function stopRecording() {
             music.removeEventListener('ended', stopRecording);
-            if (mediaRecorder.state === 'recording') mediaRecorder.stop();
-            btnRecord.innerText = "SAVING...";
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                btnRecord.innerText = "SAVING...";
+            }
         }
 
         function saveVideo() {
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            if (recordedChunks.length === 0) return;
+
+            // Determine type based on recorder (best guess or default to webm)
+            const type = mediaRecorder.mimeType || 'video/webm';
+            const blob = new Blob(recordedChunks, { type: type });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'TSS_PV_Final.webm';
+
+            // Extension fix
+            let ext = 'webm';
+            if (type.includes('mp4')) ext = 'mp4';
+
+            a.download = `TSS_PV_Final.${ext}`;
             document.body.appendChild(a);
             a.click();
             setTimeout(() => {
@@ -480,6 +506,7 @@
                 URL.revokeObjectURL(url);
                 btnRecord.innerText = "REC & DL";
                 btnRecord.style.background = "#D00";
+                alert("ダウンロードを開始しました！");
             }, 100);
         }
 
