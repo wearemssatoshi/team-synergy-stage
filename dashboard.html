@@ -45,46 +45,52 @@
         header {
             padding: 40px 20px;
             text-align: center;
-            background: var(--gradient-dark);
-            color: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border-bottom: 1px solid #333;
+            background: linear-gradient(135deg, #FBF5B7, #E5C158, #D4AF37, #C6A355);
+            color: #5C4010;
+            box-shadow: 0 4px 30px rgba(212, 175, 55, 0.3);
             position: relative;
             overflow: hidden;
         }
         
-        header::before {
+        /* Shine effect */
+        header::after {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--gradient-luxury);
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 60%);
+            opacity: 0.1;
+            transform: rotate(30deg);
+            pointer-events: none;
         }
 
         h1 {
             font-family: 'Montserrat', sans-serif;
             font-size: 32px;
-            font-weight: 800;
+            font-weight: 600;
             letter-spacing: 0.15em;
             text-transform: uppercase;
-            background: var(--gradient-luxury);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+            color: #4A3200;
+            background: none;
+            -webkit-text-fill-color: initial;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.5);
             margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
         }
 
         .header-sub {
             font-family: 'Montserrat', sans-serif;
             font-size: 11px;
-            color: #D4AF37;
+            color: #5C4010;
             letter-spacing: 0.4em;
             font-weight: 500;
             text-transform: uppercase;
-            opacity: 0.8;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
         }
 
         main {
