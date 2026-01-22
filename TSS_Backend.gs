@@ -740,10 +740,20 @@ function askJinseiAI(question, userName, userContext = {}) {
     if (userContext.role) {
       contextInfo += `役割: ${userContext.role}\n`;
     }
+
+    // RAG: ナレッジベース検索
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const knowledge = searchKnowledgeBase(ss, question);
+    let knowledgeText = '';
+    if (knowledge.length > 0) {
+        knowledgeText = `\n## 参照すべきJINSEIメソッド（以下の内容に基づいてアドバイスしてください）\n${knowledge.map(k => `### ${k.title}\n${k.content}`).join('\n\n')}\n`;
+    }
     
     const systemPrompt = `あなたは「JINSEI」です。チームビルディングと自走型組織づくりの専門家として、働く仲間をサポートするAIメンターです。
+特に、以下の「JINSEIメソッド」の知識を最大限に活用し、その哲学や具体的なエピソードを引用しながらアドバイスしてください。
 
 ## 仁成（JINSEI）メソッドの核心
+（以下は基本理念ですが、検索された「JINSEIメソッド」の内容を優先してください）
 
 ### 自走型組織とは
 - 経営者が指示・命令しなくても社員が自ら考えて行動できる組織
@@ -765,33 +775,17 @@ function askJinseiAI(question, userName, userContext = {}) {
 - 自分たちで決めたミッションだからこそ習慣化しやすい
 - ビジョンに共感する人材が集まる
 
+${knowledgeText}
+
 ## あなたの基本姿勢
 - **まず聴く**: 相談者の話の意図を正確に理解することを最優先にする
+- **JINSEIとして語る**: 提供されたメソッドのエピソードや言葉遣いを参考に、JINSEI本人になりきって語る
 - **押し付けない**: 「こうすべき」ではなく「こういう方法もある」と選択肢を提示
 - **実用的**: 抽象論より、明日から使える具体的なアドバイスを優先
-- **謙虚に**: 分からないことは正直に「分からない」と言う
 - **寄り添う**: 一緒に考えるパートナーとして接する
 
 ## 対応できるトピック
-
-### チームビルディング
-- 自走型組織づくり
-- 心理的安全性の確保
-- リーダーシップ開発
-- コミュニケーション改善
-- チームの一体感づくり
-
-### キャリア・成長
-- スキルアップの方法
-- 将来のキャリアパス
-- モチベーション維持
-- 目標設定と達成
-
-### 仕事の悩み
-- 人間関係の改善
-- 業務改善
-- タイムマネジメント
-- ストレス対処
+チームビルディング、キャリア・成長、仕事の悩み
 
 ## 相談者の情報
 ${contextInfo || '（初めての相談者です）'}
@@ -799,9 +793,9 @@ ${contextInfo || '（初めての相談者です）'}
 ## 回答ガイドライン
 1. 質問に直接答える（関係ない話に飛ばない）
 2. 200〜400文字程度で簡潔に
-3. 具体的な次のアクションを1つ提案
-4. 必要に応じて絵文字を使う（控えめに）
-5. 押し付けがましい励ましは不要（自然な言葉で締める）
+3. **必ず「JINSEIメソッド」の内容（エピソードや考え方）を絡めて回答する**
+4. 具体的な次のアクションを1つ提案
+5. 必要に応じて絵文字を使う（控えめに）
 6. 相談者の名前が分かる場合は名前で呼びかける`;
 
     // 履歴を含めたコンテンツを構築
@@ -908,6 +902,46 @@ function generateLocalJinseiResponse(question) {
     '相談してくれてありがとう。どんな結果を目指しているか教えてもらえると、具体的な提案ができそう。'
   ];
   return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function searchKnowledgeBase(ss, query) {
+  const sheet = ss.getSheetByName('TSS_KnowledgeBase');
+  if (!sheet) return [];
+  
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return []; // Header only or empty
+  
+  const headers = data[0]; // Source, Title, Content
+  const rows = data.slice(1);
+  const keywords = query.toLowerCase().replace(/[？?！!。、\s]+/g, ' ').trim().split(' ').filter(k => k.length > 1);
+  
+  if (keywords.length === 0) return [];
+
+  const scored = rows.map(row => {
+    const title = String(row[1] || '').toLowerCase();
+    const content = String(row[2] || '').toLowerCase();
+    let score = 0;
+    
+    keywords.forEach(word => {
+      if (title.includes(word)) score += 5; // Title match weight
+      if (content.includes(word)) score += 1; // Content match weight
+    });
+    
+    return {
+      source: row[0],
+      title: row[1],
+      content: row[2], // Return original case content
+      score: score
+    };
+  });
+  
+  // Filter relevant and sort by score
+  const results = scored
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3); // Top 3
+    
+  return results;
 }
 
 // テスト用関数
