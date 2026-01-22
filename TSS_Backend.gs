@@ -45,6 +45,7 @@ function doPost(e) {
   }
 }
 
+
 function doGet(e) {
   try {
     const action = e?.parameter?.action || 'data';
@@ -54,10 +55,10 @@ function doGet(e) {
       // ============ VERSION ============
       case 'version':
         return createResponse({
-          version: '2.0.0',
-          name: 'TSS Backend with PIN Auth',
+          version: '2.1.0',
+          name: 'TSS Backend with Todo Sync',
           features: ['PIN認証', 'プロフィール同期', 'To-Do同期', 'JINSEI AI'],
-          deployedAt: '2026-01-21'
+          deployedAt: new Date().toISOString()
         });
       
       // ============ PIN AUTH ============
@@ -459,6 +460,120 @@ function getComments(ss, postId) {
   
   return createResponse({ comments });
 }
+
+// ============ TO-DO LIST HANDLERS ============
+
+function handleAddTodo(ss, data) {
+  const sheet = getTodosSheet(ss);
+  
+  const todoId = Date.now();
+  const now = new Date().toISOString();
+  
+  // Columns: Timestamp, User, Content, Type, Completed, CompletedAt, TodoId
+  const row = [
+    now,
+    data.user || 'Anonymous',
+    data.content || '',
+    data.type || 'daily',
+    false,
+    '',
+    todoId
+  ];
+  
+  sheet.appendRow(row);
+  
+  // Award token (Action Bonus)
+  if (data.user) {
+    addTokensToUser(ss, data.user, 1);
+  }
+  
+  return createResponse({ 
+    success: true, 
+    todoId: todoId, 
+    tokenEarned: 1,
+    message: 'Task added successfully' 
+  });
+}
+
+function handleCompleteTodo(ss, data) {
+  const sheet = getTodosSheet(ss);
+  const allData = sheet.getDataRange().getValues();
+  const targetId = String(data.todoId);
+  const isCompleted = data.completed === true || data.completed === 'true'; // Toggle value from frontend
+  
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][6]) === targetId) { // TodoId column index 6
+      // Update Completed status
+      sheet.getRange(i + 1, 5).setValue(isCompleted);
+      
+      // Update CompletedAt
+      const completedAt = isCompleted ? new Date().toISOString() : '';
+      sheet.getRange(i + 1, 6).setValue(completedAt);
+      
+      // Award token if completed
+      let tokenEarned = 0;
+      if (isCompleted && data.user) {
+        addTokensToUser(ss, data.user, 2);
+        tokenEarned = 2;
+      }
+      
+      return createResponse({ 
+        success: true, 
+        completed: isCompleted,
+        tokenEarned: tokenEarned 
+      });
+    }
+  }
+  
+  return createResponse({ error: 'Todo not found' });
+}
+
+function handleDeleteTodo(ss, data) {
+  const sheet = getTodosSheet(ss);
+  const allData = sheet.getDataRange().getValues();
+  const targetId = String(data.todoId);
+  
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][6]) === targetId) {
+      sheet.deleteRow(i + 1);
+      return createResponse({ success: true, message: 'Todo deleted' });
+    }
+  }
+  
+  return createResponse({ error: 'Todo not found' });
+}
+
+function getTodos(ss, params) {
+  const sheet = getTodosSheet(ss);
+  const user = params.user || '';
+  
+  if (!user) return createResponse({ todos: [] });
+  
+  const data = sheet.getDataRange().getValues();
+  const todos = [];
+  
+  // Columns: Timestamp, User, Content, Type, Completed, CompletedAt, TodoId
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (row[1] === user) {
+      todos.push({
+        id: row[6],
+        text: row[2],
+        type: row[3],
+        completed: row[4] === true || row[4] === 'true',
+        createdAt: row[0],
+        completedAt: row[5]
+      });
+    }
+  }
+  
+  // Sort by created time (desc)
+  todos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  
+  // Group by type for frontend convenience if needed, but array is fine
+  return createResponse({ todos });
+}
+
 
 // ============ JINSEI AI v3.0 (Based on MINDFUL SATOSHI AI pattern) ============
 

@@ -1308,9 +1308,12 @@
                         style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
                 </div>
 
+
                 <button class="btn-secondary" onclick="openProfileEditor()">プロフィールを編集</button>
 
-                <div class="version-badge">TSS v2.0 | Powered by ITO JINSEI</div>
+                <div id="versionDisplay" class="version-badge"
+                    style="text-align: center; color: #aaa; font-size: 10px; margin-top: 20px;">TSS v2.0 | Powered by
+                    ITO JINSEI</div>
             </div>
         </div>
     </main>
@@ -1354,28 +1357,37 @@
         let posts = [];
         let chatHistory = [];
 
+
         // ============ INITIALIZATION ============
         function init() {
             loadTodos();
             const profile = getProfile();
             if (profile) {
-                // Migrate legacy profile data to separate storage if not exists
-                if (!localStorage.getItem('tss_future') && profile.future) {
-                    localStorage.setItem('tss_future', profile.future);
-                }
-                if (!localStorage.getItem('tss_role') && profile.role) {
-                    localStorage.setItem('tss_role', profile.role);
-                }
-                if (!localStorage.getItem('tss_profile_image') && localStorage.getItem('tss_profile_photo')) {
-                    localStorage.setItem('tss_profile_image', localStorage.getItem('tss_profile_photo'));
-                }
+                // Migrate legacy data
+                if (!localStorage.getItem('tss_future') && profile.future) localStorage.setItem('tss_future', profile.future);
+                if (!localStorage.getItem('tss_role') && profile.role) localStorage.setItem('tss_role', profile.role);
+                if (!localStorage.getItem('tss_profile_image') && localStorage.getItem('tss_profile_photo')) localStorage.setItem('tss_profile_image', localStorage.getItem('tss_profile_photo'));
 
                 showUserBadge(profile);
                 updateTokenDisplay();
-                updateVisionDisplay(); // Show vision accordion
+                updateVisionDisplay();
                 showScreen('screen-home');
                 document.getElementById('mainNav').style.display = 'block';
                 loadPosts();
+
+                // Fetch Version
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    fetch(`${SCRIPT_URL}?action=version`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.version) {
+                                const el = document.getElementById('versionDisplay');
+                                if (el) el.textContent = `v${data.version}`;
+                                console.log('Backend Connected:', data);
+                            }
+                        })
+                        .catch(err => console.error('Version check failed:', err));
+                }
             } else {
                 showScreen('screen-register');
             }
@@ -1833,15 +1845,50 @@
             }
         }
 
+
         // ============ TO-DO LIST ============
-        function loadTodos() {
+        async function loadTodos() {
+            // Optimistic load
             const saved = localStorage.getItem('tss_todos');
             if (saved) {
                 todos = JSON.parse(saved);
+                renderTodos('daily');
+                renderTodos('weekly');
+                renderTodos('monthly');
             }
-            renderTodos('daily');
-            renderTodos('weekly');
-            renderTodos('monthly');
+
+            if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_GAS_URL')) return;
+
+            const profile = getProfile();
+            if (!profile || !profile.name) return;
+
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getTodos&user=${encodeURIComponent(profile.name)}`);
+                const data = await res.json();
+
+                if (data.todos) {
+                    // Reset and organize
+                    todos = { daily: [], weekly: [], monthly: [] };
+
+                    data.todos.forEach(t => {
+                        const type = t.type || 'daily';
+                        if (todos[type]) {
+                            todos[type].push(t);
+                        } else {
+                            // Fallback
+                            todos.daily.push(t);
+                        }
+                    });
+
+                    localStorage.setItem('tss_todos', JSON.stringify(todos));
+                    renderTodos('daily');
+                    renderTodos('weekly');
+                    renderTodos('monthly');
+                    updateProfileStats();
+                }
+            } catch (e) {
+                console.error('Failed to load todos from backend', e);
+            }
         }
 
         function saveTodos() {
@@ -1855,25 +1902,60 @@
             document.getElementById('todo-' + tab).classList.add('active');
         }
 
-        function addTodo(type) {
+        async function addTodo(type) {
             const input = document.getElementById(type + 'TodoInput');
             const text = input.value.trim();
             if (!text) return;
 
-            const newTodo = {
-                id: Date.now(),
-                text: text,
-                completed: false,
-                createdAt: new Date().toISOString()
-            };
+            const profile = getProfile();
+            if (!profile) return;
 
-            todos[type].unshift(newTodo);
-            saveTodos();
-            renderTodos(type);
-            input.value = '';
+            // UI Feedback
+            input.disabled = true;
 
-            // Award token for adding task
-            addTokens(1);
+            try {
+                // Backend Sync
+                let todoId = Date.now(); // Temp ID
+
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    const res = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'addTodo',
+                            user: profile.name,
+                            content: text,
+                            type: type
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success && data.todoId) {
+                        todoId = data.todoId;
+                    }
+                }
+
+                const newTodo = {
+                    id: todoId,
+                    text: text,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+
+                todos[type].unshift(newTodo);
+                saveTodos();
+                renderTodos(type);
+                input.value = '';
+
+                // Award token
+                addTokens(1);
+
+            } catch (e) {
+                alert('タスク追加に失敗しました');
+                console.error(e);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
         }
 
         function toggleTodo(type, id) {
@@ -1883,25 +1965,57 @@
                 saveTodos();
                 renderTodos(type);
 
-                // Award token for completing task
+                // Award token for completing task locally
                 if (todo.completed) {
                     addTokens(2);
                     showTokenEarned(2, 'Task Complete! ✅');
+                }
+
+                // Backend Sync
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    const profile = getProfile();
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'completeTodo',
+                            todoId: id,
+                            completed: todo.completed,
+                            user: profile.name
+                        })
+                    }).catch(console.error);
                 }
             }
         }
 
         function deleteTodo(type, id) {
+            const todo = todos[type].find(t => t.id === id);
+            if (!todo) return;
+
+            if (!confirm('タスクを削除しますか？')) return;
+
             todos[type] = todos[type].filter(t => t.id !== id);
             saveTodos();
             renderTodos(type);
+
+            // Backend Sync
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'deleteTodo',
+                        todoId: id
+                    })
+                }).catch(console.error);
+            }
         }
 
         function renderTodos(type) {
             const list = document.getElementById(type + 'TodoList');
             if (!list) return;
 
-            if (todos[type].length === 0) {
+            if (!todos[type] || todos[type].length === 0) {
                 list.innerHTML = '<div class="todo-empty">タスクがありません</div>';
                 return;
             }
@@ -2593,12 +2707,41 @@
             }
         }
 
-        // Modified init to include PIN check
+        // ============ SERVICE WORKER ============
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New update available
+                                    if (confirm('新しいバージョンがあります！更新しますか？')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // ============ START ============
+        // Modified init to include PIN check & PIN Setup Check
         const originalInit = init;
         init = function () {
             const profile = getProfile();
             const storedPin = localStorage.getItem('tss_pin');
+            const pinSkip = localStorage.getItem('tss_pin_skip');
 
+            // 1. PIN Authentication Check (if PIN exists)
             if (profile && storedPin) {
                 if (!checkPinAuth()) {
                     // Wait for PIN authentication
@@ -2617,17 +2760,19 @@
             originalInit();
             initAnnouncementInteractions();
 
-            // Offer PIN setup after registration if not set
-            if (profile && !storedPin) {
+            // 2. PIN Setup Prompt (if NO PIN and NOT skipped)
+            if (profile && !storedPin && !pinSkip) {
                 setTimeout(() => {
-                    if (confirm('セキュリティ強化のためPINを設定しますか？（後で設定も可能）')) {
+                    if (confirm('セキュリティ強化のためPINを設定しますか？\n（キャンセルすると、しばらく表示されません）')) {
                         showPinModal('setup');
+                    } else {
+                        // User skipped PIN setup
+                        localStorage.setItem('tss_pin_skip', 'true');
                     }
                 }, 2000);
             }
         };
 
-        // ============ START ============
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
