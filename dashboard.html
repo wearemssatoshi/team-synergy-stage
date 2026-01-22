@@ -602,7 +602,13 @@
                 renderStats(statsData, members, posts);
                 renderRanking(statsData.topMembers || members);
                 renderMembers(members);
-                renderActivity(posts);
+                
+                // Prioritize backend token logs if available, otherwise fallback to posts
+                if (statsData.recentActivity && statsData.recentActivity.length > 0) {
+                    renderActivity(statsData.recentActivity, 'log');
+                } else {
+                    renderActivity(posts, 'post');
+                }
 
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -677,10 +683,10 @@
             `).join('');
         }
 
-        function renderActivity(posts) {
+        function renderActivity(data, mode = 'post') {
             const list = document.getElementById('activityList');
 
-            if (posts.length === 0) {
+            if (!data || data.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📭</div>
@@ -690,26 +696,73 @@
                 return;
             }
 
-            const activities = posts.slice(0, 5).map(post => ({
-                type: 'post',
-                user: post.author,
-                action: 'が投稿しました',
-                time: formatRelativeTime(post.timestamp),
-                content: (post.content || '').substring(0, 30) + '...'
-            }));
+            let activities = [];
 
-            const icons = {
-                post: '📝',
-                task: '✅',
-                join: '👋',
-                token: '💎'
-            };
+            if (mode === 'log') {
+                // Parse Token Logs
+                activities = data.map(log => {
+                    let actionText = 'が活動しました';
+                    let icon = '📌';
+                    
+                    switch(log.action) {
+                        case 'post': 
+                            actionText = 'が投稿しました'; 
+                            icon = '📝'; 
+                            break;
+                        case 'comment': 
+                            actionText = 'がコメントしました'; 
+                            icon = '💬'; 
+                            break;
+                        case 'like_received': 
+                            actionText = 'がいいねを受け取りました'; 
+                            icon = '❤️'; 
+                            break;
+                        case 'task_add': 
+                            actionText = 'がタスクを追加しました'; 
+                            icon = '📌'; 
+                            break;
+                        case 'task_complete': 
+                            actionText = 'がタスクを完了しました'; 
+                            icon = '✅'; 
+                            break;
+                        case 'schedule_add': 
+                            actionText = 'が予定を追加しました'; 
+                            icon = '📅'; 
+                            break;
+                        case 'manual':
+                            actionText = 'にトークンが付与されました';
+                            icon = '💎';
+                            break;
+                    }
+
+                    // Append Amount if positive
+                    const amountStr = log.amount > 0 ? ` (+${log.amount} TSST)` : '';
+
+                    return {
+                        user: log.user,
+                        action: actionText,
+                        content: (log.description || '') + amountStr,
+                        time: formatRelativeTime(log.timestamp),
+                        icon: icon
+                    };
+                });
+            } else {
+                // Fallback: Post only mode
+                activities = data.slice(0, 5).map(post => ({
+                    user: post.author,
+                    action: 'が投稿しました',
+                    time: formatRelativeTime(post.timestamp),
+                    content: (post.content || '').substring(0, 30) + '...',
+                    icon: '📝'
+                }));
+            }
 
             list.innerHTML = activities.map(activity => `
                 <li class="activity-item">
-                    <div class="activity-icon">${icons[activity.type] || '📌'}</div>
+                    <div class="activity-icon">${activity.icon}</div>
                     <div class="activity-content">
-                        <div class="activity-text"><strong>${escapeHtml(activity.user)}</strong>${activity.action}</div>
+                        <div class="activity-text"><strong>${escapeHtml(activity.user)}</strong> ${activity.action}</div>
+                        <div class="activity-text" style="font-size:12px; color:#666;">${escapeHtml(activity.content)}</div>
                         <div class="activity-time">${activity.time}</div>
                     </div>
                 </li>

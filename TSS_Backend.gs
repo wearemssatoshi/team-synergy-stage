@@ -166,7 +166,7 @@ function handlePost(ss, data) {
   sheet.appendRow(row);
   
   // Award tokens for posting
-  addTokensToUser(ss, data.author, 3);
+  addTokensToUser(ss, data.author, 3, 'post', 'New Post Created');
   
   return createResponse({ success: true, postId: postId, tokensEarned: 3 });
 }
@@ -192,25 +192,62 @@ function handleComment(ss, data) {
 }
 
 function handleAddToken(ss, data) {
-  const result = addTokensToUser(ss, data.name, data.amount || 1);
+  const result = addTokensToUser(ss, data.name, data.amount || 1, 'manual', 'Admin added token');
   return createResponse(result);
 }
 
-function addTokensToUser(ss, name, amount) {
+function addTokensToUser(ss, name, amount, action = 'manual', description = '') {
   const sheet = ss.getSheetByName('TSS_Members');
   if (!sheet) return { success: false, error: 'Members sheet not found' };
+  
+  // 1. Update Balance (Current Snapshot)
+  let userFound = false;
+  let newBalance = 0;
   
   const allData = sheet.getDataRange().getValues();
   for (let i = 1; i < allData.length; i++) {
     if (allData[i][1] === name) {
       const currentTokens = allData[i][4] || 0;
-      const newTokens = currentTokens + amount;
-      sheet.getRange(i + 1, 5).setValue(newTokens);
-      return { success: true, newBalance: newTokens };
+      newBalance = currentTokens + amount;
+      sheet.getRange(i + 1, 5).setValue(newBalance);
+      userFound = true;
+      break;
     }
   }
   
-  return { success: false, error: 'User not found' };
+  // Also update V2 sheet if exists
+  const v2Sheet = ss.getSheetByName('TSS_Users');
+  if (v2Sheet) {
+      const v2Data = v2Sheet.getDataRange().getValues();
+      for (let i = 1; i < v2Data.length; i++) {
+          if (v2Data[i][0] === name) {
+              const current = v2Data[i][5] || 0; // Token_Balance col index 5
+              v2Sheet.getRange(i + 1, 6).setValue(current + amount);
+              newBalance = current + amount; // Prioritize V2 balance
+              userFound = true;
+              break;
+          }
+      }
+  }
+  
+  if (!userFound) return { success: false, error: 'User not found' };
+
+  // 2. Log Transaction (History)
+  logTokenTransaction(ss, name, amount, action, description);
+  
+  return { success: true, newBalance: newBalance };
+}
+
+function logTokenTransaction(ss, user, amount, action, description) {
+  let sheet = ss.getSheetByName('TSS_TokenLogs');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_TokenLogs');
+    sheet.getRange(1, 1, 1, 5).setValues([['Timestamp', 'User', 'Amount', 'Action', 'Description']]);
+    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+  }
+  
+  const now = new Date().toISOString();
+  sheet.appendRow([now, user, amount, action, description]);
 }
 
 // ============ GETTERS ============
@@ -407,17 +444,8 @@ function handleLike(ss, data) {
       sheet.getRange(i + 1, 4).setValue(currentLikes + 1);
       
       // Award token to author (Approval Bonus!)
-      const usersSheet = ss.getSheetByName('TSS_Users');
-      if (usersSheet && author) {
-         const usersData = usersSheet.getDataRange().getValues();
-         for (let j = 1; j < usersData.length; j++) {
-            if (usersData[j][0] === author) { // Name match
-               const currentTokens = usersData[j][5] || 0;
-               usersSheet.getRange(j + 1, 6).setValue(currentTokens + 1);
-               break;
-            }
-         }
-      }
+      // Use standard function for logging
+      addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${data.postId})`);
       
       return createResponse({ success: true, likes: currentLikes + 1 });
     }
@@ -445,7 +473,7 @@ function handleComment(ss, data) {
   sheet.appendRow(row);
   
   // Award tokens for commenting
-  addTokensToUser(ss, data.author, 1);
+  addTokensToUser(ss, data.author, 1, 'comment', 'Commented on post');
   
   return createResponse({ success: true, commentId: commentId, tokensEarned: 1 });
 }
@@ -491,7 +519,7 @@ function handleAddTodo(ss, data) {
   
   // Award token (Action Bonus)
   if (data.user) {
-    addTokensToUser(ss, data.user, 1);
+    addTokensToUser(ss, data.user, 1, 'task_add', 'Added new task');
   }
   
   return createResponse({ 
@@ -520,7 +548,7 @@ function handleCompleteTodo(ss, data) {
       // Award token if completed
       let tokenEarned = 0;
       if (isCompleted && data.user) {
-        addTokensToUser(ss, data.user, 2);
+        addTokensToUser(ss, data.user, 2, 'task_complete', 'Completed task');
         tokenEarned = 2;
       }
       
@@ -831,7 +859,7 @@ function handleAddEvent(ss, data) {
   
   // Reward for scheduling
   if (data.author) {
-    addTokensToUser(ss, data.author, 1);
+    addTokensToUser(ss, data.author, 1, 'schedule_add', 'Added schedule event');
   }
   
   return createResponse({ success: true, eventId: eventId, tokensEarned: 1 });
@@ -1357,184 +1385,4 @@ function updateProfile(params) {
   }
 }
 
-// ============ TO-DO MANAGEMENT ============
-
-/**
- * ユーザーのTo-Doを取得
- */
-function getUserTodos(ss, userName) {
-  const sheet = ss.getSheetByName('TSS_Todos');
-  if (!sheet) return [];
-  
-  const data = sheet.getDataRange().getValues();
-  const todos = [];
-  
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][1] === userName) {
-      todos.push({
-        id: data[i][6],
-        content: data[i][2],
-        type: data[i][3],
-        completed: data[i][4] === true || data[i][4] === 'true',
-        timestamp: data[i][0],
-        completedAt: data[i][5]
-      });
-    }
-  }
-  
-  return todos;
-}
-
-/**
- * To-Do一覧取得（API）
- */
-function getTodos(ss, params) {
-  const name = params?.name || '';
-  const type = params?.type || 'all';
-  
-  if (!name) {
-    return createResponse({ todos: [] });
-  }
-  
-  let todos = getUserTodos(ss, name);
-  
-  if (type !== 'all') {
-    todos = todos.filter(t => t.type === type);
-  }
-  
-  return createResponse({ todos });
-}
-
-/**
- * To-Do追加
- */
-function handleAddTodo(ss, data) {
-  try {
-    const userName = data.name;
-    const content = data.content;
-    const type = data.type || 'personal';
-    
-    if (!userName || !content) {
-      return createResponse({ error: 'ユーザー名とタスク内容が必要です' });
-    }
-    
-    const sheet = getTodosSheet(ss);
-    const todoId = Date.now();
-    const now = new Date().toISOString();
-    
-    sheet.appendRow([now, userName, content, type, false, '', todoId]);
-    
-    // トークン付与（+1 TSST）
-    updateUserTokens(ss, userName, 1);
-    
-    return createResponse({ 
-      success: true, 
-      todoId: todoId,
-      tokensEarned: 1
-    });
-    
-  } catch (error) {
-    return createResponse({ error: error.message });
-  }
-}
-
-/**
- * To-Do完了
- */
-function handleCompleteTodo(ss, data) {
-  try {
-    const userName = data.name;
-    const todoId = data.todoId;
-    
-    if (!userName || !todoId) {
-      return createResponse({ error: 'ユーザー名とタスクIDが必要です' });
-    }
-    
-    const sheet = ss.getSheetByName('TSS_Todos');
-    if (!sheet) return createResponse({ error: 'Todos sheet not found' });
-    
-    const allData = sheet.getDataRange().getValues();
-    
-    for (let i = 1; i < allData.length; i++) {
-      if (String(allData[i][6]) === String(todoId) && allData[i][1] === userName) {
-        // 既に完了済みかチェック
-        if (allData[i][4] === true || allData[i][4] === 'true') {
-          return createResponse({ success: true, alreadyCompleted: true });
-        }
-        
-        // 完了に更新
-        sheet.getRange(i + 1, 5).setValue(true);
-        sheet.getRange(i + 1, 6).setValue(new Date().toISOString());
-        
-        // トークン付与（+2 TSST）
-        updateUserTokens(ss, userName, 2);
-        
-        return createResponse({ 
-          success: true, 
-          tokensEarned: 2
-        });
-      }
-    }
-    
-    return createResponse({ error: 'タスクが見つかりません' });
-    
-  } catch (error) {
-    return createResponse({ error: error.message });
-  }
-}
-
-/**
- * To-Do削除
- */
-function handleDeleteTodo(ss, data) {
-  try {
-    const userName = data.name;
-    const todoId = data.todoId;
-    
-    if (!userName || !todoId) {
-      return createResponse({ error: 'ユーザー名とタスクIDが必要です' });
-    }
-    
-    const sheet = ss.getSheetByName('TSS_Todos');
-    if (!sheet) return createResponse({ error: 'Todos sheet not found' });
-    
-    const allData = sheet.getDataRange().getValues();
-    
-    for (let i = 1; i < allData.length; i++) {
-      if (String(allData[i][6]) === String(todoId) && allData[i][1] === userName) {
-        sheet.deleteRow(i + 1);
-        return createResponse({ success: true });
-      }
-    }
-    
-    return createResponse({ error: 'タスクが見つかりません' });
-    
-  } catch (error) {
-    return createResponse({ error: error.message });
-  }
-}
-
-/**
- * ユーザートークンを更新（TSS_Users）
- */
-function updateUserTokens(ss, name, amount) {
-  const sheet = ss.getSheetByName('TSS_Users');
-  if (!sheet) return false;
-  
-  const data = sheet.getDataRange().getValues();
-  
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === name) {
-      const currentTokens = data[i][4] || 0;
-      const newTokens = currentTokens + amount;
-      sheet.getRange(i + 1, 5).setValue(newTokens);
-      
-      // TSS_Membersも更新（後方互換）
-      addTokensToUser(ss, name, amount);
-      
-      return true;
-    }
-  }
-  
-  return false;
-}
+// End of file
