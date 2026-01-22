@@ -1271,24 +1271,14 @@
                     <div id="monthlyTodoList">
                         <div class="todo-empty">タスクがありません</div>
                     </div>
-                    <div class="todo-content" id="todo-monthly">
-                        <div class="todo-input-row">
-                            <input type="text" class="text-input" id="monthlyTodoInput" placeholder="タスクを追加...">
-                            <button class="todo-add-btn" onclick="addTodo('monthly')">+</button>
-                        </div>
-                        <div id="monthlyTodoList">
-                            <div class="todo-empty">タスクがありません</div>
-                        </div>
-                    </div>
+                </div>
 
-                    <!-- CALENDAR SECTION -->
-                    <div style="margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px;">
-                        <div class="section-title"
-                            style="justify-content: center; border: none; margin-bottom: 10px; font-size: 12px;">📅
-                            SCHEDULE
-                        </div>
-                        <div id='calendar'></div>
+                <!-- CALENDAR SECTION (Always visible in TODO screen) -->
+                <div style="margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px;">
+                    <div class="section-title"
+                        style="justify-content: center; border: none; margin-bottom: 10px; font-size: 12px;">📅 SCHEDULE
                     </div>
+                    <div id='calendar'></div>
                 </div>
             </div>
         </div>
