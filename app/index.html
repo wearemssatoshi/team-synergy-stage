@@ -55,22 +55,38 @@
         header {
             padding: 20px;
             text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            background: rgba(255, 255, 255, 0.94);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: linear-gradient(135deg, #FBF5B7, #E5C158, #D4AF37, #C6A355);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             position: sticky;
             top: 0;
             z-index: 9999;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+            overflow: hidden;
+        }
+
+        /* Shine effect */
+        header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 60%);
+            opacity: 0.15;
+            transform: rotate(30deg);
+            pointer-events: none;
         }
 
         .logo-container {
             margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
         }
 
         .logo-container img {
             height: 45px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         h1 {
@@ -78,19 +94,23 @@
             font-size: 24px;
             font-weight: 700;
             letter-spacing: 0.05em;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #4A3200;
+            background: none;
+            -webkit-text-fill-color: initial;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.6);
+            position: relative;
+            z-index: 2;
         }
 
         .header-sub {
             font-family: 'Montserrat', sans-serif;
             font-size: 10px;
-            color: var(--primary);
+            color: #5C4010;
             letter-spacing: 0.25em;
             margin-top: 4px;
-            font-weight: 500;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
         }
 
         .user-badge {
