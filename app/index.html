@@ -1519,6 +1519,23 @@
                     <button class="chat-send-btn" onclick="sendChat()">→</button>
                 </div>
             </div>
+
+            <!-- COMMUNITY NOTES SECTION -->
+            <div class="section-title">📝 COMMUNITY NOTES</div>
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">📓</span>
+                    ITO OFFICE NOTE
+                </div>
+                <div id="note-feed-container">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+                <button class="btn-secondary" onclick="window.open('https://note.com/ito_office0419', '_blank')" style="margin-top: 15px;">
+                    View All Notes ↗
+                </button>
+            </div>
         </div>
 
         <div class="screen" id="screen-profile">
@@ -3332,6 +3349,7 @@
             originalInit();
             initAnnouncementInteractions();
             initCalendar();
+            loadNoteRSS();
 
             // 2. PIN Setup Prompt (if NO PIN and NOT skipped)
             if (profile && !storedPin && !pinSkip) {
@@ -3345,6 +3363,36 @@
                 }, 2000);
             }
         };
+
+        function loadNoteRSS() {
+            const RSS_URL = 'https://note.com/ito_office0419/rss';
+            const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+            const container = document.getElementById('note-feed-container');
+
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok' && data.items.length > 0) {
+                        const items = data.items.slice(0, 3); // Top 3 articles
+                        container.innerHTML = items.map(item => `
+                            <div class="note-item" onclick="window.open('${item.link}', '_blank')" style="cursor: pointer; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px;">
+                                <div style="flex: 1;">
+                                    <div style="font-family: 'Montserrat', sans-serif; font-size: 10px; color: var(--text-gray); margin-bottom: 4px;">${formatDate(item.pubDate)}</div>
+                                    <div style="font-weight: 600; font-size: 13px; line-height: 1.4; color: var(--text-dark); margin-bottom: 6px;">${item.title}</div>
+                                    <div style="font-size: 11px; color: var(--text-gray); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.description.replace(/<[^>]*>?/gm, '')}</div>
+                                </div>
+                                ${item.thumbnail ? `<div style="width: 60px; height: 60px; border-radius: 8px; background-image: url('${item.thumbnail}'); background-size: cover; background-position: center; flex-shrink: 0;"></div>` : ''}
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">記事の読み込みに失敗しました</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('RSS Error:', error);
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">読み込みエラー</div>';
+                });
+        }
 
         document.addEventListener('DOMContentLoaded', init);
     </script>
