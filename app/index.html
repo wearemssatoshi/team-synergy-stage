@@ -1041,40 +1041,244 @@
             transform: rotate(180deg);
         }
 
-        /* CALENDAR */
+        /* CALENDAR STYLISH UPDATE */
         #calendar {
-            margin-top: 20px;
+            margin-top: 24px;
             background: var(--white);
-            border-radius: 12px;
-            padding: 10px;
-            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
             font-family: 'Montserrat', sans-serif;
-            min-height: 400px;
+            min-height: 450px;
+        }
+
+        /* Calendar Header */
+        .fc-toolbar {
+            margin-bottom: 1.5em !important;
         }
 
         .fc-toolbar-title {
-            font-size: 16px !important;
-            font-weight: 700 !important;
-            color: var(--primary);
+            font-size: 1.2rem !important;
+            font-weight: 800 !important;
+            color: var(--text-dark);
+            letter-spacing: 0.05em;
         }
 
         .fc-button {
-            background-color: var(--primary) !important;
-            border-color: var(--primary) !important;
-            font-size: 11px !important;
+            background-color: transparent !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text-gray) !important;
+            font-size: 0.85rem !important;
             font-weight: 600 !important;
+            border-radius: 12px !important;
+            padding: 6px 12px !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .fc-button:hover,
+        .fc-button-active {
+            background-color: var(--primary-light) !important;
+            border-color: var(--primary) !important;
+            color: var(--primary) !important;
+        }
+
+        .fc-button:focus {
+            box-shadow: none !important;
+        }
+
+        /* Calendar Grid */
+        .fc-theme-standard td,
+        .fc-theme-standard th {
+            border: none !important;
+            border-bottom: 1px solid rgba(0,0,0,0.03) !important;
+        }
+        
+        .fc-scrollgrid {
+            border: none !important;
+        }
+
+        .fc-col-header-cell {
+            padding-bottom: 10px !important;
+        }
+
+        .fc-col-header-cell-cushion {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none !important;
+        }
+
+        .fc-daygrid-day-number {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            padding: 8px 12px !important;
+            text-decoration: none !important;
         }
 
         .fc-day-today {
-            background-color: var(--light-gray) !important;
+            background-color: transparent !important;
+        }
+        
+        .fc-day-today .fc-daygrid-day-number {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 4px;
         }
 
+        /* Events */
         .fc-event {
             cursor: pointer;
-            background-color: var(--primary-light);
-            border: 1px solid var(--primary);
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 2px 4px !important;
+            margin-bottom: 2px !important;
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.1s;
+        }
+
+        .fc-event:hover {
+            transform: scale(1.02);
+            z-index: 5;
+        }
+
+        .fc-event-main {
+            padding: 1px 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Event Colors */
+        .fc-event.type-shared {
+            background: linear-gradient(135deg, #D4AF37, #E5C158) !important;
+            color: white !important;
+        }
+
+        .fc-event.type-personal {
+            background: linear-gradient(135deg, #4A90E2, #6AA9F6) !important;
+            color: #fff !important;
+        }
+
+        .fc-event.type-official {
+            background: var(--text-dark) !important;
+            border: 1px solid var(--primary) !important;
+            color: var(--primary) !important;
+        }
+
+        /* FILTERS */
+        .calendar-filters {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: var(--light-gray);
+            padding: 6px;
+            border-radius: 30px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .calendar-filter-tab {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            white-space: nowrap;
+            background: transparent;
+            border: none;
+            color: var(--text-gray);
+            transition: all 0.3s ease;
+            box-shadow: none;
+        }
+
+        .calendar-filter-tab.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 320px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--primary-light);
+        }
+
+        .modal-header {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
             color: var(--text-dark);
-            font-size: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .type-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .type-option {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .type-option:hover {
+            background: var(--light-gray);
+        }
+
+        .type-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .type-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -2784,6 +2988,20 @@
 
         // ============ CALENDAR ============
         let calendar;
+        let currentCalendarFilter = 'all';
+
+        function setCalendarFilter(filter) {
+            currentCalendarFilter = filter;
+            document.querySelectorAll('.calendar-filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.innerText === (
+                    filter === 'all' ? 'ALL' :
+                        filter === 'personal' ? '自分' :
+                            filter === 'shared' ? 'みんな' : '運営'
+                )) tab.classList.add('active');
+            });
+            if (calendar) calendar.refetchEvents();
+        }
 
         function initCalendar() {
             const calendarEl = document.getElementById('calendar');
@@ -2799,94 +3017,194 @@
                 locale: 'ja',
                 height: 'auto',
                 events: function (info, successCallback, failureCallback) {
-                    // Fetch events from BACKEND
                     const profile = getProfile();
-                    // Use local cache first for speed, then update
+                    if (!profile) { successCallback([]); return; }
+
                     const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
 
-                    fetch(SCRIPT_URL + '?action=getEvents')
+                    // Construct URL with user param for privacy filtering
+                    const url = `${SCRIPT_URL}?action=getEvents&user=${encodeURIComponent(profile.name)}`;
+
+                    fetch(url)
                         .then(response => response.json())
                         .then(data => {
+                            let eventsList = data.events || cached;
                             if (data.events) {
                                 localStorage.setItem('tss_schedule_cache', JSON.stringify(data.events));
-                                // Map events for standard display
-                                const mapped = data.events.map(e => ({
+                            }
+
+                            // CLIENT-SIDE FILTERING
+                            const filtered = eventsList.filter(e => {
+                                if (currentCalendarFilter === 'all') return true;
+                                if (currentCalendarFilter === 'personal') return e.type === 'personal';
+                                if (currentCalendarFilter === 'shared') return e.type === 'shared';
+                                if (currentCalendarFilter === 'official') return e.type === 'official' || e.type === 'management';
+                                return true;
+                            });
+
+                            // MAP TO FULLCALENDAR FORMAT
+                            const mapped = filtered.map(e => {
+                                let className = 'type-shared';
+                                if (e.type === 'personal') className = 'type-personal';
+                                if (e.type === 'official' || e.type === 'management') className = 'type-official';
+
+                                return {
                                     id: e.id,
-                                    title: e.author ? `[${e.author}] ${e.title}` : e.title,
+                                    title: (e.type === 'personal' ? '🔒 ' : '') + e.title,
                                     start: e.start,
                                     allDay: e.allDay,
-                                    extendedProps: { author: e.author }
-                                }));
-                                successCallback(mapped);
-                            } else {
-                                successCallback(cached);
-                            }
+                                    classNames: [className],
+                                    extendedProps: {
+                                        author: e.author,
+                                        type: e.type || 'shared'
+                                    }
+                                };
+                            });
+                            successCallback(mapped);
                         })
                         .catch(e => {
                             console.log('Calendar Sync Error', e);
-                            successCallback(cached);
+                            successCallback([]); // Fallback
                         });
                 },
                 dateClick: function (info) {
-                    const title = prompt('予定を入力してください (みんなに共有されます):', '');
-                    if (title) {
-                        const profile = getProfile();
-                        const authorName = profile ? profile.name : 'Unknown';
-
-                        // Optimistic UI Update
-                        const tempId = String(Date.now());
-                        calendar.addEvent({
-                            id: tempId,
-                            title: `[${authorName}] ${title}`,
-                            start: info.dateStr,
-                            allDay: true
-                        });
-
-                        // Send to Backend
-                        fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                action: 'addEvent',
-                                title: title,
-                                start: info.dateStr,
-                                allDay: true,
-                                author: authorName
-                            })
-                        }).then(res => res.json())
-                            .then(data => {
-                                if (data.success) {
-                                    // Reward
-                                    addTokens(1);
-                                    showTokenEarned(1, 'Shared Schedule Added! 📅');
-                                    calendar.refetchEvents(); // Refresh to get real ID
-                                }
-                            });
-                    }
+                    openAddEventModal(info.dateStr);
                 },
                 eventClick: function (info) {
                     const profile = getProfile();
-                    const author = info.event.extendedProps.author;
-                    const isMyEvent = author === (profile ? profile.name : '');
+                    const props = info.event.extendedProps;
+                    const isMyEvent = props.author === (profile ? profile.name : '');
 
-                    if (isMyEvent && confirm(`「${info.event.title}」を削除しますか？`)) {
-                        const eventId = info.event.id;
-                        info.event.remove();
+                    let msg = `📅 ${info.event.title}\n`;
+                    msg += `作成者: ${props.author}\n`;
+                    msg += `タイプ: ${props.type === 'personal' ? '個人' : props.type === 'open' ? '共有' : '運営'}`;
 
-                        // Delete from Backend
-                        fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                action: 'deleteEvent',
-                                eventId: eventId
-                            })
-                        });
-                    } else if (!isMyEvent) {
-                        alert(`これは ${author} さんの予定です。`);
+                    if (isMyEvent) {
+                        if (confirm(msg + '\n\n削除しますか？')) {
+                            const eventId = info.event.id;
+                            info.event.remove();
+
+                            fetch(SCRIPT_URL, {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    action: 'deleteEvent',
+                                    eventId: eventId
+                                })
+                            });
+                        }
+                    } else {
+                        alert(msg);
                     }
                 }
             });
 
             calendar.render();
+        }
+
+        // --- CALENDAR MODAL LOGIC ---
+        let selectedDateForEvent = '';
+        let selectedEventType = 'shared';
+
+        function openAddEventModal(dateStr) {
+            selectedDateForEvent = dateStr;
+
+            // Create Modal if not exists
+            if (!document.getElementById('addEventModal')) {
+                const modalHtml = `
+                    <div id="addEventModal" class="modal-overlay">
+                        <div class="modal-content">
+                            <div class="modal-header">ADD SCHEDULE</div>
+                            <div style="font-size:12px; color:var(--text-gray); margin-bottom:15px; text-align:center;">${dateStr}</div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">TITLE</label>
+                                <input type="text" id="eventTitleInput" class="text-input" placeholder="予定のタイトル">
+                            </div>
+
+                            <div class="type-selector">
+                                <div class="type-option selected" onclick="selectEventType(this, 'shared')">
+                                    <div class="type-indicator" style="background:var(--primary);"></div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:12px; font-weight:bold;">みんなに共有</div>
+                                        <div style="font-size:9px; color:var(--text-gray);">全員のカレンダーに表示</div>
+                                    </div>
+                                </div>
+                                <div class="type-option" onclick="selectEventType(this, 'personal')">
+                                    <div class="type-indicator" style="background:#4A90E2;"></div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:12px; font-weight:bold;">自分だけの予定</div>
+                                        <div style="font-size:9px; color:var(--text-gray);">自分だけに表示 (非公開)</div>
+                                    </div>
+                                </div>
+                                <!-- Management option hidden for normal users usually, but available for simplicity here -->
+                            </div>
+
+                            <button class="btn-main" onclick="submitEvent()">ADD EVENT</button>
+                            <button class="btn-secondary" onclick="document.getElementById('addEventModal').style.display='none'">CANCEL</button>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }
+
+            // Reset
+            document.getElementById('eventTitleInput').value = '';
+            selectEventType(document.querySelector('.type-option'), 'shared'); // Default shared
+
+            document.getElementById('addEventModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('eventTitleInput').focus(), 100);
+        }
+
+        function selectEventType(el, type) {
+            selectedEventType = type;
+            document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function submitEvent() {
+            const title = document.getElementById('eventTitleInput').value.trim();
+            if (!title) return;
+
+            const profile = getProfile();
+            const authorName = profile ? profile.name : 'Unknown';
+
+            // Optimistic UI Update (Refetch will happen but adds snappy feel if we manually add?)
+            // Actually simpler to just send and refetch.
+            // Let's optimistic add for instant feedback
+
+            let className = 'type-shared';
+            if (selectedEventType === 'personal') className = 'type-personal';
+
+            calendar.addEvent({
+                id: 'temp-' + Date.now(),
+                title: (selectedEventType === 'personal' ? '🔒 ' : '') + title,
+                start: selectedDateForEvent,
+                allDay: true,
+                classNames: [className],
+                extendedProps: { author: authorName, type: selectedEventType }
+            });
+
+            document.getElementById('addEventModal').style.display = 'none';
+
+            // Backend
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'addEvent',
+                    title: title,
+                    start: selectedDateForEvent,
+                    allDay: true,
+                    author: authorName,
+                    type: selectedEventType
+                })
+            }).then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        addTokens(1);
+                        showTokenEarned(1, 'Schedule Added! 📅');
+                        calendar.refetchEvents(); // Get real ID
+                    }
+                });
         }
 
         function saveCalendarEvents() {

@@ -80,7 +80,7 @@ function doGet(e) {
       case 'getTodos':
         return getTodos(ss, e.parameter);
       case 'getEvents':
-        return getEvents(ss);
+        return getEvents(ss, e.parameter);
       
       // ============ EXISTING ============
       case 'members':
@@ -812,8 +812,8 @@ function handleAddEvent(ss, data) {
   let sheet = ss.getSheetByName('TSS_Schedule');
   if (!sheet) {
     sheet = ss.insertSheet('TSS_Schedule');
-    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId']]);
-    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId', 'Type']]);
+    sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
   }
   
   const eventId = String(Date.now());
@@ -823,7 +823,8 @@ function handleAddEvent(ss, data) {
     data.start,
     data.allDay,
     data.author || 'Anonymous',
-    eventId
+    eventId,
+    data.type || 'shared' // Col 7: Type
   ];
   
   sheet.appendRow(row);
@@ -852,20 +853,41 @@ function handleDeleteEvent(ss, data) {
   return createResponse({ error: 'Event not found' });
 }
 
-function getEvents(ss) {
+function getEvents(ss, params) {
   const sheet = ss.getSheetByName('TSS_Schedule');
   if (!sheet) return createResponse({ events: [] });
   
+  const requestingUser = params?.user || '';
   const data = sheet.getDataRange().getValues();
-  // Columns: Timestamp[0], Title[1], Start[2], AllDay[3], Author[4], EventId[5]
-  const events = data.slice(1).map(row => ({
-    id: row[5],
-    title: row[1],
-    start: row[2],
-    allDay: row[3],
-    author: row[4],
-    createdAt: row[0]
-  }));
+  
+  // Columns: Timestamp[0], Title[1], Start[2], AllDay[3], Author[4], EventId[5], Type[6]
+  const events = [];
+  
+  // Skip header
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const type = row[6] || 'shared'; // Default to shared
+    const author = row[4];
+    
+    // Privacy Filter
+    // 1. Official/Management -> Always Show
+    // 2. Shared -> Always Show
+    // 3. Personal -> Show ONLY if author matches requestingUser
+    
+    if (type === 'personal' && author !== requestingUser) {
+        continue; // Skip other's personal events
+    }
+    
+    events.push({
+      id: row[5],
+      title: row[1],
+      start: row[2],
+      allDay: row[3],
+      author: author,
+      type: type,
+      createdAt: row[0]
+    });
+  }
   
   return createResponse({ events });
 }
