@@ -2799,9 +2799,6 @@
             const calendarEl = document.getElementById('calendar');
             if (!calendarEl) return;
 
-            // Load saved events
-            const savedEvents = JSON.parse(localStorage.getItem('tss_schedule_events') || '[]');
-
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 headerToolbar: {
@@ -2809,36 +2806,96 @@
                     center: 'title',
                     right: 'today'
                 },
-                locale: 'ja', // Japanese locale
+                locale: 'ja',
                 height: 'auto',
-                events: savedEvents,
+                events: function (info, successCallback, failureCallback) {
+                    // Fetch events from BACKEND
+                    const profile = getProfile();
+                    // Use local cache first for speed, then update
+                    const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
+
+                    fetch(SCRIPT_URL + '?action=getEvents')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.events) {
+                                localStorage.setItem('tss_schedule_cache', JSON.stringify(data.events));
+                                // Map events for standard display
+                                const mapped = data.events.map(e => ({
+                                    id: e.id,
+                                    title: e.author ? `[${e.author}] ${e.title}` : e.title,
+                                    start: e.start,
+                                    allDay: e.allDay,
+                                    extendedProps: { author: e.author }
+                                }));
+                                successCallback(mapped);
+                            } else {
+                                successCallback(cached);
+                            }
+                        })
+                        .catch(e => {
+                            console.log('Calendar Sync Error', e);
+                            successCallback(cached);
+                        });
+                },
                 dateClick: function (info) {
-                    const title = prompt('予定を入力してください:', '');
+                    const title = prompt('予定を入力してください (みんなに共有されます):', '');
                     if (title) {
-                        const newEvent = {
-                            id: String(Date.now()),
-                            title: title,
+                        const profile = getProfile();
+                        const authorName = profile ? profile.name : 'Unknown';
+
+                        // Optimistic UI Update
+                        const tempId = String(Date.now());
+                        calendar.addEvent({
+                            id: tempId,
+                            title: `[${authorName}] ${title}`,
                             start: info.dateStr,
                             allDay: true
-                        };
-                        calendar.addEvent(newEvent);
-                        saveCalendarEvents();
+                        });
 
-                        // Reward
-                        addTokens(1);
-                        showTokenEarned(1, 'Schedule Added! 📅');
+                        // Send to Backend
+                        fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: 'addEvent',
+                                title: title,
+                                start: info.dateStr,
+                                allDay: true,
+                                author: authorName
+                            })
+                        }).then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Reward
+                                    addTokens(1);
+                                    showTokenEarned(1, 'Shared Schedule Added! 📅');
+                                    calendar.refetchEvents(); // Refresh to get real ID
+                                }
+                            });
                     }
                 },
                 eventClick: function (info) {
-                    if (confirm(`「${info.event.title}」を削除しますか？`)) {
+                    const profile = getProfile();
+                    const author = info.event.extendedProps.author;
+                    const isMyEvent = author === (profile ? profile.name : '');
+
+                    if (isMyEvent && confirm(`「${info.event.title}」を削除しますか？`)) {
+                        const eventId = info.event.id;
                         info.event.remove();
-                        saveCalendarEvents();
+
+                        // Delete from Backend
+                        fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: 'deleteEvent',
+                                eventId: eventId
+                            })
+                        });
+                    } else if (!isMyEvent) {
+                        alert(`これは ${author} さんの予定です。`);
                     }
                 }
             });
 
-            // Delay render to ensure tab is visible or handle visibility
-            // Since it's in a tab that might be hidden, we render it but might need re-render when tab shown
             calendar.render();
         }
 
