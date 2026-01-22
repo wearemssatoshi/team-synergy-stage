@@ -60,9 +60,9 @@ function doGet(e) {
       // ============ VERSION ============
       case 'version':
         return createResponse({
-          version: '2.1.0',
-          name: 'TSS Backend with Todo Sync',
-          features: ['PIN認証', 'プロフィール同期', 'To-Do同期', 'JINSEI AI'],
+          version: '3.2.0',
+          name: 'TSS Backend Group Suite',
+          features: ['グループスケジュール', 'PIN認証', 'To-Do同期', 'JINSEI AI'],
           deployedAt: new Date().toISOString()
         });
       
