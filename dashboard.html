@@ -843,7 +843,7 @@
             document.getElementById('imagePreview').style.display = 'none';
         }
 
-        function postAnnouncement() {
+        async function postAnnouncement() {
             const content = document.getElementById('announcementContent').value.trim();
             if (!content) {
                 alert('アナウンスメントの内容を入力してください');
@@ -881,29 +881,40 @@
                 });
             }
 
-            // Store announcement in localStorage (to be shared with main app)
-            const announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
+            // Send to Backend
+            try {
+                const btn = document.querySelector('button[onclick="postAnnouncement()"]');
+                const originalText = btn.textContent;
+                btn.textContent = '送信中...';
+                btn.disabled = true;
 
-            const newAnnouncement = {
-                id: Date.now(),
-                author: 'TSS運営',
-                content: content,
-                attachments: attachments,
-                date: new Date().toISOString(),
-                likes: 0
-            };
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'postAnnouncement',
+                        author: 'TSS運営',
+                        content: content,
+                        attachments: attachments
+                    })
+                });
 
-            announcements.unshift(newAnnouncement);
-            localStorage.setItem('tss_announcements', JSON.stringify(announcements));
+                // Clear form
+                document.getElementById('announcementContent').value = '';
+                document.getElementById('announcementLink').value = '';
+                document.getElementById('announcementLinkLabel').value = '';
+                document.getElementById('announcementPdfLink').value = '';
+                clearImage();
 
-            // Clear form
-            document.getElementById('announcementContent').value = '';
-            document.getElementById('announcementLink').value = '';
-            document.getElementById('announcementLinkLabel').value = '';
-            document.getElementById('announcementPdfLink').value = '';
-            clearImage();
+                btn.textContent = originalText;
+                btn.disabled = false;
 
-            alert('✅ アナウンスメントを投稿しました！\nメインアプリのHOME画面に表示されます。');
+                alert('✅ アナウンスメントを全ユーザーに配信しました！');
+
+            } catch (e) {
+                console.error(e);
+                alert('送信エラー: ' + e);
+            }
         }
 
         // ============ YOUTUBE SETTINGS ============

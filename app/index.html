@@ -2799,18 +2799,32 @@
             `}).join('');
         }
 
-        // Load and render announcements from localStorage
-        function loadAnnouncements() {
+        // Load and render announcements
+        async function loadAnnouncements() {
             const container = document.getElementById('announcementsList');
-            const announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
+            let announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
 
-            // Add default announcement if none exist
+            // Try to fetch from backend
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                try {
+                    const res = await fetch(`${SCRIPT_URL}?action=announcements`);
+                    const data = await res.json();
+                    if (data.announcements && Array.isArray(data.announcements)) {
+                        announcements = data.announcements;
+                        localStorage.setItem('tss_announcements', JSON.stringify(announcements));
+                    }
+                } catch (e) {
+                    console.log('Failed to fetch announcements, using cache');
+                }
+            }
+
+            // Add default announcement if none exist and empty
             if (announcements.length === 0) {
                 announcements.push({
                     id: 1,
                     author: 'TSS運営',
-                    content: '🎉 TSS v2.0がリリースされました！\n新機能：JINSEI AI、プロフィール写真アップロード、いいね・コメント機能\n積極的に活動してTSSTを貯めましょう！',
-                    date: '2026-01-19T00:00:00.000Z',
+                    content: '🎉 TSSへようこそ！\nここにお知らせが表示されます。',
+                    date: new Date().toISOString(),
                     likes: 0
                 });
             }

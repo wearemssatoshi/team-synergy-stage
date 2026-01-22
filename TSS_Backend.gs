@@ -29,6 +29,9 @@ function doPost(e) {
         return handleComment(ss, data);
       case 'updateProfile':
         return updateProfile(data);
+      // ============ ANNOUNCEMENTS ============
+      case 'postAnnouncement':
+        return handlePostAnnouncement(ss, data);
       // ============ TO-DO ============
       case 'addTodo':
         return handleAddTodo(ss, data);
@@ -81,6 +84,8 @@ function doGet(e) {
         return getTodos(ss, e.parameter);
       case 'getEvents':
         return getEvents(ss, e.parameter);
+      case 'announcements':
+        return getAnnouncements(ss);
       
       // ============ EXISTING ============
       case 'members':
@@ -111,6 +116,53 @@ function doGet(e) {
 }
 
 // ============ HANDLERS ============
+
+function handlePostAnnouncement(ss, data) {
+  let sheet = ss.getSheetByName('TSS_Announcements');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Announcements');
+    sheet.getRange(1, 1, 1, 5).setValues([['Timestamp', 'Content', 'Attachments', 'AnnouncementId', 'Author']]);
+    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+  }
+  
+  const id = Date.now();
+  const attachments = JSON.stringify(data.attachments || []);
+  
+  const row = [
+    new Date().toISOString(),
+    data.content,
+    attachments,
+    id,
+    data.author || 'TSS運営'
+  ];
+  
+  sheet.appendRow(row);
+  return createResponse({ success: true, id: id });
+}
+
+function getAnnouncements(ss) {
+  const sheet = ss.getSheetByName('TSS_Announcements');
+  if (!sheet) return createResponse({ announcements: [] });
+  
+  const data = sheet.getDataRange().getValues();
+  // Skip header, reverse to show latest first
+  const items = data.slice(1).reverse().map(row => {
+    let attachments = [];
+    try {
+      attachments = JSON.parse(row[2]);
+    } catch (e) {}
+    
+    return {
+      date: row[0],
+      content: row[1],
+      attachments: attachments,
+      id: row[3],
+      author: row[4] || 'TSS運営'
+    };
+  });
+  
+  return createResponse({ announcements: items });
+}
 
 function handleRegister(ss, data) {
   let sheet = ss.getSheetByName('TSS_Members');
