@@ -403,16 +403,44 @@ function getStats(ss) {
   const totalPosts = postsData.length;
   const completedTasks = todosData.filter(row => row[4] === true || row[4] === 'true').length; 
   
-  const topMembers = topMembersData
-    .sort((a, b) => b.tokens - a.tokens)
-    .slice(0, 10);
+  // Fetch Token Logs for Activity Stream
+  const logSheet = ss.getSheetByName('TSS_TokenLogs');
+  let recentActivity = [];
+  let totalTokensIssued = 0;
+
+  if (logSheet) {
+      const logData = logSheet.getDataRange().getValues();
+      // Skip header
+      const logs = logData.slice(1);
+      
+      // Calculate Total Issued (Sum of positive amounts)
+      totalTokensIssued = logs.reduce((sum, row) => {
+          const amount = Number(row[2]); // Amount is col 2
+          return amount > 0 ? sum + amount : sum;
+      }, 0);
+
+      const last20 = logs.slice(-20).reverse();
+      
+      recentActivity = last20.map(row => ({
+          timestamp: row[0],
+          user: row[1],
+          amount: row[2],
+          action: row[3],
+          description: row[4] || ''
+      }));
+  } else {
+      // Fallback
+      totalTokensIssued = totalTokens;
+  }
   
   return createResponse({
     totalMembers,
     totalTokens,
+    totalTokensIssued, // New field
     totalPosts,
     completedTasks,
-    topMembers
+    topMembers,
+    recentActivity
   });
 }
 

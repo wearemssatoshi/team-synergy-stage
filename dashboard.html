@@ -622,7 +622,15 @@
 
         function renderStats(stats, members, posts) {
             document.getElementById('totalMembers').textContent = stats.totalMembers || members.length || 0;
-            document.getElementById('totalTokens').textContent = stats.totalTokens || members.reduce((sum, m) => sum + (m.tokens || 0), 0);
+            
+            // Show Total Issued (Lifetime) as main stat, Balance as sub
+            const totalEarned = stats.totalTokensIssued || stats.totalTokens || 0;
+            const currentBalance = stats.totalTokens || 0;
+            document.getElementById('totalTokens').textContent = totalEarned;
+            // Update label to show balance context
+            const tokenLabel = document.querySelector('#totalTokens + .stat-label');
+            if(tokenLabel) tokenLabel.textContent = `TOTAL EARNED (BAL: ${currentBalance})`;
+
             document.getElementById('totalPosts').textContent = stats.totalPosts || posts.length || 0;
             document.getElementById('completedTasks').textContent = stats.completedTasks || '-';
         }
