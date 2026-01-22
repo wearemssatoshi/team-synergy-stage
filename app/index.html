@@ -11,6 +11,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="../logo/tss_icon.png">
     <link rel="icon" type="image/png" href="../logo/tss_icon.png">
     <link rel="manifest" href="manifest.json">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         rel="stylesheet">
@@ -1035,6 +1036,46 @@
         .vision-arrow.open {
             transform: rotate(180deg);
         }
+
+        .vision-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        /* CALENDAR */
+        #calendar {
+            margin-top: 20px;
+            background: var(--white);
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 400px;
+        }
+
+        .fc-toolbar-title {
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            color: var(--primary);
+        }
+
+        .fc-button {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+        }
+
+        .fc-day-today {
+            background-color: var(--light-gray) !important;
+        }
+
+        .fc-event {
+            cursor: pointer;
+            background-color: var(--primary-light);
+            border: 1px solid var(--primary);
+            color: var(--text-dark);
+            font-size: 10px;
+        }
     </style>
 </head>
 
@@ -1229,6 +1270,24 @@
                     </div>
                     <div id="monthlyTodoList">
                         <div class="todo-empty">タスクがありません</div>
+                    </div>
+                    <div class="todo-content" id="todo-monthly">
+                        <div class="todo-input-row">
+                            <input type="text" class="text-input" id="monthlyTodoInput" placeholder="タスクを追加...">
+                            <button class="todo-add-btn" onclick="addTodo('monthly')">+</button>
+                        </div>
+                        <div id="monthlyTodoList">
+                            <div class="todo-empty">タスクがありません</div>
+                        </div>
+                    </div>
+
+                    <!-- CALENDAR SECTION -->
+                    <div style="margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px;">
+                        <div class="section-title"
+                            style="justify-content: center; border: none; margin-bottom: 10px; font-size: 12px;">📅
+                            SCHEDULE
+                        </div>
+                        <div id='calendar'></div>
                     </div>
                 </div>
             </div>
@@ -2733,6 +2792,90 @@
             });
         }
 
+        // ============ CALENDAR ============
+        let calendar;
+
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+
+            // Load saved events
+            const savedEvents = JSON.parse(localStorage.getItem('tss_schedule_events') || '[]');
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                },
+                locale: 'ja', // Japanese locale
+                height: 'auto',
+                events: savedEvents,
+                dateClick: function (info) {
+                    const title = prompt('予定を入力してください:', '');
+                    if (title) {
+                        const newEvent = {
+                            id: String(Date.now()),
+                            title: title,
+                            start: info.dateStr,
+                            allDay: true
+                        };
+                        calendar.addEvent(newEvent);
+                        saveCalendarEvents();
+
+                        // Reward
+                        addTokens(1);
+                        showTokenEarned(1, 'Schedule Added! 📅');
+                    }
+                },
+                eventClick: function (info) {
+                    if (confirm(`「${info.event.title}」を削除しますか？`)) {
+                        info.event.remove();
+                        saveCalendarEvents();
+                    }
+                }
+            });
+
+            // Delay render to ensure tab is visible or handle visibility
+            // Since it's in a tab that might be hidden, we render it but might need re-render when tab shown
+            calendar.render();
+        }
+
+        function saveCalendarEvents() {
+            if (!calendar) return;
+            const events = calendar.getEvents().map(e => ({
+                id: e.id,
+                title: e.title,
+                start: e.start,
+                allDay: e.allDay
+            }));
+            localStorage.setItem('tss_schedule_events', JSON.stringify(events));
+
+            // Background Sync (Optional, future proofing)
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                // Future sync implementation
+            }
+        }
+
+        // Hook into tab switching to resize calendar if needed causes of display:none
+        const originalShowTodoTab = showTodoTab;
+        showTodoTab = function (tab) {
+            originalShowTodoTab(tab);
+            // If calendar is visible (e.g. widely shared or if we put it in separate tab later)
+            // For now it is always in TODO screen, so whenever TODO screen opens...
+        }
+
+        const originalShowScreen = showScreen;
+        showScreen = function (screenId) {
+            originalShowScreen(screenId);
+            if (screenId === 'screen-todo' && calendar) {
+                setTimeout(() => {
+                    calendar.updateSize();
+                }, 200);
+            }
+        }
+
         // ============ START ============
         // Modified init to include PIN check & PIN Setup Check
         const originalInit = init;
@@ -2759,6 +2902,7 @@
             loadYouTubeSettings();
             originalInit();
             initAnnouncementInteractions();
+            initCalendar();
 
             // 2. PIN Setup Prompt (if NO PIN and NOT skipped)
             if (profile && !storedPin && !pinSkip) {
