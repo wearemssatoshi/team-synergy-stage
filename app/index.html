@@ -2472,6 +2472,10 @@
                 localStorage.setItem('tss_future', future);
                 localStorage.setItem('tss_role', role);
 
+                // Save PIN for future auth checks and mark as authenticated for current session
+                localStorage.setItem('tss_pin', pin);
+                sessionStorage.setItem('tss_authenticated', 'true');
+
                 // Sync with Backend (This will create V2 user)
                 syncProfileToBackend(profile);
 
@@ -4023,44 +4027,63 @@
         }
 
         // ============ START ============
-        // Modified init to include PIN check & PIN Setup Check
+        // Refactored init for smoother UX (Fix: New users not blocked by PIN)
         const originalInit = init;
         init = function () {
             const profile = getProfile();
             const storedPin = localStorage.getItem('tss_pin');
             const pinSkip = localStorage.getItem('tss_pin_skip');
 
-            // 1. PIN Authentication Check (if PIN exists)
-            if (profile && storedPin) {
+            // CASE 1: NEW USER (No Profile)
+            // Go straight to registration, NO PIN logic allowed here.
+            if (!profile) {
+                loadYouTubeSettings();
+                originalInit(); // This will trigger showScreen('screen-register')
+                initAnnouncementInteractions();
+                initCalendar();
+                loadNoteRSS();
+                return;
+            }
+
+            // CASE 2: EXISTING USER WITH PIN
+            // Require authentication before showing Home.
+            if (storedPin) {
                 if (!checkPinAuth()) {
-                    // Wait for PIN authentication
+                    // PIN modal will show via checkPinAuth()
+                    // Start polling for authentication success
                     const checkAuth = setInterval(() => {
                         if (sessionStorage.getItem('tss_authenticated')) {
                             clearInterval(checkAuth);
+                            loadYouTubeSettings();
                             originalInit();
                             initAnnouncementInteractions();
+                            initCalendar();
+                            loadNoteRSS();
+                            checkAppVersion();
                         }
                     }, 100);
                     return;
                 }
             }
 
+            // CASE 3: EXISTING USER WITHOUT PIN (OR PIN SKIP)
+            // Show app immediately, then maybe prompt for setup.
             loadYouTubeSettings();
             originalInit();
             initAnnouncementInteractions();
             initCalendar();
             loadNoteRSS();
+            checkAppVersion();
 
-            // 2. PIN Setup Prompt (if NO PIN and NOT skipped)
-            if (profile && !storedPin && !pinSkip) {
+            // PIN Setup Prompt (Delayed & Less Intrusive)
+            if (!storedPin && !pinSkip) {
                 setTimeout(() => {
-                    if (confirm('セキュリティ強化のためPINを設定しますか？\n（キャンセルすると、しばらく表示されません）')) {
+                    if (confirm('🔐 セキュリティ強化のためPINを設定しますか？\n（設定するとアプリ起動時に認証が必要になります）')) {
                         showPinModal('setup');
                     } else {
-                        // User skipped PIN setup
                         localStorage.setItem('tss_pin_skip', 'true');
                     }
-                }, 2000);
+                }, 5000); // Wait 5 seconds to not disturb the first impression
             }
         };
 
