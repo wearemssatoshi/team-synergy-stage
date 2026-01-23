@@ -1698,33 +1698,34 @@
         </div>
     </nav>
 
-    // ========== Smart Schedule Functions ==========
-    let currentAdjustments = [];
-    let newAdjDates = [];
+    <script>
+        // ========== Smart Schedule Functions ==========
+        let currentAdjustments = [];
+        let newAdjDates = [];
 
-    function openNewAdjustmentForm() {
-    document.getElementById('new-adjustment-form').style.display = 'block';
-    newAdjDates = [];
-    renderAdjDatesList();
-    }
+        function openNewAdjustmentForm() {
+            document.getElementById('new-adjustment-form').style.display = 'block';
+            newAdjDates = [];
+            renderAdjDatesList();
+        }
 
-    function closeNewAdjustmentForm() {
-    document.getElementById('new-adjustment-form').style.display = 'none';
-    }
+        function closeNewAdjustmentForm() {
+            document.getElementById('new-adjustment-form').style.display = 'none';
+        }
 
-    function addAdjDate() {
-    const val = document.getElementById('adjDateInput').value;
-    if (!val) return;
-    const start = new Date(val);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
-    newAdjDates.push({ start: start.toISOString(), end: end.toISOString() });
-    renderAdjDatesList();
-    document.getElementById('adjDateInput').value = '';
-    }
+        function addAdjDate() {
+            const val = document.getElementById('adjDateInput').value;
+            if (!val) return;
+            const start = new Date(val);
+            const end = new Date(start.getTime() + 60 * 60 * 1000);
+            newAdjDates.push({ start: start.toISOString(), end: end.toISOString() });
+            renderAdjDatesList();
+            document.getElementById('adjDateInput').value = '';
+        }
 
-    function renderAdjDatesList() {
-    const container = document.getElementById('adjDatesList');
-    container.innerHTML = newAdjDates.map((d, i) => `
+        function renderAdjDatesList() {
+            const container = document.getElementById('adjDatesList');
+            container.innerHTML = newAdjDates.map((d, i) => `
     <div
         style="font-size: 11px; background: var(--light-gray); padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 2px;">
         ${new Date(d.start).toLocaleString()}
@@ -1732,81 +1733,79 @@
             style="cursor:pointer; color:red; margin-left:4px;">×</span>
     </div>
     `).join('');
-    }
+        }
 
-    function createAdjustment() {
-    const title = document.getElementById('adjTitle').value;
-    const contextMembers = document.getElementById('adjMemberInput').value;
-    const profile = getProfile();
+        function createAdjustment() {
+            const title = document.getElementById('adjTitle').value;
+            const contextMembers = document.getElementById('adjMemberInput').value;
+            const profile = getProfile();
 
-    if (!title) return alert('Title required');
-    if (newAdjDates.length === 0) return alert('Dates required');
+            if (!title) return alert('Title required');
+            if (newAdjDates.length === 0) return alert('Dates required');
 
-    let participants = [profile.name];
-    if (contextMembers && contextMembers.toLowerCase() !== 'all') {
-    const others = contextMembers.split(',').map(s => s.trim());
-    participants = [...participants, ...others];
-    }
+            let participants = [profile.name];
+            if (contextMembers && contextMembers.toLowerCase() !== 'all') {
+                const others = contextMembers.split(',').map(s => s.trim());
+                participants = [...participants, ...others];
+            }
 
-    const payload = {
-    action: 'createAdjustment',
-    title: title,
-    author: profile.name,
-    candidates: newAdjDates,
-    participants: participants
-    };
+            const payload = {
+                action: 'createAdjustment',
+                title: title,
+                author: profile.name,
+                candidates: newAdjDates,
+                participants: participants
+            };
 
-    // Use fetch directly
-    fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'text/plain'},
-    body: JSON.stringify(payload)
-    }).then(r=>r.json()).then(res=>{
-    if(res.success) {
-    alert('Created!');
-    closeNewAdjustmentForm();
-    fetchAdjustments();
-    } else alert('Error: ' + res.error);
-    });
-    }
+            // Use fetch directly
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(res => {
+                if (res.success) {
+                    alert('Created!');
+                    closeNewAdjustmentForm();
+                    fetchAdjustments();
+                } else alert('Error: ' + res.error);
+            });
+        }
 
-    function fetchAdjustments() {
-    const profile = getProfile();
-    if(!profile) return;
-    const url = SCRIPT_URL + '?action=getAdjustments&user=' + encodeURIComponent(profile.name) + '&_t=' + Date.now();
+        function fetchAdjustments() {
+            const profile = getProfile();
+            if (!profile) return;
+            const url = SCRIPT_URL + '?action=getAdjustments&user=' + encodeURIComponent(profile.name) + '&_t=' + Date.now();
 
-    const container = document.getElementById('adjustmentsList');
-    container.innerHTML = '<div class="loading">
-        <div class="loading-spinner"></div>
-    </div>';
+            const container = document.getElementById('adjustmentsList');
+            container.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
 
-    fetch(url)
-    .then(r => r.json())
-    .then(res => {
-    if (res.adjustments) {
-    currentAdjustments = res.adjustments;
-    renderAdjustments();
-    } else {
-    container.innerHTML = 'No data';
-    }
-    })
-    .catch(e => container.innerHTML = 'Error loading schedule');
-    }
+            fetch(url)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.adjustments) {
+                        currentAdjustments = res.adjustments;
+                        renderAdjustments();
+                    } else {
+                        container.innerHTML = 'No data';
+                    }
+                })
+                .catch(e => container.innerHTML = 'Error loading schedule');
+        }
 
-    function renderAdjustments() {
-    const container = document.getElementById('adjustmentsList');
-    if (currentAdjustments.length === 0) {
-    container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No active adjustments</div>';
-    return;
-    }
+        function renderAdjustments() {
+            const container = document.getElementById('adjustmentsList');
+            if (currentAdjustments.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No active adjustments</div>';
+                return;
+            }
 
-    const profile = getProfile();
+            const profile = getProfile();
 
-    container.innerHTML = currentAdjustments.map(adj => {
-    const isAuthor = adj.author === profile.name;
-    const isFinalized = adj.status === 'finalized';
+            container.innerHTML = currentAdjustments.map(adj => {
+                const isAuthor = adj.author === profile.name;
+                const isFinalized = adj.status === 'finalized';
 
-    return `
+                return `
     <div class="card" style="padding:15px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
             <div>
@@ -1814,7 +1813,7 @@
                 <div style="font-size:10px;color:#666;">By ${adj.author}</div>
             </div>
             <div
-                style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized?'green':'orange'}; color:${isFinalized?'green':'orange'};">
+                style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized ? 'green' : 'orange'}; color:${isFinalized ? 'green' : 'orange'};">
                 ${isFinalized ? 'FINALIZED' : 'ACTIVE'}
             </div>
         </div>
@@ -1825,17 +1824,17 @@
 
         <div style="display:grid;gap:5px;">
             ${adj.candidates.map((date, idx) => {
-            const dateStr = date.start;
-            const myVote = adj.responses[profile.name]?.[dateStr] || '-';
-            // Count votes
-            let o=0, x=0, d=0;
-            Object.values(adj.responses).forEach(r=>{
-            if(r[dateStr]==='O') o++;
-            else if(r[dateStr]==='X') x++;
-            else if(r[dateStr]==='△') d++;
-            });
+                    const dateStr = date.start;
+                    const myVote = adj.responses[profile.name]?.[dateStr] || '-';
+                    // Count votes
+                    let o = 0, x = 0, d = 0;
+                    Object.values(adj.responses).forEach(r => {
+                        if (r[dateStr] === 'O') o++;
+                        else if (r[dateStr] === 'X') x++;
+                        else if (r[dateStr] === '△') d++;
+                    });
 
-            return `
+                    return `
             <div
                 style="display:flex;align-items:center;justify-content:space-between;background:#f9f9f9;padding:5px;border-radius:4px;">
                 <div style="font-size:11px;">
@@ -1846,172 +1845,172 @@
                 ${!isFinalized ? `
                 <div style="display:flex;gap:2px;">
                     <button onclick="submitVote('${adj.id}','${dateStr}','O')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote==='O'?'#ddd':''}">O</button>
+                        style="width:25px;padding:2px;font-size:10px;background:${myVote === 'O' ? '#ddd' : ''}">O</button>
                     <button onclick="submitVote('${adj.id}','${dateStr}','△')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote==='△'?'#ddd':''}">△</button>
+                        style="width:25px;padding:2px;font-size:10px;background:${myVote === '△' ? '#ddd' : ''}">△</button>
                     <button onclick="submitVote('${adj.id}','${dateStr}','X')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote==='X'?'#ddd':''}">X</button>
+                        style="width:25px;padding:2px;font-size:10px;background:${myVote === 'X' ? '#ddd' : ''}">X</button>
                 </div>` : ''}
 
-                ${!isFinalized && isAuthor && idx===0 ? `
+                ${!isFinalized && isAuthor && idx === 0 ? `
                 <!-- Finalize logic tricky in loop, simplified: user sees button on specific row if designed so. 
                                              For now, let's just make the date clickable or add button if author. -->
                 <button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
                     style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">DECIDE</button>
                 ` : ''}
-                ${!isFinalized && isAuthor && idx!==0 ? `<button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
+                ${!isFinalized && isAuthor && idx !== 0 ? `<button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
                     style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">DECIDE</button>`
-                : ''}
+                            : ''}
             </div>
             `;
-            }).join('')}
+                }).join('')}
         </div>
     </div>`;
-    }).join('');
+            }).join('');
+        }
+
+        function submitVote(adjId, dateStr, vote) {
+            const profile = getProfile();
+            const adj = currentAdjustments.find(a => a.id === adjId);
+            if (!adj.responses[profile.name]) adj.responses[profile.name] = {};
+            adj.responses[profile.name][dateStr] = vote;
+            renderAdjustments(); // Optimistic
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'submitVote',
+                    adjustmentId: adjId,
+                    user: profile.name,
+                    votes: adj.responses[profile.name]
+                })
+            });
+        }
+
+        function finalizeAdjustment(adjId, dateIdx) {
+            if (!confirm('Fix schedule to this date?')) return;
+            const adj = currentAdjustments.find(a => a.id === adjId);
+            const finalDate = adj.candidates[dateIdx];
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'finalizeAdjustment',
+                    adjustmentId: adjId,
+                    finalDate: finalDate
+                })
+            }).then(r => r.json()).then(res => {
+                if (res.success) {
+                    alert('Schedule Finalized & Invites Sent!');
+                    fetchAdjustments();
+                } else alert('Error: ' + res.error);
+            });
+        }
     }
 
-    function submitVote(adjId, dateStr, vote) {
-    const profile = getProfile();
-    const adj = currentAdjustments.find(a => a.id === adjId);
-    if(!adj.responses[profile.name]) adj.responses[profile.name] = {};
-    adj.responses[profile.name][dateStr] = vote;
-    renderAdjustments(); // Optimistic
+        // Config handled globally
+        // const SCRIPT_URL duplicate removed
 
-    fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'text/plain'},
-    body: JSON.stringify({
-    action: 'submitVote',
-    adjustmentId: adjId,
-    user: profile.name,
-    votes: adj.responses[profile.name]
-    })
-    });
-    }
+        // ============ STATE ============
+        let todos = {
+            daily: [],
+            weekly: [],
+            monthly: []
+        };
 
-    function finalizeAdjustment(adjId, dateIdx) {
-    if(!confirm('Fix schedule to this date?')) return;
-    const adj = currentAdjustments.find(a => a.id === adjId);
-    const finalDate = adj.candidates[dateIdx];
-
-    fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'text/plain'},
-    body: JSON.stringify({
-    action: 'finalizeAdjustment',
-    adjustmentId: adjId,
-    finalDate: finalDate
-    })
-    }).then(r=>r.json()).then(res=>{
-    if(res.success) {
-    alert('Schedule Finalized & Invites Sent!');
-    fetchAdjustments();
-    } else alert('Error: ' + res.error);
-    });
-    }
-    </script>
-    const SCRIPT_URL =
-    'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-    const APP_VERSION = 'v5.1';
-
-    // ============ STATE ============
-    let todos = {
-    daily: [],
-    weekly: [],
-    monthly: []
-    };
-
-    let posts = [];
-    let chatHistory = [];
+        let posts = [];
+        let chatHistory = [];
 
 
-    // ============ INITIALIZATION ============
-    function init() {
-    loadTodos();
-    const profile = getProfile();
-    if (profile) {
-    // Migrate legacy data
-    if (!localStorage.getItem('tss_future') && profile.future) localStorage.setItem('tss_future', profile.future);
-    if (!localStorage.getItem('tss_role') && profile.role) localStorage.setItem('tss_role', profile.role);
-    if (!localStorage.getItem('tss_profile_image') && localStorage.getItem('tss_profile_photo'))
-    localStorage.setItem('tss_profile_image', localStorage.getItem('tss_profile_photo'));
+        // ============ INITIALIZATION ============
+        function init() {
+            loadTodos();
+            const profile = getProfile();
+            if (profile) {
+                // Migrate legacy data
+                if (!localStorage.getItem('tss_future') && profile.future) localStorage.setItem('tss_future', profile.future);
+                if (!localStorage.getItem('tss_role') && profile.role) localStorage.setItem('tss_role', profile.role);
+                if (!localStorage.getItem('tss_profile_image') && localStorage.getItem('tss_profile_photo'))
+                    localStorage.setItem('tss_profile_image', localStorage.getItem('tss_profile_photo'));
 
-    showUserBadge(profile);
-    updateTokenDisplay();
-    updateVisionDisplay();
-    showScreen('screen-home');
-    document.getElementById('mainNav').style.display = 'block';
-    loadPosts();
+                showUserBadge(profile);
+                updateTokenDisplay();
+                updateVisionDisplay();
+                showScreen('screen-home');
+                document.getElementById('mainNav').style.display = 'block';
+                loadPosts();
 
-    // Fetch Version
-    checkAppVersion();
-    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-    // Legacy code can be removed if checkAppVersion covers it
-    }
-    } else {
-    showScreen('screen-register');
-    }
-    }
+                // Fetch Version
+                checkAppVersion();
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    // Legacy code can be removed if checkAppVersion covers it
+                }
+            } else {
+                showScreen('screen-register');
+            }
+        }
 
-    // ========== Version & Cache Control V5.1 ==========
-    function checkAppVersion() {
-    fetch(SCRIPT_URL + '?action=version&_t=' + Date.now())
-    .then(r => r.json())
-    .then(res => {
-    if (res.version) {
-    const el = document.getElementById('versionDisplay');
-    if(el) el.textContent = `v${res.version} (Latest)`;
-    if (res.version !== APP_VERSION) {
-    if(confirm(`New Version (${res.version}) Available. Update?`)) {
-    forceUpdate();
-    }
-    }
-    }
-    })
-    .catch(e => console.log('Version check failed', e));
-    }
+        // ========== Version & Cache Control V5.1 ==========
+        function checkAppVersion() {
+            fetch(SCRIPT_URL + '?action=version&_t=' + Date.now())
+                .then(r => r.json())
+                .then(res => {
+                    if (res.version) {
+                        const el = document.getElementById('versionDisplay');
+                        if (el) el.textContent = `v${res.version} (Latest)`;
+                        if (res.version !== APP_VERSION) {
+                            if (confirm(`New Version (${res.version}) Available. Update?`)) {
+                                forceUpdate();
+                            }
+                        }
+                    }
+                })
+                .catch(e => console.log('Version check failed', e));
+        }
 
-    function forceUpdate() {
-    const url = new URL(window.location.href);
-    url.searchParams.set('v', Date.now());
-    window.location.href = url.toString();
-    }
+        function forceUpdate() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('v', Date.now());
+            window.location.href = url.toString();
+        }
 
-    function viewTokenHistory() {
-    const profile = getProfile();
-    if(!profile) return;
-    location.href = SCRIPT_URL + '?action=history&user=' + encodeURIComponent(profile.name);
-    }
+        function viewTokenHistory() {
+            const profile = getProfile();
+            if (!profile) return;
+            location.href = SCRIPT_URL + '?action=history&user=' + encodeURIComponent(profile.name);
+        }
 
-    // ============ PROFILE ============
-    function getProfile() {
-    return JSON.parse(localStorage.getItem('tss_profile') || 'null');
-    }
+        // ============ PROFILE ============
+        function getProfile() {
+            return JSON.parse(localStorage.getItem('tss_profile') || 'null');
+        }
 
-    function validateRegistration() {
-    const name = document.getElementById('inputName').value.trim();
-    const pin = document.getElementById('inputPin').value.trim();
-    document.getElementById('registerBtn').disabled = !(name && pin);
-    }
+        function validateRegistration() {
+            const name = document.getElementById('inputName').value.trim();
+            const pin = document.getElementById('inputPin').value.trim();
+            document.getElementById('registerBtn').disabled = !(name && pin);
+        }
 
-    document.getElementById('inputName').addEventListener('input', validateRegistration);
-    document.getElementById('inputPin').addEventListener('input', validateRegistration);
+        document.getElementById('inputName').addEventListener('input', validateRegistration);
+        document.getElementById('inputPin').addEventListener('input', validateRegistration);
 
-    // ============ PROFILE EDIT ============
-    function openProfileEditor(focusId = null) {
-    const profile = getProfile();
-    if (!profile) return;
+        // ============ PROFILE EDIT ============
+        function openProfileEditor(focusId = null) {
+            const profile = getProfile();
+            if (!profile) return;
 
-    // Create edit modal
-    const modal = document.createElement('div');
-    modal.id = 'editProfileModal';
-    modal.style.cssText = `
+            // Create edit modal
+            const modal = document.createElement('div');
+            modal.id = 'editProfileModal';
+            modal.style.cssText = `
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.5); display: flex; align-items: center;
     justify-content: center; z-index: 10000;
     `;
 
-    modal.innerHTML = `
+            modal.innerHTML = `
     <div class="register-card" style="width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto;">
         <div class="register-title" style="font-size: 18px;">EDIT PROFILE</div>
 
@@ -2047,686 +2046,685 @@
         </div>
     </div>
     `;
-    document.body.appendChild(modal);
+            document.body.appendChild(modal);
 
-    if (focusId) {
-    const el = document.getElementById(focusId);
-    if (el) {
-    setTimeout(() => {
-    el.focus();
-    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-    el.setSelectionRange(el.value.length, el.value.length);
-    }
-    }, 100);
-    }
-    }
-    }
+            if (focusId) {
+                const el = document.getElementById(focusId);
+                if (el) {
+                    setTimeout(() => {
+                        el.focus();
+                        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                            el.setSelectionRange(el.value.length, el.value.length);
+                        }
+                    }, 100);
+                }
+            }
+        }
 
-    function saveProfileEdit() {
-    const name = document.getElementById('editName').value.trim();
-    const role = document.getElementById('editRole').value.trim();
-    const email = document.getElementById('editEmail').value.trim();
-    const bio = document.getElementById('editBio').value.trim();
-    const future = document.getElementById('editFuture').value.trim();
+        function saveProfileEdit() {
+            const name = document.getElementById('editName').value.trim();
+            const role = document.getElementById('editRole').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const bio = document.getElementById('editBio').value.trim();
+            const future = document.getElementById('editFuture').value.trim();
 
-    if (!name) {
-    alert('名前は必須です');
-    return;
-    }
+            if (!name) {
+                alert('名前は必須です');
+                return;
+            }
 
-    const profile = getProfile();
-    profile.name = name;
-    profile.role = role || 'メンバー';
-    profile.bio = bio;
-    profile.future = future;
-    if(email) profile.email = email;
+            const profile = getProfile();
+            profile.name = name;
+            profile.role = role || 'メンバー';
+            profile.bio = bio;
+            profile.future = future;
+            if (email) profile.email = email;
 
-    localStorage.setItem('tss_profile', JSON.stringify(profile));
+            localStorage.setItem('tss_profile', JSON.stringify(profile));
 
-    // Update vision accordion data
-    localStorage.setItem('tss_future', future);
-    localStorage.setItem('tss_role', role || 'メンバー');
+            // Update vision accordion data
+            localStorage.setItem('tss_future', future);
+            localStorage.setItem('tss_role', role || 'メンバー');
 
-    showUserBadge(profile);
-    updateVisionDisplay(); // Refresh the vision accordion
+            showUserBadge(profile);
+            updateVisionDisplay(); // Refresh the vision accordion
 
 
-    document.getElementById('editProfileModal').remove();
+            document.getElementById('editProfileModal').remove();
 
-    // Backend Sync
-    syncProfileToBackend(profile);
+            // Backend Sync
+            syncProfileToBackend(profile);
 
-    alert('プロフィールを更新しました！✨');
-    }
+            alert('プロフィールを更新しました！✨');
+        }
 
-    function syncProfileToBackend(profile) {
-    if (!SCRIPT_URL.includes('http')) {
-    alert('エラー: SCRIPT_URLが設定されていません');
-    return;
-    }
-    // alert('Syncing...');
-    fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Google Apps Script dislikes application/json sometimes,
-    text/plain is safer for CORS
-    body: JSON.stringify({
-    action: 'updateProfile',
-    name: profile.name,
-    pin: profile.pin || '', // Pass pin if exists
-    role: profile.role,
-    bio: profile.bio,
-    future: profile.future,
-    image: profile.image || '',
-    email: profile.email || '',
-    profileImage: profile.image || '' // Redundant but safe
-    })
-    })
-    .then(res => res.json())
-    .then(data => {
-    console.log('Profile synced:', data);
-    // Silent success
-    })
-    .catch(err => {
-    console.error('Sync failed:', err);
-    });
-    }
+        function syncProfileToBackend(profile) {
+            if (!SCRIPT_URL.includes('http')) {
+                alert('エラー: SCRIPT_URLが設定されていません');
+                return;
+            }
+            // alert('Syncing...');
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // text/plain is safer for CORS
+                body: JSON.stringify({
+                    action: 'updateProfile',
+                    name: profile.name,
+                    pin: profile.pin || '', // Pass pin if exists
+                    role: profile.role,
+                    bio: profile.bio,
+                    future: profile.future,
+                    image: profile.image || '',
+                    email: profile.email || '',
+                    profileImage: profile.image || '' // Redundant but safe
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Profile synced:', data);
+                    // Silent success
+                })
+                .catch(err => {
+                    console.error('Sync failed:', err);
+                });
+        }
 
-    // ============ YOUTUBE ============
-    function loadYouTubeSettings() {
-    const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
-    const iframe = document.getElementById('youtubeEmbed');
-    const caption = document.getElementById('youtubeCaption');
+        // ============ YOUTUBE ============
+        function loadYouTubeSettings() {
+            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
+            const iframe = document.getElementById('youtubeEmbed');
+            const caption = document.getElementById('youtubeCaption');
 
-    // Default video if none set
-    const defaultVideoId = 'YOUR_VIDEO_ID';
-    const videoId = settings.videoId || defaultVideoId;
+            // Default video if none set
+            const defaultVideoId = 'YOUR_VIDEO_ID';
+            const videoId = settings.videoId || defaultVideoId;
 
-    iframe.src = `https://www.youtube.com/embed/${videoId}`;
-    caption.textContent = settings.caption || '';
+            iframe.src = `https://www.youtube.com/embed/${videoId}`;
+            caption.textContent = settings.caption || '';
 
-    if (!settings.caption) {
-    caption.style.display = 'none';
-    } else {
-    caption.style.display = 'block';
-    }
-    }
+            if (!settings.caption) {
+                caption.style.display = 'none';
+            } else {
+                caption.style.display = 'block';
+            }
+        }
 
-    async function register() {
-    const name = document.getElementById('inputName').value.trim();
-    const pin = document.getElementById('inputPin').value.trim();
-    const role = document.getElementById('inputRole').value.trim() || 'メンバー';
-    const bio = document.getElementById('inputBio').value.trim() || '';
-    const future = document.getElementById('inputFuture').value.trim() || '';
+        async function register() {
+            const name = document.getElementById('inputName').value.trim();
+            const pin = document.getElementById('inputPin').value.trim();
+            const role = document.getElementById('inputRole').value.trim() || 'メンバー';
+            const bio = document.getElementById('inputBio').value.trim() || '';
+            const future = document.getElementById('inputFuture').value.trim() || '';
 
-    if (name && pin) {
-    const profile = {
-    name,
-    role,
-    bio,
-    future,
-    pin: pin, // User defined PIN
-    tokens: 10, // Welcome bonus
-    joinedAt: new Date().toISOString()
-    };
-    localStorage.setItem('tss_profile', JSON.stringify(profile));
-    localStorage.setItem('tss_future', future);
-    localStorage.setItem('tss_role', role);
+            if (name && pin) {
+                const profile = {
+                    name,
+                    role,
+                    bio,
+                    future,
+                    pin: pin, // User defined PIN
+                    tokens: 10, // Welcome bonus
+                    joinedAt: new Date().toISOString()
+                };
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+                localStorage.setItem('tss_future', future);
+                localStorage.setItem('tss_role', role);
 
-    // Sync with Backend (This will create V2 user)
-    syncProfileToBackend(profile);
+                // Sync with Backend (This will create V2 user)
+                syncProfileToBackend(profile);
 
-    showTokenEarned(10, 'Welcome Bonus! 🎉');
-    setTimeout(() => {
-    init();
-    }, 1500);
-    }
-    }
+                showTokenEarned(10, 'Welcome Bonus! 🎉');
+                setTimeout(() => {
+                    init();
+                }, 1500);
+            }
+        }
 
-    async function login() {
-    const name = document.getElementById('loginName').value.trim();
-    const pin = document.getElementById('loginPin').value.trim();
+        async function login() {
+            const name = document.getElementById('loginName').value.trim();
+            const pin = document.getElementById('loginPin').value.trim();
 
-    if (!name || !pin) {
-    alert('名前とPINを入力してください');
-    return;
-    }
+            if (!name || !pin) {
+                alert('名前とPINを入力してください');
+                return;
+            }
 
-    try {
-    // Show loading state
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = 'LOGIN...';
-    btn.disabled = true;
+            try {
+                // Show loading state
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'LOGIN...';
+                btn.disabled = true;
 
-    const url = `${SCRIPT_URL}?action=login&name=${encodeURIComponent(name)}&pin=${encodeURIComponent(pin)}`;
-    const res = await fetch(url);
-    const data = await res.json();
+                const url = `${SCRIPT_URL}?action=login&name=${encodeURIComponent(name)}&pin=${encodeURIComponent(pin)}`;
+                const res = await fetch(url);
+                const data = await res.json();
 
-    btn.textContent = originalText;
-    btn.disabled = false;
+                btn.textContent = originalText;
+                btn.disabled = false;
 
-    if (data.success) {
-    const profile = {
-    name: data.name,
-    role: data.role || 'メンバー',
-    bio: data.bio || '',
-    future: data.future || '',
-    pin: pin, // Save used PIN
-    tokens: data.tokenBalance || 0,
-    image: data.profileImage || ''
-    };
+                if (data.success) {
+                    const profile = {
+                        name: data.name,
+                        role: data.role || 'メンバー',
+                        bio: data.bio || '',
+                        future: data.future || '',
+                        pin: pin, // Save used PIN
+                        tokens: data.tokenBalance || 0,
+                        image: data.profileImage || ''
+                    };
 
-    localStorage.setItem('tss_profile', JSON.stringify(profile));
-    if (data.profileImage) {
-    localStorage.setItem('tss_profile_photo', data.profileImage);
-    localStorage.setItem('tss_profile_image', data.profileImage);
-    }
-    if (data.future) localStorage.setItem('tss_future', data.future);
-    if (data.role) localStorage.setItem('tss_role', data.role);
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
+                    if (data.profileImage) {
+                        localStorage.setItem('tss_profile_photo', data.profileImage);
+                        localStorage.setItem('tss_profile_image', data.profileImage);
+                    }
+                    if (data.future) localStorage.setItem('tss_future', data.future);
+                    if (data.role) localStorage.setItem('tss_role', data.role);
 
-    // If migration message exists, show it
-    if (data.message) {
-    alert(data.message);
-    } else {
-    alert('おかえりなさい！ログインしました。');
-    }
-    location.reload();
-    } else {
-    alert('ログイン失敗: ' + (data.error || '不明なエラー'));
-    }
-    } catch (e) {
-    console.error(e);
-    alert('ログイン・通信エラー: ' + e);
-    // Reset button
-    const btn = document.querySelector('#screen-login .btn-main'); // Fallback selector
-    if (btn) {
-    btn.textContent = 'LOGIN';
-    btn.disabled = false;
-    }
-    }
-    }
+                    // If migration message exists, show it
+                    if (data.message) {
+                        alert(data.message);
+                    } else {
+                        alert('おかえりなさい！ログインしました。');
+                    }
+                    location.reload();
+                } else {
+                    alert('ログイン失敗: ' + (data.error || '不明なエラー'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('ログイン・通信エラー: ' + e);
+                // Reset button
+                const btn = document.querySelector('#screen-login .btn-main'); // Fallback selector
+                if (btn) {
+                    btn.textContent = 'LOGIN';
+                    btn.disabled = false;
+                }
+            }
+        }
 
-    function showUserBadge(profile) {
-    const badge = document.getElementById('userBadge');
-    badge.textContent = `${profile.name} - ${profile.role}`;
-    badge.style.display = 'inline-block';
+        function showUserBadge(profile) {
+            const badge = document.getElementById('userBadge');
+            badge.textContent = `${profile.name} - ${profile.role}`;
+            badge.style.display = 'inline-block';
 
-    // Update profile screen
-    document.getElementById('profileName').textContent = profile.name;
-    document.getElementById('profileRole').textContent = profile.role;
-    document.getElementById('profileBio').textContent = profile.bio || '自己紹介がありません';
-    document.getElementById('profileFuture').textContent = profile.future || '未設定';
+            // Update profile screen
+            document.getElementById('profileName').textContent = profile.name;
+            document.getElementById('profileRole').textContent = profile.role;
+            document.getElementById('profileBio').textContent = profile.bio || '自己紹介がありません';
+            document.getElementById('profileFuture').textContent = profile.future || '未設定';
 
-    // Check for profile photo
-    const photoData = localStorage.getItem('tss_profile_photo');
-    const avatarEl = document.getElementById('profileAvatar');
-    if (photoData) {
-    avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
-    } else {
-    avatarEl.textContent = profile.name.charAt(0).toUpperCase();
-    }
-    }
+            // Check for profile photo
+            const photoData = localStorage.getItem('tss_profile_photo');
+            const avatarEl = document.getElementById('profileAvatar');
+            if (photoData) {
+                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+            } else {
+                avatarEl.textContent = profile.name.charAt(0).toUpperCase();
+            }
+        }
 
-    // ============ PROFILE PHOTO ============
-    function handlePhotoUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+        // ============ PROFILE PHOTO ============
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-    alert('画像サイズは2MB以下にしてください');
-    return;
-    }
+            if (file.size > 2 * 1024 * 1024) {
+                alert('画像サイズは2MB以下にしてください');
+                return;
+            }
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-    const photoData = e.target.result;
-    localStorage.setItem('tss_profile_photo', photoData);
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const photoData = e.target.result;
+                localStorage.setItem('tss_profile_photo', photoData);
 
-    // Update Profile Object
-    const profile = getProfile();
-    profile.image = photoData;
-    localStorage.setItem('tss_profile', JSON.stringify(profile));
+                // Update Profile Object
+                const profile = getProfile();
+                profile.image = photoData;
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
 
-    const avatarEl = document.getElementById('profileAvatar');
-    avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+                const avatarEl = document.getElementById('profileAvatar');
+                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
 
-    // Backend Sync
-    syncProfileToBackend(profile);
+                // Backend Sync
+                syncProfileToBackend(profile);
 
-    showTokenEarned(5, 'Photo Uploaded! 📸');
-    addTokens(5);
-    };
-    reader.readAsDataURL(file);
-    }
+                showTokenEarned(5, 'Photo Uploaded! 📸');
+                addTokens(5);
+            };
+            reader.readAsDataURL(file);
+        }
 
-    function updateTokenDisplay() {
-    const profile = getProfile();
-    if (profile) {
-    document.getElementById('tokenDisplay').style.display = 'inline-flex';
-    document.getElementById('tokenBalance').textContent = profile.tokens || 0;
-    document.getElementById('profileTokens').textContent = profile.tokens || 0;
-    }
-    }
+        function updateTokenDisplay() {
+            const profile = getProfile();
+            if (profile) {
+                document.getElementById('tokenDisplay').style.display = 'inline-flex';
+                document.getElementById('tokenBalance').textContent = profile.tokens || 0;
+                document.getElementById('profileTokens').textContent = profile.tokens || 0;
+            }
+        }
 
-    function addTokens(amount) {
-    const profile = getProfile();
-    if (profile) {
-    profile.tokens = (profile.tokens || 0) + amount;
-    localStorage.setItem('tss_profile', JSON.stringify(profile));
-    updateTokenDisplay();
-    }
-    }
+        function addTokens(amount) {
+            const profile = getProfile();
+            if (profile) {
+                profile.tokens = (profile.tokens || 0) + amount;
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+                updateTokenDisplay();
+            }
+        }
 
-    function showTokenEarned(amount, message) {
-    const container = document.createElement('div');
-    container.className = 'token-earned-container';
-    container.innerHTML = `
+        function showTokenEarned(amount, message) {
+            const container = document.createElement('div');
+            container.className = 'token-earned-container';
+            container.innerHTML = `
     <div class="token-earned-badge">
         <div class="token-earned-icon">💎</div>
         <div class="token-earned-amount">+${amount}</div>
         <div class="token-earned-label">${message}</div>
     </div>
     `;
-    container.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;';
-    document.body.appendChild(container);
-    setTimeout(() => container.remove(), 3000);
-    }
+            container.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;';
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 3000);
+        }
 
 
 
-    // ============ NAVIGATION ============
-    // ============ NAVIGATION ============
-    function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    const screen = document.getElementById(screenId);
-    if(screen) screen.classList.add('active');
+        // ============ NAVIGATION ============
+        // ============ NAVIGATION ============
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const screen = document.getElementById(screenId);
+            if (screen) screen.classList.add('active');
 
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const navItem = document.querySelector(`.nav-item[onclick="showScreen('${screenId}')"]`);
-    if (navItem) navItem.classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navItem = document.querySelector(`.nav-item[onclick="showScreen('${screenId}')"]`);
+            if (navItem) navItem.classList.add('active');
 
-    if(screenId === 'screen-schedule' && typeof fetchAdjustments === 'function') {
-    fetchAdjustments();
-    }
-    }
+            if (screenId === 'screen-schedule' && typeof fetchAdjustments === 'function') {
+                fetchAdjustments();
+            }
+        }
 
-    // ============ MY VISION ACCORDION ============
-    let visionAccordionOpen = false;
+        // ============ MY VISION ACCORDION ============
+        let visionAccordionOpen = false;
 
-    // ============ QUICK PHOTO UPLOAD ============
-    function triggerVisionPhotoUpload(e) {
-    e.stopPropagation();
-    document.getElementById('visionPhotoUpload').click();
-    }
+        // ============ QUICK PHOTO UPLOAD ============
+        function triggerVisionPhotoUpload(e) {
+            e.stopPropagation();
+            document.getElementById('visionPhotoUpload').click();
+        }
 
-    function handleVisionPhotoUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+        function handleVisionPhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-    alert('画像サイズは5MB以下にしてください');
-    return;
-    }
+            if (file.size > 5 * 1024 * 1024) {
+                alert('画像サイズは5MB以下にしてください');
+                return;
+            }
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-    const base64 = e.target.result;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64 = e.target.result;
 
-    // Save locally
-    localStorage.setItem('tss_profile_image', base64);
-    localStorage.setItem('tss_profile_photo', base64);
+                // Save locally
+                localStorage.setItem('tss_profile_image', base64);
+                localStorage.setItem('tss_profile_photo', base64);
 
-    // Update Profile Object
-    const profile = getProfile();
-    if (profile) {
-    profile.image = base64;
-    localStorage.setItem('tss_profile', JSON.stringify(profile));
+                // Update Profile Object
+                const profile = getProfile();
+                if (profile) {
+                    profile.image = base64;
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
 
-    // Backend Sync
-    syncProfileToBackend(profile);
-    }
+                    // Backend Sync
+                    syncProfileToBackend(profile);
+                }
 
-    // Update UI
-    updateVisionDisplay();
-    updateProfileStats();
-    loadPosts(); // Update my avatar in posts
+                // Update UI
+                updateVisionDisplay();
+                updateProfileStats();
+                loadPosts(); // Update my avatar in posts
 
-    // Award Tokens
-    showTokenEarned(5, 'Nice Photo! 📸');
-    addTokens(5);
-    };
-    reader.readAsDataURL(file);
-    }
+                // Award Tokens
+                showTokenEarned(5, 'Nice Photo! 📸');
+                addTokens(5);
+            };
+            reader.readAsDataURL(file);
+        }
 
-    function toggleVisionAccordion() {
-    const content = document.getElementById('visionAccordionContent');
-    const arrow = document.getElementById('visionArrow');
+        function toggleVisionAccordion() {
+            const content = document.getElementById('visionAccordionContent');
+            const arrow = document.getElementById('visionArrow');
 
-    visionAccordionOpen = !visionAccordionOpen;
+            visionAccordionOpen = !visionAccordionOpen;
 
-    if (visionAccordionOpen) {
-    content.classList.add('open');
-    arrow.classList.add('open');
-    } else {
-    content.classList.remove('open');
-    arrow.classList.remove('open');
-    }
-    }
+            if (visionAccordionOpen) {
+                content.classList.add('open');
+                arrow.classList.add('open');
+            } else {
+                content.classList.remove('open');
+                arrow.classList.remove('open');
+            }
+        }
 
-    function updateVisionDisplay() {
-    const accordion = document.getElementById('visionAccordion');
-    const futureText = document.getElementById('futureVisionText');
-    const roleText = document.getElementById('roleVisionText');
-    const photo = document.getElementById('visionPhoto');
-    const placeholder = document.getElementById('visionPhotoPlaceholder');
+        function updateVisionDisplay() {
+            const accordion = document.getElementById('visionAccordion');
+            const futureText = document.getElementById('futureVisionText');
+            const roleText = document.getElementById('roleVisionText');
+            const photo = document.getElementById('visionPhoto');
+            const placeholder = document.getElementById('visionPhotoPlaceholder');
 
-    // Get profile for user name
-    const profile = getProfile();
-    const userName = profile ? profile.name : '';
+            // Get profile for user name
+            const profile = getProfile();
+            const userName = profile ? profile.name : '';
 
-    // Get stored values
-    const future = localStorage.getItem('tss_future') || '-';
-    const role = localStorage.getItem('tss_role') || '-';
-    const profileImage = localStorage.getItem('tss_profile_image') || localStorage.getItem('tss_profile_photo') || '';
+            // Get stored values
+            const future = localStorage.getItem('tss_future') || '-';
+            const role = localStorage.getItem('tss_role') || '-';
+            const profileImage = localStorage.getItem('tss_profile_image') || localStorage.getItem('tss_profile_photo') || '';
 
-    futureText.textContent = future || '-';
-    roleText.textContent = role || '-';
+            futureText.textContent = future || '-';
+            roleText.textContent = role || '-';
 
-    if (profileImage) {
-    photo.src = profileImage;
-    photo.style.display = 'block';
-    placeholder.style.display = 'none';
-    } else {
-    photo.style.display = 'none';
-    placeholder.style.display = 'block';
-    // Show initial letter if userName exists
-    if (userName) {
-    placeholder.textContent = userName.charAt(0).toUpperCase();
-    }
-    }
+            if (profileImage) {
+                photo.src = profileImage;
+                photo.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                photo.style.display = 'none';
+                placeholder.style.display = 'block';
+                // Show initial letter if userName exists
+                if (userName) {
+                    placeholder.textContent = userName.charAt(0).toUpperCase();
+                }
+            }
 
-    // Show accordion if user is registered
-    if (userName) {
-    accordion.style.display = 'block';
-    }
-    }
+            // Show accordion if user is registered
+            if (userName) {
+                accordion.style.display = 'block';
+            }
+        }
 
 
-    // ============ TO-DO LIST ============
-    async function loadTodos() {
-    // Optimistic load
-    const saved = localStorage.getItem('tss_todos');
-    if (saved) {
-    todos = JSON.parse(saved);
-    renderTodos('daily');
-    renderTodos('weekly');
-    renderTodos('monthly');
-    }
+        // ============ TO-DO LIST ============
+        async function loadTodos() {
+            // Optimistic load
+            const saved = localStorage.getItem('tss_todos');
+            if (saved) {
+                todos = JSON.parse(saved);
+                renderTodos('daily');
+                renderTodos('weekly');
+                renderTodos('monthly');
+            }
 
-    if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_GAS_URL')) return;
+            if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_GAS_URL')) return;
 
-    const profile = getProfile();
-    if (!profile || !profile.name) return;
+            const profile = getProfile();
+            if (!profile || !profile.name) return;
 
-    try {
-    const res = await fetch(`${SCRIPT_URL}?action=getTodos&user=${encodeURIComponent(profile.name)}`);
-    const data = await res.json();
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getTodos&user=${encodeURIComponent(profile.name)}`);
+                const data = await res.json();
 
-    if (data.todos) {
-    // Reset and organize
-    todos = { daily: [], weekly: [], monthly: [] };
+                if (data.todos) {
+                    // Reset and organize
+                    todos = { daily: [], weekly: [], monthly: [] };
 
-    data.todos.forEach(t => {
-    const type = t.type || 'daily';
-    if (todos[type]) {
-    todos[type].push(t);
-    } else {
-    // Fallback
-    todos.daily.push(t);
-    }
-    });
+                    data.todos.forEach(t => {
+                        const type = t.type || 'daily';
+                        if (todos[type]) {
+                            todos[type].push(t);
+                        } else {
+                            // Fallback
+                            todos.daily.push(t);
+                        }
+                    });
 
-    localStorage.setItem('tss_todos', JSON.stringify(todos));
-    renderTodos('daily');
-    renderTodos('weekly');
-    renderTodos('monthly');
-    updateProfileStats();
-    }
-    } catch (e) {
-    console.error('Failed to load todos from backend', e);
-    }
-    }
+                    localStorage.setItem('tss_todos', JSON.stringify(todos));
+                    renderTodos('daily');
+                    renderTodos('weekly');
+                    renderTodos('monthly');
+                    updateProfileStats();
+                }
+            } catch (e) {
+                console.error('Failed to load todos from backend', e);
+            }
+        }
 
-    function saveTodos() {
-    localStorage.setItem('tss_todos', JSON.stringify(todos));
-    }
+        function saveTodos() {
+            localStorage.setItem('tss_todos', JSON.stringify(todos));
+        }
 
-    function showTodoTab(tab) {
-    document.querySelectorAll('.todo-tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    document.querySelectorAll('.todo-content').forEach(c => c.classList.remove('active'));
-    document.getElementById('todo-' + tab).classList.add('active');
-    }
+        function showTodoTab(tab) {
+            document.querySelectorAll('.todo-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.todo-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('todo-' + tab).classList.add('active');
+        }
 
-    async function addTodo(type) {
-    const input = document.getElementById(type + 'TodoInput');
-    const text = input.value.trim();
-    if (!text) return;
+        async function addTodo(type) {
+            const input = document.getElementById(type + 'TodoInput');
+            const text = input.value.trim();
+            if (!text) return;
 
-    const profile = getProfile();
-    if (!profile) return;
+            const profile = getProfile();
+            if (!profile) return;
 
-    // UI Feedback
-    input.disabled = true;
+            // UI Feedback
+            input.disabled = true;
 
-    try {
-    // Backend Sync
-    let todoId = Date.now(); // Temp ID
+            try {
+                // Backend Sync
+                let todoId = Date.now(); // Temp ID
 
-    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-    const res = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({
-    action: 'addTodo',
-    user: profile.name,
-    content: text,
-    type: type
-    })
-    });
-    const data = await res.json();
-    if (data.success && data.todoId) {
-    todoId = data.todoId;
-    }
-    }
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    const res = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'addTodo',
+                            user: profile.name,
+                            content: text,
+                            type: type
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success && data.todoId) {
+                        todoId = data.todoId;
+                    }
+                }
 
-    const newTodo = {
-    id: todoId,
-    text: text,
-    completed: false,
-    createdAt: new Date().toISOString()
-    };
+                const newTodo = {
+                    id: todoId,
+                    text: text,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
 
-    todos[type].unshift(newTodo);
-    saveTodos();
-    renderTodos(type);
-    input.value = '';
+                todos[type].unshift(newTodo);
+                saveTodos();
+                renderTodos(type);
+                input.value = '';
 
-    // Award token
-    addTokens(1);
+                // Award token
+                addTokens(1);
 
-    } catch (e) {
-    alert('タスク追加に失敗しました');
-    console.error(e);
-    } finally {
-    input.disabled = false;
-    input.focus();
-    }
-    }
+            } catch (e) {
+                alert('タスク追加に失敗しました');
+                console.error(e);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
 
-    function toggleTodo(type, id) {
-    const todo = todos[type].find(t => t.id === id);
-    if (todo) {
-    todo.completed = !todo.completed;
-    saveTodos();
-    renderTodos(type);
+        function toggleTodo(type, id) {
+            const todo = todos[type].find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                saveTodos();
+                renderTodos(type);
 
-    // Award token for completing task locally
-    if (todo.completed) {
-    addTokens(2);
-    showTokenEarned(2, 'Task Complete! ✅');
-    }
+                // Award token for completing task locally
+                if (todo.completed) {
+                    addTokens(2);
+                    showTokenEarned(2, 'Task Complete! ✅');
+                }
 
-    // Backend Sync
-    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-    const profile = getProfile();
-    fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({
-    action: 'completeTodo',
-    todoId: id,
-    completed: todo.completed,
-    user: profile.name
-    })
-    }).catch(console.error);
-    }
-    }
-    }
+                // Backend Sync
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    const profile = getProfile();
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'completeTodo',
+                            todoId: id,
+                            completed: todo.completed,
+                            user: profile.name
+                        })
+                    }).catch(console.error);
+                }
+            }
+        }
 
-    function deleteTodo(type, id) {
-    const todo = todos[type].find(t => t.id === id);
-    if (!todo) return;
+        function deleteTodo(type, id) {
+            const todo = todos[type].find(t => t.id === id);
+            if (!todo) return;
 
-    if (!confirm('タスクを削除しますか？')) return;
+            if (!confirm('タスクを削除しますか？')) return;
 
-    todos[type] = todos[type].filter(t => t.id !== id);
-    saveTodos();
-    renderTodos(type);
+            todos[type] = todos[type].filter(t => t.id !== id);
+            saveTodos();
+            renderTodos(type);
 
-    // Backend Sync
-    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-    fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({
-    action: 'deleteTodo',
-    todoId: id
-    })
-    }).catch(console.error);
-    }
-    }
+            // Backend Sync
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'deleteTodo',
+                        todoId: id
+                    })
+                }).catch(console.error);
+            }
+        }
 
-    function renderTodos(type) {
-    const list = document.getElementById(type + 'TodoList');
-    if (!list) return;
+        function renderTodos(type) {
+            const list = document.getElementById(type + 'TodoList');
+            if (!list) return;
 
-    if (!todos[type] || todos[type].length === 0) {
-    list.innerHTML = '<div class="todo-empty">タスクがありません</div>';
-    return;
-    }
+            if (!todos[type] || todos[type].length === 0) {
+                list.innerHTML = '<div class="todo-empty">タスクがありません</div>';
+                return;
+            }
 
-    list.innerHTML = todos[type].map(todo => `
+            list.innerHTML = todos[type].map(todo => `
     <div class="todo-item ${todo.completed ? 'completed' : ''}">
         <div class="todo-checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleTodo('${type}', ${todo.id})"></div>
         <span class="todo-text">${escapeHtml(todo.text)}</span>
         <button class="todo-delete" onclick="deleteTodo('${type}', ${todo.id})">×</button>
     </div>
     `).join('');
-    }
+        }
 
-    function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-    }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-    // ============ BOARD / POSTS ============
-    function loadPosts() {
-    // 1. Load from localStorage for instant display
-    const saved = localStorage.getItem('tss_posts');
-    if (saved) {
-    posts = JSON.parse(saved);
-    renderPosts();
-    }
+        // ============ BOARD / POSTS ============
+        function loadPosts() {
+            // 1. Load from localStorage for instant display
+            const saved = localStorage.getItem('tss_posts');
+            if (saved) {
+                posts = JSON.parse(saved);
+                renderPosts();
+            }
 
-    // 2. Background Sync with Backend
-    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-    // Fetch all data (default action)
-    fetch(SCRIPT_URL)
-    .then(res => res.json())
-    .then(data => {
-    if (data.posts && Array.isArray(data.posts)) {
-    posts = data.posts;
-    localStorage.setItem('tss_posts', JSON.stringify(posts));
-    renderPosts(); // Re-render with profile images
-    updateProfileStats();
-    console.log('Posts synced from backend:', posts);
-    }
-    })
-    .catch(e => console.error('Background sync failed:', e));
-    } else {
-    updateProfileStats();
-    }
-    }
+            // 2. Background Sync with Backend
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                // Fetch all data (default action)
+                fetch(SCRIPT_URL)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.posts && Array.isArray(data.posts)) {
+                            posts = data.posts;
+                            localStorage.setItem('tss_posts', JSON.stringify(posts));
+                            renderPosts(); // Re-render with profile images
+                            updateProfileStats();
+                            console.log('Posts synced from backend:', posts);
+                        }
+                    })
+                    .catch(e => console.error('Background sync failed:', e));
+            } else {
+                updateProfileStats();
+            }
+        }
 
-    function submitPost() {
-    const content = document.getElementById('postContent').value.trim();
-    if (!content) return;
+        function submitPost() {
+            const content = document.getElementById('postContent').value.trim();
+            if (!content) return;
 
-    const profile = getProfile();
-    const newPost = {
-    id: Date.now(),
-    author: profile.name,
-    content: content,
-    createdAt: new Date().toISOString(),
-    likes: 0
-    };
+            const profile = getProfile();
+            const newPost = {
+                id: Date.now(),
+                author: profile.name,
+                content: content,
+                createdAt: new Date().toISOString(),
+                likes: 0
+            };
 
-    posts.unshift(newPost);
-    localStorage.setItem('tss_posts', JSON.stringify(posts));
-    renderPosts();
-    document.getElementById('postContent').value = '';
+            posts.unshift(newPost);
+            localStorage.setItem('tss_posts', JSON.stringify(posts));
+            renderPosts();
+            document.getElementById('postContent').value = '';
 
-    // Update profile posts count
-    updateProfileStats();
+            // Update profile posts count
+            updateProfileStats();
 
-    // Backend Sync
-    fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({
-    action: 'post',
-    author: profile.name,
-    content: content
-    })
-    })
-    .then(res => res.json())
-    .then(data => console.log('Post synced:', data))
-    .catch(err => console.error('Post sync failed:', err));
+            // Backend Sync
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'post',
+                    author: profile.name,
+                    content: content
+                })
+            })
+                .then(res => res.json())
+                .then(data => console.log('Post synced:', data))
+                .catch(err => console.error('Post sync failed:', err));
 
-    // Award token for posting
-    addTokens(3);
-    showTokenEarned(3, 'Post Created! 📝');
-    }
+            // Award token for posting
+            addTokens(3);
+            showTokenEarned(3, 'Post Created! 📝');
+        }
 
-    // ============ BOARD COMMENTS ============
-    function togglePostComments(postId) {
-    const el = document.getElementById(`post-comments-${postId}`);
-    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
+        // ============ BOARD COMMENTS ============
+        function togglePostComments(postId) {
+            const el = document.getElementById(`post-comments-${postId}`);
+            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
 
-    function submitPostComment(postId) {
-    const input = document.getElementById(`comment-input-${postId}`);
-    const content = input.value.trim();
-    if (!content) return;
+        function submitPostComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const content = input.value.trim();
+            if (!content) return;
 
-    const profile = getProfile();
-    if (!profile) return;
+            const profile = getProfile();
+            if (!profile) return;
 
-    // Optimistic Update
-    const list = document.getElementById(`post-comments-list-${postId}`);
-    const tempHtml = `
+            // Optimistic Update
+            const list = document.getElementById(`post-comments-list-${postId}`);
+            const tempHtml = `
     <div class="comment-item" style="margin-bottom:8px; display:flex; gap:8px; opacity:0.7;">
         <div style="width:24px;height:24px;border-radius:50%;background:#eee;overflow:hidden;flex-shrink:0;">
             ${profile.image ? `<img src="${profile.image}" style="width:100%;height:100%;object-fit:cover;">` : `<div
@@ -2740,71 +2738,71 @@
         </div>
     </div>
     `;
-    list.insertAdjacentHTML('beforeend', tempHtml);
-    input.value = '';
+            list.insertAdjacentHTML('beforeend', tempHtml);
+            input.value = '';
 
-    // Send to Backend
-    fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-    action: 'comment',
-    postId: postId,
-    author: profile.name,
-    content: content
-    })
-    })
-    .then(res => res.json())
-    .then(data => {
-    if (data.success) {
-    // Award tokens locally
-    addTokens(1);
-    showTokenEarned(1, 'Reply Bonus! 💬');
-    } else {
-    alert('コメント保存に失敗した可能性があります');
-    }
-    })
-    .catch(err => console.error(err));
-    }
+            // Send to Backend
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'comment',
+                    postId: postId,
+                    author: profile.name,
+                    content: content
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Award tokens locally
+                        addTokens(1);
+                        showTokenEarned(1, 'Reply Bonus! 💬');
+                    } else {
+                        alert('コメント保存に失敗した可能性があります');
+                    }
+                })
+                .catch(err => console.error(err));
+        }
 
-    function updateProfileStats() {
-    const profile = getProfile();
-    if (!profile) return;
+        function updateProfileStats() {
+            const profile = getProfile();
+            if (!profile) return;
 
-    // Count user's posts
-    const userPosts = posts.filter(p => p.author === profile.name);
-    const postsEl = document.getElementById('profilePosts');
-    if (postsEl) postsEl.textContent = userPosts.length;
+            // Count user's posts
+            const userPosts = posts.filter(p => p.author === profile.name);
+            const postsEl = document.getElementById('profilePosts');
+            if (postsEl) postsEl.textContent = userPosts.length;
 
-    // Count completed todos
-    const allTodos = [...todos.daily, ...todos.weekly, ...todos.monthly];
-    const completedTasks = allTodos.filter(t => t.completed).length;
-    const tasksEl = document.getElementById('profileTasks');
-    if (tasksEl) tasksEl.textContent = completedTasks;
-    }
+            // Count completed todos
+            const allTodos = [...todos.daily, ...todos.weekly, ...todos.monthly];
+            const completedTasks = allTodos.filter(t => t.completed).length;
+            const tasksEl = document.getElementById('profileTasks');
+            if (tasksEl) tasksEl.textContent = completedTasks;
+        }
 
-    function renderPosts() {
-    const list = document.getElementById('postsList');
+        function renderPosts() {
+            const list = document.getElementById('postsList');
 
-    if (posts.length === 0) {
-    list.innerHTML = '<div class="todo-empty">投稿がありません。最初の投稿をしてみましょう！</div>';
-    return;
-    }
+            if (posts.length === 0) {
+                list.innerHTML = '<div class="todo-empty">投稿がありません。最初の投稿をしてみましょう！</div>';
+                return;
+            }
 
-    console.log('Rendering posts:', posts); // Debugging
+            console.log('Rendering posts:', posts); // Debugging
 
-    list.innerHTML = posts.map(post => {
-    // Profile Avatar Logic
-    let avatarHtml = post.author.charAt(0).toUpperCase();
-    if (post.authorImage) {
-    avatarHtml = `<img src="${post.authorImage}" alt="${post.author}"
+            list.innerHTML = posts.map(post => {
+                // Profile Avatar Logic
+                let avatarHtml = post.author.charAt(0).toUpperCase();
+                if (post.authorImage) {
+                    avatarHtml = `<img src="${post.authorImage}" alt="${post.author}"
         style="width:100%;height:100%;object-fit:cover;">`;
-    }
+                }
 
-    // Check my like count
-    const likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
-    const myCount = likedCounts[post.id] || 0;
-    const canLike = myCount < 10; return ` <div class="post-card">
+                // Check my like count
+                const likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+                const myCount = likedCounts[post.id] || 0;
+                const canLike = myCount < 10; return ` <div class="post-card">
         <div class="post-header">
             <div class="post-avatar" style="overflow:hidden;">${avatarHtml}</div>
             <div class="post-meta">
@@ -2857,165 +2855,165 @@
         }
 
         async function likePost(id) {
-        const post = posts.find(p => p.id === id);
-        if (!post) return;
+            const post = posts.find(p => p.id === id);
+            if (!post) return;
 
-        // Check 10 likes limit
-        let likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
-        const myCount = likedCounts[id] || 0;
+            // Check 10 likes limit
+            let likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+            const myCount = likedCounts[id] || 0;
 
-        if (myCount >= 10) {
-        alert('この投稿へのいいねは10回までです！たくさんの承認ありがとう！👏');
-        return;
-        }
+            if (myCount >= 10) {
+                alert('この投稿へのいいねは10回までです！たくさんの承認ありがとう！👏');
+                return;
+            }
 
-        // Update LOCAL state
-        post.likes++;
-        likedCounts[id] = myCount + 1;
+            // Update LOCAL state
+            post.likes++;
+            likedCounts[id] = myCount + 1;
 
-        localStorage.setItem('tss_posts', JSON.stringify(posts));
-        localStorage.setItem('tss_liked_post_counts', JSON.stringify(likedCounts));
+            localStorage.setItem('tss_posts', JSON.stringify(posts));
+            localStorage.setItem('tss_liked_post_counts', JSON.stringify(likedCounts));
 
-        renderPosts();
+            renderPosts();
 
-        // Reward ME (Sender) +1 Token for Approval Action
-        addTokens(1);
-        showTokenEarned(1, `Nice! Like (${myCount + 1}/10) ❤️`);
+            // Reward ME (Sender) +1 Token for Approval Action
+            addTokens(1);
+            showTokenEarned(1, `Nice! Like (${myCount + 1}/10) ❤️`);
 
-        // Sync with Backend (Also rewards Author in GAS)
-        try {
-        // Determine if SCRIPT_URL is valid
-        if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-        await fetch(`${SCRIPT_URL}?action=like&postId=${id}`);
-        }
-        } catch (e) {
-        console.error('Like sync failed', e);
-        }
+            // Sync with Backend (Also rewards Author in GAS)
+            try {
+                // Determine if SCRIPT_URL is valid
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    await fetch(`${SCRIPT_URL}?action=like&postId=${id}`);
+                }
+            } catch (e) {
+                console.error('Like sync failed', e);
+            }
         }
 
         function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        return `${y}.${m}.${d}`;
+            const date = new Date(dateStr);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}.${m}.${d}`;
         }
 
         // ============ AI CHAT ============
         async function sendChat() {
-        const input = document.getElementById('chatInput');
-        const message = input.value.trim();
-        if (!message) return;
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
 
-        // Add user message
-        addChatMessage('user', message);
-        input.value = '';
+            // Add user message
+            addChatMessage('user', message);
+            input.value = '';
 
-        // Show typing indicator
-        addChatMessage('ai', '考え中...');
+            // Show typing indicator
+            addChatMessage('ai', '考え中...');
 
-        try {
-        // Try to call GAS backend with Gemini 3 Flash
-        if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_GAS_URL_HERE') {
-        const profile = getProfile();
-        const userName = profile?.name || 'User';
+            try {
+                // Try to call GAS backend with Gemini 3 Flash
+                if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_GAS_URL_HERE') {
+                    const profile = getProfile();
+                    const userName = profile?.name || 'User';
 
-        // Send up to last 10 messages for context
-        const historyToSend = chatHistory.slice(-10);
-        const response = await
-        fetch(`${SCRIPT_URL}?action=chat&q=${encodeURIComponent(message)}&name=${encodeURIComponent(userName)}&history=${encodeURIComponent(JSON.stringify(historyToSend))}`);
-        const data = await response.json();
+                    // Send up to last 10 messages for context
+                    const historyToSend = chatHistory.slice(-10);
+                    const response = await
+                        fetch(`${SCRIPT_URL}?action=chat&q=${encodeURIComponent(message)}&name=${encodeURIComponent(userName)}&history=${encodeURIComponent(JSON.stringify(historyToSend))}`);
+                    const data = await response.json();
 
-        // Remove typing indicator and show response
-        removeLastAIMessage();
-        const aiResponse = data.response || generateLocalResponse(message);
-        addChatMessage('ai', aiResponse);
+                    // Remove typing indicator and show response
+                    removeLastAIMessage();
+                    const aiResponse = data.response || generateLocalResponse(message);
+                    addChatMessage('ai', aiResponse);
 
-        // Add to history
-        chatHistory.push({ role: 'user', text: message });
-        chatHistory.push({ role: 'model', text: aiResponse });
-        } else {
-        // Use local response if no GAS URL configured
-        removeLastAIMessage();
-        const aiResponse = generateLocalResponse(message);
-        addChatMessage('ai', aiResponse);
+                    // Add to history
+                    chatHistory.push({ role: 'user', text: message });
+                    chatHistory.push({ role: 'model', text: aiResponse });
+                } else {
+                    // Use local response if no GAS URL configured
+                    removeLastAIMessage();
+                    const aiResponse = generateLocalResponse(message);
+                    addChatMessage('ai', aiResponse);
 
-        // Add to history even for local response
-        chatHistory.push({ role: 'user', text: message });
-        chatHistory.push({ role: 'model', text: aiResponse });
-        }
-        } catch (error) {
-        console.error('AI Error:', error);
-        removeLastAIMessage();
-        addChatMessage('ai', generateLocalResponse(message));
-        }
+                    // Add to history even for local response
+                    chatHistory.push({ role: 'user', text: message });
+                    chatHistory.push({ role: 'model', text: aiResponse });
+                }
+            } catch (error) {
+                console.error('AI Error:', error);
+                removeLastAIMessage();
+                addChatMessage('ai', generateLocalResponse(message));
+            }
         }
 
         function removeLastAIMessage() {
-        const container = document.getElementById('chatContainer');
-        const messages = container.querySelectorAll('.chat-message.ai');
-        if (messages.length > 0) {
-        messages[messages.length - 1].remove();
-        }
+            const container = document.getElementById('chatContainer');
+            const messages = container.querySelectorAll('.chat-message.ai');
+            if (messages.length > 0) {
+                messages[messages.length - 1].remove();
+            }
         }
 
         function addChatMessage(type, message) {
-        const container = document.getElementById('chatContainer');
-        const avatar = type === 'ai' ? '🤖' : getProfile()?.name?.charAt(0).toUpperCase() || '👤';
+            const container = document.getElementById('chatContainer');
+            const avatar = type === 'ai' ? '🤖' : getProfile()?.name?.charAt(0).toUpperCase() || '👤';
 
-        container.innerHTML += `
+            container.innerHTML += `
         <div class="chat-message ${type}">
             <div class="chat-avatar">${avatar}</div>
             <div class="chat-bubble">${escapeHtml(message).replace(/\n/g, '<br>')}</div>
         </div>
         `;
 
-        container.scrollTop = container.scrollHeight;
+            container.scrollTop = container.scrollHeight;
         }
 
         function generateLocalResponse(question) {
-        const q = question.toLowerCase();
-        const profile = getProfile();
-        const userName = profile?.name || 'あなた';
+            const q = question.toLowerCase();
+            const profile = getProfile();
+            const userName = profile?.name || 'あなた';
 
-        if (q.includes('こんにちは') || q.includes('はじめまして')) {
-        return `${userName}さん、こんにちは！JINSEI AIです😊 人生のこと、仕事のこと、チームのこと、何でも相談してくださいね。一緒に考えましょう！`;
-        }
-        if (q.includes('ありがとう') || q.includes('感謝')) {
-        return `${userName}さん、どういたしまして！また気軽に話しかけてくださいね。あなたの挑戦を応援しています🌟`;
-        }
-        if (q.includes('チーム') || q.includes('組織') || q.includes('メンバー')) {
-        return `${userName}さん、自走型組織を作るコツは「承認」です。メンバーの挑戦をまず認め、心理的安全性を高めること。失敗しても大丈夫という環境があれば、人は自然と主体的になります✨`;
-        }
-        if (q.includes('リーダー') || q.includes('上司') || q.includes('部下')) {
-        return `${userName}さん、良いリーダーは号令をかける人ではなく、共感できる人です。メンバー一人ひとりの声に耳を傾け、承認し、巻き込んでいく。そうすることで、チーム全体が自走し始めます🚀`;
-        }
-        if (q.includes('やる気') || q.includes('モチベーション') || q.includes('主体性')) {
-        return `${userName}さん、主体性を引き出す鍵は「使命」です。自分たちで決めたミッションがあると、「やらされ感」が「やりたい！」に変わります。一緒に目標を作ってみませんか？💪`;
-        }
-        if (q.includes('失敗') || q.includes('ミス') || q.includes('不安')) {
-        return `${userName}さん、失敗は学びのチャンスです。心理的安全性が高い組織では、失敗を恐れずチャレンジできます。まずあなたの挑戦を認めてくれる人を見つけましょう。きっといるはずです😊`;
-        }
-        if (q.includes('トークン') || q.includes('ポイント') || q.includes('TSST') || q.includes('tsst')) {
-        return `${userName}さん、TSSTは活動で獲得できます！\n📝 投稿: +3 TSST\n✅ タスク追加: +1 TSST\n🎯 タスク完了: +2 TSST\n📷 写真アップロード: +5
+            if (q.includes('こんにちは') || q.includes('はじめまして')) {
+                return `${userName}さん、こんにちは！JINSEI AIです😊 人生のこと、仕事のこと、チームのこと、何でも相談してくださいね。一緒に考えましょう！`;
+            }
+            if (q.includes('ありがとう') || q.includes('感謝')) {
+                return `${userName}さん、どういたしまして！また気軽に話しかけてくださいね。あなたの挑戦を応援しています🌟`;
+            }
+            if (q.includes('チーム') || q.includes('組織') || q.includes('メンバー')) {
+                return `${userName}さん、自走型組織を作るコツは「承認」です。メンバーの挑戦をまず認め、心理的安全性を高めること。失敗しても大丈夫という環境があれば、人は自然と主体的になります✨`;
+            }
+            if (q.includes('リーダー') || q.includes('上司') || q.includes('部下')) {
+                return `${userName}さん、良いリーダーは号令をかける人ではなく、共感できる人です。メンバー一人ひとりの声に耳を傾け、承認し、巻き込んでいく。そうすることで、チーム全体が自走し始めます🚀`;
+            }
+            if (q.includes('やる気') || q.includes('モチベーション') || q.includes('主体性')) {
+                return `${userName}さん、主体性を引き出す鍵は「使命」です。自分たちで決めたミッションがあると、「やらされ感」が「やりたい！」に変わります。一緒に目標を作ってみませんか？💪`;
+            }
+            if (q.includes('失敗') || q.includes('ミス') || q.includes('不安')) {
+                return `${userName}さん、失敗は学びのチャンスです。心理的安全性が高い組織では、失敗を恐れずチャレンジできます。まずあなたの挑戦を認めてくれる人を見つけましょう。きっといるはずです😊`;
+            }
+            if (q.includes('トークン') || q.includes('ポイント') || q.includes('TSST') || q.includes('tsst')) {
+                return `${userName}さん、TSSTは活動で獲得できます！\n📝 投稿: +3 TSST\n✅ タスク追加: +1 TSST\n🎯 タスク完了: +2 TSST\n📷 写真アップロード: +5
         TSST\n积極的に活動して、コミュニティに貢献しましょう！`;
-        }
-        if (q.includes('使い方') || q.includes('ヘルプ')) {
-        return `${userName}さん、このアプリでは:\n🏠 HOME: お知らせ・動画\n💬 BOARD: 投稿・交流\n✅ TODO: タスク管理\n🤖 AI: 私に相談\n👤 PROFILE:
+            }
+            if (q.includes('使い方') || q.includes('ヘルプ')) {
+                return `${userName}さん、このアプリでは:\n🏠 HOME: お知らせ・動画\n💬 BOARD: 投稿・交流\n✅ TODO: タスク管理\n🤖 AI: 私に相談\n👤 PROFILE:
         プロフィール確認\nができます！`;
-        }
+            }
 
-        const responses = [
-        `${userName}さん、いい質問ですね！もう少し詳しく教えていただけますか？一緒に考えましょう✨`,
-        `なるほど、${userName}さん、その悩みは多くの人が持っています。まず「心理的安全性」を意識してみてください。自分を認めてくれる環境があると、人は変われます😊`,
-        `素晴らしい視点ですね！${userName}さん、自走型組織を作る第一歩は、共感してくれる仲間を見つけること。あなたはすでにその一歩を踏み出していますよ🚀`
-        ];
-        return responses[Math.floor(Math.random() * responses.length)];
+            const responses = [
+                `${userName}さん、いい質問ですね！もう少し詳しく教えていただけますか？一緒に考えましょう✨`,
+                `なるほど、${userName}さん、その悩みは多くの人が持っています。まず「心理的安全性」を意識してみてください。自分を認めてくれる環境があると、人は変われます😊`,
+                `素晴らしい視点ですね！${userName}さん、自走型組織を作る第一歩は、共感してくれる仲間を見つけること。あなたはすでにその一歩を踏み出していますよ🚀`
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
         }
 
         // Enter key for chat
         document.getElementById('chatInput').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') sendChat();
+            if (e.key === 'Enter') sendChat();
         });
 
         // ============ ANNOUNCEMENT INTERACTIONS ============
@@ -3024,109 +3022,108 @@
         let likedAnnouncements = JSON.parse(localStorage.getItem('tss_liked_announcements') || '[]');
 
         function likeAnnouncement(id) {
-        const profile = getProfile();
-        if (!profile) return;
+            const profile = getProfile();
+            if (!profile) return;
 
-        // Check if already liked
-        if (likedAnnouncements.includes(id)) {
-        alert('すでにいいねしています！');
-        return;
-        }
+            // Check if already liked
+            if (likedAnnouncements.includes(id)) {
+                alert('すでにいいねしています！');
+                return;
+            }
 
-        // Add like
-        announcementLikes[id] = (announcementLikes[id] || 0) + 1;
-        likedAnnouncements.push(id);
+            // Add like
+            announcementLikes[id] = (announcementLikes[id] || 0) + 1;
+            likedAnnouncements.push(id);
 
-        localStorage.setItem('tss_announcement_likes', JSON.stringify(announcementLikes));
-        localStorage.setItem('tss_liked_announcements', JSON.stringify(likedAnnouncements));
+            localStorage.setItem('tss_announcement_likes', JSON.stringify(announcementLikes));
+            localStorage.setItem('tss_liked_announcements', JSON.stringify(likedAnnouncements));
 
-        // Update display
-        document.getElementById(`announcement-likes-${id}`).textContent = announcementLikes[id];
+            // Update display
+            document.getElementById(`announcement-likes-${id}`).textContent = announcementLikes[id];
 
-        // Award 1 TSST for liking
-        addTokens(1);
-        showTokenEarned(1, 'Like Bonus! ❤️');
+            // Award 1 TSST for liking
+            addTokens(1);
+            showTokenEarned(1, 'Like Bonus! ❤️');
         }
 
         function toggleComments(id) {
-        const section = document.getElementById(`comments-section-${id}`);
-        section.style.display = section.style.display === 'none' ? 'block' : 'none';
-        renderComments(id);
+            const section = document.getElementById(`comments-section-${id}`);
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+            renderComments(id);
         }
 
         function submitComment(id) {
-        const input = document.getElementById(`comment-input-${id}`);
-        const content = input.value.trim();
-        if (!content) return;
+            const input = document.getElementById(`comment-input-${id}`);
+            const content = input.value.trim();
+            if (!content) return;
 
-        const profile = getProfile();
-        if (!profile) return;
+            const profile = getProfile();
+            if (!profile) return;
 
-        if (!announcementComments[id]) {
-        announcementComments[id] = [];
-        }
+            if (!announcementComments[id]) {
+                announcementComments[id] = [];
+            }
 
-        announcementComments[id].push({
-        id: Date.now(),
-        author: profile.name,
-        content: content,
-        time: new Date().toISOString(),
-        likes: 0
-        });
+            announcementComments[id].push({
+                id: Date.now(),
+                author: profile.name,
+                content: content,
+                time: new Date().toISOString(),
+                likes: 0
+            });
 
-        localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
-        input.value = '';
+            localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+            input.value = '';
 
-        renderComments(id);
+            renderComments(id);
 
-        // Award 1 TSST for commenting
-        addTokens(1);
-        showTokenEarned(1, 'Comment Bonus! 💬');
+            // Award 1 TSST for commenting
+            addTokens(1);
+            showTokenEarned(1, 'Comment Bonus! 💬');
         }
 
         function likeAnnouncementComment(annId, commentId) {
-        const comments = announcementComments[annId];
-        if (!comments) return;
+            const comments = announcementComments[annId];
+            if (!comments) return;
 
-        const comment = comments.find(c => c.id === commentId);
-        if (comment) {
-        // Check Limit
-        let likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
-        const myCount = likedCounts[commentId] || 0;
+            const comment = comments.find(c => c.id === commentId);
+            if (comment) {
+                // Check Limit
+                let likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
+                const myCount = likedCounts[commentId] || 0;
 
-        if (myCount >= 10) {
-        alert('このコメントへのいいねは10回までです！たくさんの承認ありがとう！👏');
-        return;
-        }
+                if (myCount >= 10) {
+                    alert('このコメントへのいいねは10回までです！たくさんの承認ありがとう！👏');
+                    return;
+                }
 
-        comment.likes = (comment.likes || 0) + 1;
-        likedCounts[commentId] = myCount + 1;
+                comment.likes = (comment.likes || 0) + 1;
+                likedCounts[commentId] = myCount + 1;
 
-        localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
-        localStorage.setItem('tss_liked_comment_counts', JSON.stringify(likedCounts));
+                localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+                localStorage.setItem('tss_liked_comment_counts', JSON.stringify(likedCounts));
 
-        renderComments(annId);
+                renderComments(annId);
 
-        // Award 1 Token for Liking Comment
-        addTokens(1);
-        showTokenEarned(1, `Nice! Comment Like (${myCount + 1}/10) ❤️`);
-        }
+                // Award 1 Token for Liking Comment
+                addTokens(1);
+                showTokenEarned(1, `Nice! Comment Like (${myCount + 1}/10) ❤️`);
+            }
         }
 
         function renderComments(id) {
-        const list = document.getElementById(`comments-list-${id}`);
-        const comments = announcementComments[id] || [];
+            const list = document.getElementById(`comments-list-${id}`);
+            const comments = announcementComments[id] || [];
 
-        if (comments.length === 0) {
-        list.innerHTML = '<div style="text-align: center; color: var(--text-gray); padding: 10px; font-size: 12px;">
-            コメントはまだありません</div>';
-        return;
-        }
+            if (comments.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: var(--text-gray); padding: 10px; font-size: 12px;">コメントはまだありません</div>';
+                return;
+            }
 
-        list.innerHTML = comments.map(comment => {
-        const likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
-        const myCount = likedCounts[comment.id] || 0;
-        const canLike = myCount < 10; return ` <div class="comment-item">
+            list.innerHTML = comments.map(comment => {
+                const likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
+                const myCount = likedCounts[comment.id] || 0;
+                const canLike = myCount < 10; return ` <div class="comment-item">
             <div class="comment-avatar">${comment.author.charAt(0).toUpperCase()}</div>
             <div class="comment-content">
                 <div class="comment-author">${escapeHtml(comment.author)}</div>
@@ -3142,73 +3139,74 @@
             </div>
             </div>
             `}).join('');
-            }
+        }
 
-            // Load and render announcements
-            async function loadAnnouncements() {
+        // Load and render announcements
+        async function loadAnnouncements() {
             const container = document.getElementById('announcementsList');
             let announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
 
             // Try to fetch from backend
             if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-            try {
-            const res = await fetch(`${SCRIPT_URL}?action=announcements`);
-            const data = await res.json();
-            if (data.announcements && Array.isArray(data.announcements)) {
-            announcements = data.announcements;
-            localStorage.setItem('tss_announcements', JSON.stringify(announcements));
-            }
-            } catch (e) {
-            console.log('Failed to fetch announcements, using cache');
-            }
+                try {
+                    const res = await fetch(`${SCRIPT_URL}?action=announcements`);
+                    const data = await res.json();
+                    if (data.announcements && Array.isArray(data.announcements)) {
+                        announcements = data.announcements;
+                        localStorage.setItem('tss_announcements', JSON.stringify(announcements));
+                    }
+                } catch (e) {
+                    console.log('Failed to fetch announcements, using cache');
+                }
             }
 
             // Add default announcement if none exist and empty
             if (announcements.length === 0) {
-            announcements.push({
-            id: 1,
-            author: 'TSS運営',
-            content: '🎉 TSSへようこそ！\nここにお知らせが表示されます。',
-            date: new Date().toISOString(),
-            likes: 0
-            });
+                announcements.push({
+                    id: 1,
+                    author: 'TSS運営',
+                    content: '🎉 TSSへようこそ！\nここにお知らせが表示されます。',
+                    date: new Date().toISOString(),
+                    likes: 0
+                });
             }
 
             container.innerHTML = announcements.map(ann => {
-            // Format date
-            const date = new Date(ann.date);
-            const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2,
-            '0')}.${String(date.getDate()).padStart(2, '0')}`;
+                // Format date
+                const date = new Date(ann.date);
+                const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2,
+                    '0')}.${String(date.getDate()).padStart(2, '0')}`;
 
-            // Format content with line breaks and auto-link URLs
-            const formattedContent = escapeHtml(ann.content)
-            .replace(/\n/g, '<br>')
-            .replace(/(https?:\/\/[^\s<]+) /g, '<a href="$1" target="_blank" style="color: var(--primary);">$1</a>' );
-                // Build attachments HTML let attachmentsHtml='' ; if (ann.attachments && ann.attachments.length> 0) {
-                attachmentsHtml = '<div class="announcement-attachments"
-                    style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">';
+                // Format content with line breaks and auto-link URLs
+                const formattedContent = escapeHtml(ann.content)
+                    .replace(/\n/g, '<br>')
+                    .replace(/(https?:\/\/[^\s<]+) /g, '<a href="$1" target="_blank" style="color: var(--primary);">$1</a>');
+                // Build attachments HTML
+                let attachmentsHtml = '';
+                if (ann.attachments && ann.attachments.length > 0) {
+                    attachmentsHtml = '<div class="announcement-attachments" style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">';
 
                     ann.attachments.forEach(att => {
-                    if (att.type === 'link') {
-                    attachmentsHtml += `
+                        if (att.type === 'link') {
+                            attachmentsHtml += `
                     <a href="${escapeHtml(att.url)}" target="_blank"
                         style="display: flex; align-items: center; gap: 8px; padding: 10px; background: var(--primary-light); border-radius: 8px; text-decoration: none; color: var(--primary);">
                         <span>🔗</span>
                         <span
                             style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(att.label
-                            || att.url)}</span>
+                                || att.url)}</span>
                         <span style="font-size: 10px;">↗</span>
                     </a>
                     `;
-                    } else if (att.type === 'image') {
-                    attachmentsHtml += `
+                        } else if (att.type === 'image') {
+                            attachmentsHtml += `
                     <div style="border-radius: 8px; overflow: hidden;">
                         <img src="${att.data}" alt="添付画像" style="max-width: 100%; border-radius: 8px; cursor: pointer;"
                             onclick="window.open('${att.data}', '_blank')">
                     </div>
                     `;
-                    } else if (att.type === 'pdf') {
-                    attachmentsHtml += `
+                        } else if (att.type === 'pdf') {
+                            attachmentsHtml += `
                     <a href="${escapeHtml(att.url)}" target="_blank"
                         style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #FEE2E2; border-radius: 8px; text-decoration: none; color: #DC2626;">
                         <span>📄</span>
@@ -3216,11 +3214,10 @@
                         <span style="font-size: 10px;">↗</span>
                     </a>
                     `;
-                    }
+                        }
                     });
 
-                    attachmentsHtml += '
-                </div>';
+                    attachmentsHtml += '</div>';
                 }
 
                 return `
@@ -3254,39 +3251,39 @@
                     </div>
                 </div>
                 `;
-                }).join('');
-                }
+            }).join('');
+        }
 
-                // Initialize announcement interactions
-                function initAnnouncementInteractions() {
-                loadAnnouncements();
-                }
+        // Initialize announcement interactions
+        function initAnnouncementInteractions() {
+            loadAnnouncements();
+        }
 
-                // ============ PIN AUTHENTICATION ============
-                function checkPinAuth() {
-                const storedPin = localStorage.getItem('tss_pin');
-                const isAuthenticated = sessionStorage.getItem('tss_authenticated');
+        // ============ PIN AUTHENTICATION ============
+        function checkPinAuth() {
+            const storedPin = localStorage.getItem('tss_pin');
+            const isAuthenticated = sessionStorage.getItem('tss_authenticated');
 
-                if (storedPin && !isAuthenticated) {
+            if (storedPin && !isAuthenticated) {
                 showPinModal('login');
                 return false;
-                }
-                return true;
-                }
+            }
+            return true;
+        }
 
-                function showPinModal(mode) {
-                const modal = document.createElement('div');
-                modal.id = 'pinModal';
-                modal.style.cssText = `
+        function showPinModal(mode) {
+            const modal = document.createElement('div');
+            modal.id = 'pinModal';
+            modal.style.cssText = `
                 position: fixed; top: 0; left: 0; right: 0; bottom: 0;
                 background: rgba(0,0,0,0.8); display: flex; align-items: center;
                 justify-content: center; z-index: 99999;
                 `;
 
-                const title = mode === 'login' ? 'PINを入力' : 'PINを設定';
-                const btnText = mode === 'login' ? 'ログイン' : '設定';
+            const title = mode === 'login' ? 'PINを入力' : 'PINを設定';
+            const btnText = mode === 'login' ? 'ログイン' : '設定';
 
-                modal.innerHTML = `
+            modal.innerHTML = `
                 <div style="background: white; padding: 30px; border-radius: 16px; text-align: center; width: 280px;">
                     <h3 style="font-family: 'Montserrat', sans-serif; color: var(--primary); margin-bottom: 20px;">
                         ${title}</h3>
@@ -3302,241 +3299,239 @@
                     </div>
                     <button onclick="handlePin('${mode}')"
                         style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">${btnText}</button>
-                    ${mode === 'setup' ? '<p style="margin-top: 15px; font-size: 12px; color: var(--text-gray);">
-                        セキュリティのため4桁のPINを設定してください</p>' : ''}
+                        <p style="margin-top: 15px; font-size: 12px; color: var(--text-gray);">セキュリティのため4桁のPINを設定してください</p>' : ''}
                 </div>
                 `;
 
-                document.body.appendChild(modal);
+            document.body.appendChild(modal);
 
-                // Auto-focus and auto-advance
-                const inputs = modal.querySelectorAll('.pin-input');
-                inputs[0].focus();
-                inputs.forEach((input, index) => {
+            // Auto-focus and auto-advance
+            const inputs = modal.querySelectorAll('.pin-input');
+            inputs[0].focus();
+            inputs.forEach((input, index) => {
                 input.addEventListener('input', (e) => {
-                if (e.target.value && index < inputs.length - 1) { inputs[index + 1].focus(); } });
-                    input.addEventListener('keydown', (e)=> {
+                    if (e.target.value && index < inputs.length - 1) { inputs[index + 1].focus(); }
+                });
+                input.addEventListener('keydown', (e) => {
                     if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                    inputs[index - 1].focus();
+                        inputs[index - 1].focus();
                     }
-                    });
-                    });
-                    }
+                });
+            });
+        }
 
-                    function handlePin(mode) {
-                    const inputs = document.querySelectorAll('.pin-input');
-                    const pin = Array.from(inputs).map(i => i.value).join('');
+        function handlePin(mode) {
+            const inputs = document.querySelectorAll('.pin-input');
+            const pin = Array.from(inputs).map(i => i.value).join('');
 
-                    if (pin.length !== 4) {
-                    alert('4桁のPINを入力してください');
-                    return;
-                    }
+            if (pin.length !== 4) {
+                alert('4桁のPINを入力してください');
+                return;
+            }
 
-                    if (mode === 'setup') {
-                    localStorage.setItem('tss_pin', pin);
+            if (mode === 'setup') {
+                localStorage.setItem('tss_pin', pin);
+                sessionStorage.setItem('tss_authenticated', 'true');
+                document.getElementById('pinModal').remove();
+                showTokenEarned(5, 'PIN設定完了! 🔐');
+                addTokens(5);
+            } else {
+                const storedPin = localStorage.getItem('tss_pin');
+                if (pin === storedPin) {
                     sessionStorage.setItem('tss_authenticated', 'true');
                     document.getElementById('pinModal').remove();
-                    showTokenEarned(5, 'PIN設定完了! 🔐');
-                    addTokens(5);
-                    } else {
-                    const storedPin = localStorage.getItem('tss_pin');
-                    if (pin === storedPin) {
-                    sessionStorage.setItem('tss_authenticated', 'true');
-                    document.getElementById('pinModal').remove();
-                    } else {
+                } else {
                     alert('PINが正しくありません');
                     inputs.forEach(i => i.value = '');
                     inputs[0].focus();
-                    }
-                    }
-                    }
+                }
+            }
+        }
 
-                    // ============ SERVICE WORKER ============
-                    if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js')
+        // ============ SERVICE WORKER ============
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
-                    console.log('SW registered: ', registration);
+                        console.log('SW registered: ', registration);
 
-                    // Check for updates
-                    registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    // New update available
-                    if (confirm('新しいバージョンがあります！更新しますか？')) {
-                    window.location.reload();
-                    }
-                    }
-                    });
-                    });
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New update available
+                                    if (confirm('新しいバージョンがあります！更新しますか？')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
                     })
                     .catch(registrationError => {
-                    console.log('SW registration failed: ', registrationError);
+                        console.log('SW registration failed: ', registrationError);
                     });
-                    });
-                    }
+            });
+        }
 
-                    // ============ CALENDAR ============
-                    let calendar;
-                    let currentCalendarFilter = 'all';
+        // ============ CALENDAR ============
+        let calendar;
+        let currentCalendarFilter = 'all';
 
-                    function setCalendarFilter(filter) {
-                    currentCalendarFilter = filter;
-                    document.querySelectorAll('.calendar-filter-tab').forEach(tab => {
-                    tab.classList.remove('active');
-                    if (tab.innerText === (
+        function setCalendarFilter(filter) {
+            currentCalendarFilter = filter;
+            document.querySelectorAll('.calendar-filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.innerText === (
                     filter === 'all' ? 'ALL' :
-                    filter === 'personal' ? '自分' :
-                    filter === 'shared' ? 'みんな' : '運営'
-                    )) tab.classList.add('active');
-                    });
-                    if (calendar) calendar.refetchEvents();
-                    }
+                        filter === 'personal' ? '自分' :
+                            filter === 'shared' ? 'みんな' : '運営'
+                )) tab.classList.add('active');
+            });
+            if (calendar) calendar.refetchEvents();
+        }
 
-                    function initCalendar() {
-                    const calendarEl = document.getElementById('calendar');
-                    if (!calendarEl) return;
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
 
-                    calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    headerToolbar: {
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
                     left: 'prev,next',
                     center: 'title',
                     right: 'today'
-                    },
-                    locale: 'ja',
-                    height: 'auto',
-                    dayCellContent: function (e) {
+                },
+                locale: 'ja',
+                height: 'auto',
+                dayCellContent: function (e) {
                     e.dayNumberText = e.dayNumberText.replace('日', '');
                     return { html: e.dayNumberText };
-                    },
-                    events: function (info, successCallback, failureCallback) {
+                },
+                events: function (info, successCallback, failureCallback) {
                     const profile = getProfile();
                     if (!profile) { successCallback([]); return; }
 
                     const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
 
                     // Construct URL with user param for privacy filtering
-                    const url = `${SCRIPT_URL}?action=getEvents&user=${encodeURIComponent(profile.name)}`;
+                    const url = `${SCRIPT_URL}?action = getEvents & user=${encodeURIComponent(profile.name)} `;
 
                     fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                    let eventsList = data.events || cached;
-                    if (data.events) {
-                    localStorage.setItem('tss_schedule_cache', JSON.stringify(data.events));
-                    }
+                        .then(response => response.json())
+                        .then(data => {
+                            let eventsList = data.events || cached;
+                            if (data.events) {
+                                localStorage.setItem('tss_schedule_cache', JSON.stringify(data.events));
+                            }
 
-                    // CLIENT-SIDE FILTERING
-                    const filtered = eventsList.filter(e => {
-                    if (currentCalendarFilter === 'all') return true;
-                    if (currentCalendarFilter === 'personal') return e.type === 'personal';
-                    if (currentCalendarFilter === 'shared') return e.type === 'shared';
-                    if (currentCalendarFilter === 'official') return e.type === 'official' || e.type === 'management';
-                    return true;
-                    });
+                            // CLIENT-SIDE FILTERING
+                            const filtered = eventsList.filter(e => {
+                                if (currentCalendarFilter === 'all') return true;
+                                if (currentCalendarFilter === 'personal') return e.type === 'personal';
+                                if (currentCalendarFilter === 'shared') return e.type === 'shared';
+                                if (currentCalendarFilter === 'official') return e.type === 'official' || e.type === 'management';
+                                return true;
+                            });
 
-                    // Update Monthly List View
-                    renderMonthlyEventsList(filtered);
+                            // Update Monthly List View
+                            renderMonthlyEventsList(filtered);
 
-                    // MAP TO FULLCALENDAR FORMAT
-                    const mapped = filtered.map(e => {
-                    let className = 'type-shared';
-                    if (e.type === 'personal') className = 'type-personal';
-                    if (e.type === 'official' || e.type === 'management') className = 'type-official';
+                            // MAP TO FULLCALENDAR FORMAT
+                            const mapped = filtered.map(e => {
+                                let className = 'type-shared';
+                                if (e.type === 'personal') className = 'type-personal';
+                                if (e.type === 'official' || e.type === 'management') className = 'type-official';
 
-                    return {
-                    id: e.id,
-                    title: (e.type === 'personal' ? '🔒 ' : '') + e.title,
-                    start: e.start,
-                    allDay: e.allDay,
-                    classNames: [className],
-                    extendedProps: {
-                    author: e.author,
-                    type: e.type || 'shared'
-                    }
-                    };
-                    });
-                    successCallback(mapped);
-                    })
-                    .catch(e => {
-                    console.log('Calendar Sync Error', e);
-                    successCallback([]); // Fallback
-                    });
-                    },
-                    dateClick: function (info) {
+                                return {
+                                    id: e.id,
+                                    title: (e.type === 'personal' ? '🔒 ' : '') + e.title,
+                                    start: e.start,
+                                    allDay: e.allDay,
+                                    classNames: [className],
+                                    extendedProps: {
+                                        author: e.author,
+                                        type: e.type || 'shared'
+                                    }
+                                };
+                            });
+                            successCallback(mapped);
+                        })
+                        .catch(e => {
+                            console.log('Calendar Sync Error', e);
+                            successCallback([]); // Fallback
+                        });
+                },
+                dateClick: function (info) {
                     openAddEventModal(info.dateStr);
-                    },
-                    eventClick: function (info) {
+                },
+                eventClick: function (info) {
                     const profile = getProfile();
                     const props = info.event.extendedProps;
                     const isMyEvent = props.author === (profile ? profile.name : '');
 
-                    let msg = `📅 ${info.event.title}\n`;
-                    msg += `作成者: ${props.author}\n`;
-                    msg += `タイプ: ${props.type === 'personal' ? '個人' : props.type === 'open' ? '共有' : '運営'}`;
+                    let msg = `📅 ${info.event.title} \n`;
+                    msg += `作成者: ${props.author} \n`;
+                    msg += `タイプ: ${props.type === 'personal' ? '個人' : props.type === 'open' ? '共有' : '運営'} `;
 
                     if (isMyEvent) {
-                    if (confirm(msg + '\n\n削除しますか？')) {
-                    const eventId = info.event.id;
-                    info.event.remove();
+                        if (confirm(msg + '\n\n削除しますか？')) {
+                            const eventId = info.event.id;
+                            info.event.remove();
 
-                    // Also remove from list view (optimistic)
-                    document.getElementById(`event-list-item-${eventId}`)?.remove();
+                            // Also remove from list view (optimistic)
+                            document.getElementById(`event - list - item - ${eventId} `)?.remove();
 
-                    fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                    action: 'deleteEvent',
-                    eventId: eventId
-                    })
-                    });
-                    }
+                            fetch(SCRIPT_URL, {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    action: 'deleteEvent',
+                                    eventId: eventId
+                                })
+                            });
+                        }
                     } else {
-                    alert(msg);
+                        alert(msg);
                     }
-                    }
-                    });
+                }
+            });
 
-                    calendar.render();
-                    }
+            calendar.render();
+        }
 
-                    function renderMonthlyEventsList(events) {
-                    const container = document.getElementById('monthly-events-list');
-                    if (!container) return;
+        function renderMonthlyEventsList(events) {
+            const container = document.getElementById('monthly-events-list');
+            if (!container) return;
 
-                    // Sort by date
-                    const sorted = [...events].sort((a, b) => new Date(a.start) - new Date(b.start));
+            // Sort by date
+            const sorted = [...events].sort((a, b) => new Date(a.start) - new Date(b.start));
 
-                    // Filter for current view if possible (FullCalendar keeps track, but simple list of all fetched is
-                    okay for now)
-                    // Or strictly speaking, we might want only this month's events.
-                    // For simplicity, let's show upcoming events from today onwards, or all in the fetched range.
-                    // Let's filter for "This Month & Future" to keep it relevant.
+            // Filter for current view if possible (FullCalendar keeps track, but simple list of all fetched is
+            // okay for now)
+            // Or strictly speaking, we might want only this month's events.
+            // For simplicity, let's show upcoming events from today onwards, or all in the fetched range.
+            // Let's filter for "This Month & Future" to keep it relevant.
 
-                    const now = new Date();
-                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-                    const upcoming = sorted.filter(e => new Date(e.start) >= startOfMonth);
+            const upcoming = sorted.filter(e => new Date(e.start) >= startOfMonth);
 
-                    if (upcoming.length === 0) {
-                    container.innerHTML = '<div
-                        style="text-align:center; color:var(--text-gray); font-size:12px; padding:20px;">予定はありません</div>
-                    ';
-                    return;
-                    }
+            if (upcoming.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-gray); font-size:12px; padding:20px;">予定はありません</div>';
+                return;
+            }
 
-                    container.innerHTML = upcoming.map(e => {
-                    const date = new Date(e.start);
-                    const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-                    const dayStr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][date.getDay()];
+            container.innerHTML = upcoming.map(e => {
+                const date = new Date(e.start);
+                const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+                const dayStr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][date.getDay()];
 
-                    let typeColor = 'var(--primary)';
-                    if (e.type === 'personal') typeColor = '#4A90E2';
-                    if (e.type === 'official') typeColor = '#1a1a1a';
+                let typeColor = 'var(--primary)';
+                if (e.type === 'personal') typeColor = '#4A90E2';
+                if (e.type === 'official') typeColor = '#1a1a1a';
 
-                    return `
+                return `
                     <div id="event-list-item-${e.id}" class="event-list-item"
                         style="display:flex; align-items:center; background:var(--white); padding:12px 16px; margin-bottom:10px; border-radius:12px; border-left:4px solid ${typeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
                         <div style="text-align:center; margin-right:16px; min-width:40px;">
@@ -3550,24 +3545,24 @@
                             <div style="font-size:10px; color:var(--text-gray); display:flex; gap:8px;">
                                 <span>👤 ${escapeHtml(e.author)}</span>
                                 <span style="color:${typeColor}; font-weight:600;">${e.type === 'personal' ? 'Personal'
-                                    : e.type === 'official' ? 'Official' : 'Shared'}</span>
+                        : e.type === 'official' ? 'Official' : 'Shared'}</span>
                             </div>
                         </div>
                     </div>
                     `;
-                    }).join('');
-                    }
+            }).join('');
+        }
 
-                    // --- CALENDAR MODAL LOGIC ---
-                    let selectedDateForEvent = '';
-                    let selectedEventType = 'shared';
+        // --- CALENDAR MODAL LOGIC ---
+        let selectedDateForEvent = '';
+        let selectedEventType = 'shared';
 
-                    function openAddEventModal(dateStr) {
-                    selectedDateForEvent = dateStr;
+        function openAddEventModal(dateStr) {
+            selectedDateForEvent = dateStr;
 
-                    // Create Modal if not exists
-                    if (!document.getElementById('addEventModal')) {
-                    const modalHtml = `
+            // Create Modal if not exists
+            if (!document.getElementById('addEventModal')) {
+                const modalHtml = `
                     <div id="addEventModal" class="modal-overlay">
                         <div class="modal-content">
                             <div class="modal-header">ADD SCHEDULE</div>
@@ -3603,156 +3598,156 @@
                         </div>
                     </div>
                     `;
-                    document.body.insertAdjacentHTML('beforeend', modalHtml);
-                    }
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }
 
-                    // Reset
-                    document.getElementById('eventTitleInput').value = '';
-                    selectEventType(document.querySelector('.type-option'), 'shared'); // Default shared
+            // Reset
+            document.getElementById('eventTitleInput').value = '';
+            selectEventType(document.querySelector('.type-option'), 'shared'); // Default shared
 
-                    document.getElementById('addEventModal').style.display = 'flex';
-                    setTimeout(() => document.getElementById('eventTitleInput').focus(), 100);
-                    }
+            document.getElementById('addEventModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('eventTitleInput').focus(), 100);
+        }
 
-                    function selectEventType(el, type) {
-                    selectedEventType = type;
-                    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
-                    el.classList.add('selected');
-                    }
+        function selectEventType(el, type) {
+            selectedEventType = type;
+            document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+        }
 
-                    function submitEvent() {
-                    const title = document.getElementById('eventTitleInput').value.trim();
-                    if (!title) return;
+        function submitEvent() {
+            const title = document.getElementById('eventTitleInput').value.trim();
+            if (!title) return;
 
-                    const profile = getProfile();
-                    const authorName = profile ? profile.name : 'Unknown';
+            const profile = getProfile();
+            const authorName = profile ? profile.name : 'Unknown';
 
-                    // Optimistic UI Update (Refetch will happen but adds snappy feel if we manually add?)
-                    // Actually simpler to just send and refetch.
-                    // Let's optimistic add for instant feedback
+            // Optimistic UI Update (Refetch will happen but adds snappy feel if we manually add?)
+            // Actually simpler to just send and refetch.
+            // Let's optimistic add for instant feedback
 
-                    let className = 'type-shared';
-                    if (selectedEventType === 'personal') className = 'type-personal';
+            let className = 'type-shared';
+            if (selectedEventType === 'personal') className = 'type-personal';
 
-                    calendar.addEvent({
-                    id: 'temp-' + Date.now(),
-                    title: (selectedEventType === 'personal' ? '🔒 ' : '') + title,
-                    start: selectedDateForEvent,
-                    allDay: true,
-                    classNames: [className],
-                    extendedProps: { author: authorName, type: selectedEventType }
-                    });
+            calendar.addEvent({
+                id: 'temp-' + Date.now(),
+                title: (selectedEventType === 'personal' ? '🔒 ' : '') + title,
+                start: selectedDateForEvent,
+                allDay: true,
+                classNames: [className],
+                extendedProps: { author: authorName, type: selectedEventType }
+            });
 
-                    document.getElementById('addEventModal').style.display = 'none';
+            document.getElementById('addEventModal').style.display = 'none';
 
-                    // Backend
-                    fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
+            // Backend
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
                     action: 'addEvent',
                     title: title,
                     start: selectedDateForEvent,
                     allDay: true,
                     author: authorName,
                     type: selectedEventType
-                    })
-                    }).then(res => res.json())
-                    .then(data => {
+                })
+            }).then(res => res.json())
+                .then(data => {
                     if (data.success) {
-                    addTokens(1);
-                    showTokenEarned(1, 'Schedule Added! 📅');
-                    calendar.refetchEvents(); // Get real ID
+                        addTokens(1);
+                        showTokenEarned(1, 'Schedule Added! 📅');
+                        calendar.refetchEvents(); // Get real ID
                     }
-                    });
-                    }
+                });
+        }
 
-                    function saveCalendarEvents() {
-                    if (!calendar) return;
-                    const events = calendar.getEvents().map(e => ({
-                    id: e.id,
-                    title: e.title,
-                    start: e.start,
-                    allDay: e.allDay
-                    }));
-                    localStorage.setItem('tss_schedule_events', JSON.stringify(events));
+        function saveCalendarEvents() {
+            if (!calendar) return;
+            const events = calendar.getEvents().map(e => ({
+                id: e.id,
+                title: e.title,
+                start: e.start,
+                allDay: e.allDay
+            }));
+            localStorage.setItem('tss_schedule_events', JSON.stringify(events));
 
-                    // Background Sync (Optional, future proofing)
-                    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-                    // Future sync implementation
-                    }
-                    }
+            // Background Sync (Optional, future proofing)
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                // Future sync implementation
+            }
+        }
 
-                    // Hook into tab switching to resize calendar if needed causes of display:none
-                    const originalShowTodoTab = showTodoTab;
-                    showTodoTab = function (tab) {
-                    originalShowTodoTab(tab);
-                    // If calendar is visible (e.g. widely shared or if we put it in separate tab later)
-                    // For now it is always in TODO screen, so whenever TODO screen opens...
-                    }
+        // Hook into tab switching to resize calendar if needed causes of display:none
+        const originalShowTodoTab = showTodoTab;
+        showTodoTab = function (tab) {
+            originalShowTodoTab(tab);
+            // If calendar is visible (e.g. widely shared or if we put it in separate tab later)
+            // For now it is always in TODO screen, so whenever TODO screen opens...
+        }
 
-                    const originalShowScreen = showScreen;
-                    showScreen = function (screenId) {
-                    originalShowScreen(screenId);
-                    if (screenId === 'screen-todo' && calendar) {
-                    setTimeout(() => {
+        const originalShowScreen = showScreen;
+        showScreen = function (screenId) {
+            originalShowScreen(screenId);
+            if (screenId === 'screen-todo' && calendar) {
+                setTimeout(() => {
                     calendar.updateSize();
-                    }, 200);
-                    }
-                    }
+                }, 200);
+            }
+        }
 
-                    // ============ START ============
-                    // Modified init to include PIN check & PIN Setup Check
-                    const originalInit = init;
-                    init = function () {
-                    const profile = getProfile();
-                    const storedPin = localStorage.getItem('tss_pin');
-                    const pinSkip = localStorage.getItem('tss_pin_skip');
+        // ============ START ============
+        // Modified init to include PIN check & PIN Setup Check
+        const originalInit = init;
+        init = function () {
+            const profile = getProfile();
+            const storedPin = localStorage.getItem('tss_pin');
+            const pinSkip = localStorage.getItem('tss_pin_skip');
 
-                    // 1. PIN Authentication Check (if PIN exists)
-                    if (profile && storedPin) {
-                    if (!checkPinAuth()) {
+            // 1. PIN Authentication Check (if PIN exists)
+            if (profile && storedPin) {
+                if (!checkPinAuth()) {
                     // Wait for PIN authentication
                     const checkAuth = setInterval(() => {
-                    if (sessionStorage.getItem('tss_authenticated')) {
-                    clearInterval(checkAuth);
-                    originalInit();
-                    initAnnouncementInteractions();
-                    }
+                        if (sessionStorage.getItem('tss_authenticated')) {
+                            clearInterval(checkAuth);
+                            originalInit();
+                            initAnnouncementInteractions();
+                        }
                     }, 100);
                     return;
-                    }
-                    }
+                }
+            }
 
-                    loadYouTubeSettings();
-                    originalInit();
-                    initAnnouncementInteractions();
-                    initCalendar();
-                    loadNoteRSS();
+            loadYouTubeSettings();
+            originalInit();
+            initAnnouncementInteractions();
+            initCalendar();
+            loadNoteRSS();
 
-                    // 2. PIN Setup Prompt (if NO PIN and NOT skipped)
-                    if (profile && !storedPin && !pinSkip) {
-                    setTimeout(() => {
+            // 2. PIN Setup Prompt (if NO PIN and NOT skipped)
+            if (profile && !storedPin && !pinSkip) {
+                setTimeout(() => {
                     if (confirm('セキュリティ強化のためPINを設定しますか？\n（キャンセルすると、しばらく表示されません）')) {
-                    showPinModal('setup');
+                        showPinModal('setup');
                     } else {
-                    // User skipped PIN setup
-                    localStorage.setItem('tss_pin_skip', 'true');
+                        // User skipped PIN setup
+                        localStorage.setItem('tss_pin_skip', 'true');
                     }
-                    }, 2000);
-                    }
-                    };
+                }, 2000);
+            }
+        };
 
-                    function loadNoteRSS() {
-                    const RSS_URL = 'https://note.com/ito_office0419/rss';
-                    const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
-                    const container = document.getElementById('note-feed-container');
+        function loadNoteRSS() {
+            const RSS_URL = 'https://note.com/ito_office0419/rss';
+            const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+            const container = document.getElementById('note-feed-container');
 
-                    fetch(API_URL)
-                    .then(response => response.json())
-                    .then(data => {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
                     if (data.status === 'ok' && data.items.length > 0) {
-                    const items = data.items.slice(0, 3); // Top 3 articles
-                    container.innerHTML = items.map(item => `
+                        const items = data.items.slice(0, 3); // Top 3 articles
+                        container.innerHTML = items.map(item => `
                     <div class="note-item" onclick="window.open('${item.link}', '_blank')"
                         style="cursor: pointer; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px;">
                         <div style="flex: 1;">
@@ -3772,19 +3767,17 @@
                     </div>
                     `).join('');
                     } else {
-                    container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">
-                        記事の読み込みに失敗しました</div>';
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">記事の読み込みに失敗しました</div>';
                     }
-                    })
-                    .catch(error => {
+                })
+                .catch(error => {
                     console.error('RSS Error:', error);
-                    container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">
-                        読み込みエラー</div>';
-                    });
-                    }
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">読み込みエラー</div>';
+                });
+        }
 
-                    document.addEventListener('DOMContentLoaded', init);
-                    </script>
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 
 </html>
