@@ -460,18 +460,25 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
 
         // ============ LOAD DATA ============
+        // ============ LOAD DATA ============
         async function loadData() {
             try {
-                const response = await fetch(SCRIPT_URL + '?action=stats');
-                const data = await response.json();
+                const response = await fetch(SCRIPT_URL + '?action=data'); // get all
+                const res = await response.json();
 
-                renderStats(data);
-                renderRanking(data.topMembers); // Backend naming difference, ensure mapping
-                renderMembers(data.members); // Assuming backend 'stats' returns members list for table? 
-                // Actually 'action=stats' returns limited data. 
-                // Let's use 'action=data' to get everything or stick to stats if sufficient.
-                // 'getStats' returns topMembers, recentActivity etc.
-                renderActivity(data.recentActivity);
+                // Calculate stats if not provided directly
+                const stats = {
+                    totalMembers: res.members.length,
+                    totalTokens: res.totalTokens,
+                    totalPosts: res.posts.length,
+                    completedTasks: res.completedTasks
+                };
+
+                renderStats(res);
+                renderRanking(res.topMembers);
+                renderMembers(res.members);
+                renderActivity(res.recentActivity);
+
             } catch (e) {
                 console.error('Data load failed', e);
             }
@@ -498,38 +505,6 @@
                     <div class="ranking-tokens">${member.totalEarned || member.tokens}</div>
                 </li>
             `).join('');
-        }
-
-        function renderMembers(members) {
-            // Note: action=stats does not usually return full member list. 
-            // If we want full list we might need separate call or use topMembers for now if that's what we have.
-            // Let's assume for this snippet we fetch 'members' separately? 
-            // Or just fetch all data via action=data (heavier but gets everything).
-            // Let's switch loadData to action=data to be safe for dashboard.
-        }
-
-        // Redefining loadData to fetch ALL
-        async function loadData() {
-            try {
-                const response = await fetch(SCRIPT_URL + '?action=data'); // get all
-                const res = await response.json();
-
-                // res = { members: [], posts: [], totalMembers... } from getAllData
-
-                // Calculate stats if not provided directly
-                const stats = {
-                    totalMembers: res.members.length,
-                    totalTokens: res.totalTokens, // from getAllData
-                    totalPosts: res.posts.length,
-                    completedTasks: res.completedTasks // from getAllData
-                };
-
-                renderStats(res);
-                renderRanking(res.topMembers);
-                renderMembers(res.members);
-                renderActivity(res.recentActivity);
-
-            } catch (e) { console.error(e); }
         }
 
         function renderMembers(members) {
