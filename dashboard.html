@@ -6,27 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TSS Dashboard</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         rel="stylesheet">
     <style>
         :root {
             --white: #FFFFFF;
-            --off-white: #F9F9F9;
-            --light-gray: #F2F2F2;
-            --primary: #D4AF37;
-            --primary-dark: #B8960C;
-            --primary-light: rgba(212, 175, 55, 0.1);
-            --primary-glow: rgba(212, 175, 55, 0.4);
-            --accent: #FFD700;
-            --text-dark: #111111;
-            --text-gray: #666666;
-            --border: rgba(0, 0, 0, 0.08);
+            --off-white: #FAFAFA;
+            --light-gray: #F5F5F5;
+            --primary: #6B5CE7;
+            --primary-dark: #5243C2;
+            --primary-light: rgba(107, 92, 231, 0.15);
+            --accent: #FF6B9D;
+            --text-dark: #1A1A2E;
+            --text-gray: #6B7B8C;
+            --border: rgba(26, 26, 46, 0.1);
             --success: #22C55E;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --gradient-primary: linear-gradient(135deg, #D4AF37, #FFD700);
-            --gradient-luxury: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
-            --gradient-dark: linear-gradient(135deg, #1a1a1a, #000000);
+            --gradient-primary: linear-gradient(135deg, #6B5CE7, #FF6B9D);
         }
 
         * {
@@ -43,54 +38,25 @@
         }
 
         header {
-            padding: 40px 20px;
+            padding: 30px;
             text-align: center;
-            background: linear-gradient(135deg, #FBF5B7, #E5C158, #D4AF37, #C6A355);
-            color: #5C4010;
-            box-shadow: 0 4px 30px rgba(212, 175, 55, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Shine effect */
-        header::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 60%);
-            opacity: 0.1;
-            transform: rotate(30deg);
-            pointer-events: none;
+            background: var(--gradient-primary);
+            color: white;
         }
 
         h1 {
             font-family: 'Montserrat', sans-serif;
-            font-size: 32px;
-            font-weight: 600;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: #4A3200;
-            background: none;
-            -webkit-text-fill-color: initial;
-            text-shadow: 0 1px 1px rgba(255,255,255,0.5);
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 1;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
         }
 
         .header-sub {
             font-family: 'Montserrat', sans-serif;
-            font-size: 11px;
-            color: #5C4010;
-            letter-spacing: 0.4em;
-            font-weight: 500;
-            text-transform: uppercase;
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+            letter-spacing: 0.2em;
         }
 
         main {
@@ -112,13 +78,6 @@
             padding: 25px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px var(--primary-glow);
         }
 
         .stat-icon {
@@ -130,18 +89,14 @@
             font-family: 'Montserrat', sans-serif;
             font-size: 36px;
             font-weight: 700;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--primary);
         }
 
         .stat-label {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-gray);
             margin-top: 5px;
-            letter-spacing: 0.15em;
+            letter-spacing: 0.1em;
         }
 
         .section {
@@ -150,15 +105,14 @@
             padding: 25px;
             margin-bottom: 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
         }
 
         .section-title {
             font-family: 'Montserrat', sans-serif;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--primary);
-            letter-spacing: 0.15em;
+            letter-spacing: 0.1em;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
@@ -169,7 +123,7 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: linear-gradient(90deg, var(--primary-light), transparent);
+            background: var(--border);
         }
 
         /* MEMBERS TABLE */
@@ -180,18 +134,17 @@
 
         .members-table th,
         .members-table td {
-            padding: 14px 15px;
+            padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
 
         .members-table th {
             font-family: 'Montserrat', sans-serif;
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-gray);
-            letter-spacing: 0.15em;
+            letter-spacing: 0.1em;
             font-weight: 600;
-            text-transform: uppercase;
         }
 
         .members-table td {
@@ -220,7 +173,6 @@
             font-size: 14px;
             margin-right: 10px;
             vertical-align: middle;
-            box-shadow: 0 2px 8px var(--primary-glow);
         }
 
         .member-name {
@@ -232,13 +184,12 @@
             align-items: center;
             gap: 4px;
             background: var(--primary-light);
-            color: var(--primary-dark);
-            padding: 5px 12px;
+            color: var(--primary);
+            padding: 4px 10px;
             border-radius: 20px;
             font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
+            font-weight: 600;
             font-size: 12px;
-            border: 1px solid var(--primary);
         }
 
         /* RANKING */
@@ -250,7 +201,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 14px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border);
         }
 
@@ -259,8 +210,8 @@
         }
 
         .ranking-number {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             background: var(--light-gray);
             display: flex;
@@ -275,7 +226,6 @@
         .ranking-item:nth-child(1) .ranking-number {
             background: linear-gradient(135deg, #FFD700, #FFA500);
             color: white;
-            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.4);
         }
 
         .ranking-item:nth-child(2) .ranking-number {
@@ -317,7 +267,7 @@
         .activity-item {
             display: flex;
             gap: 12px;
-            padding: 14px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border);
         }
 
@@ -326,8 +276,8 @@
         }
 
         .activity-icon {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: var(--primary-light);
             display: flex;
@@ -345,13 +295,13 @@
         }
 
         .activity-text strong {
-            color: var(--primary-dark);
+            color: var(--primary);
         }
 
         .activity-time {
             font-size: 11px;
             color: var(--text-gray);
-            margin-top: 3px;
+            margin-top: 2px;
         }
 
         /* EMPTY STATE */
@@ -388,62 +338,22 @@
             }
         }
 
-        /* BUTTONS */
-        .btn-primary {
+        /* REFRESH BUTTON */
+        .refresh-btn {
             background: var(--gradient-primary);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 25px;
             font-family: 'Montserrat', sans-serif;
             font-weight: 600;
             font-size: 12px;
             cursor: pointer;
-            box-shadow: 0 4px 15px var(--primary-glow);
-            transition: all 0.2s;
+            margin-top: 20px;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px var(--primary-glow);
-        }
-
-        /* FORM INPUTS */
-        .input-label {
-            display: block;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 10px;
-            color: var(--primary);
-            letter-spacing: 0.15em;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .text-input {
-            width: 100%;
-            background: var(--light-gray);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            color: var(--text-dark);
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-        }
-
-        .text-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        textarea.text-input {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .refresh-btn:hover {
+            opacity: 0.9;
         }
 
         @media (max-width: 768px) {
@@ -454,10 +364,6 @@
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-
-            .two-column {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -465,7 +371,7 @@
 <body>
     <header>
         <h1>TSS DASHBOARD</h1>
-        <div class="header-sub">TEAM SYNERGY STAGE ADMIN</div>
+        <div class="header-sub">TEAM SYNERGY STAGE ADMIN v5.1 Smart Schedule</div>
     </header>
 
     <main>
@@ -473,34 +379,39 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
-                <div class="stat-value" id="totalMembers">-</div>
+                <div class="stat-value" id="totalMembers">0</div>
                 <div class="stat-label">TOTAL MEMBERS</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">💎</div>
-                <div class="stat-value" id="totalTokens">-</div>
-                <div class="stat-label">TOTAL TSST</div>
+                <div class="stat-value" id="totalTokens">0</div>
+                <div class="stat-label">TOTAL TOKENS</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📝</div>
-                <div class="stat-value" id="totalPosts">-</div>
+                <div class="stat-value" id="totalPosts">0</div>
                 <div class="stat-label">TOTAL POSTS</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
-                <div class="stat-value" id="completedTasks">-</div>
+                <div class="stat-value" id="completedTasks">0</div>
                 <div class="stat-label">COMPLETED TASKS</div>
             </div>
         </div>
 
-        <div class="two-column">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <!-- TOKEN RANKING -->
             <div class="section">
                 <div class="section-title">🏆 TOKEN RANKING</div>
                 <ul class="ranking-list" id="rankingList">
-                    <div class="loading">
-                        <div class="loading-spinner"></div>
-                    </div>
+                    <li class="ranking-item">
+                        <div class="ranking-number">1</div>
+                        <div class="ranking-info">
+                            <div class="ranking-name">-</div>
+                            <div class="ranking-role">-</div>
+                        </div>
+                        <div class="ranking-tokens">0</div>
+                    </li>
                 </ul>
             </div>
 
@@ -516,15 +427,49 @@
             </div>
         </div>
 
+        </div>
+
+        <!-- APP MANAGEMENT (YouTube & Settings) -->
+        <div class="section">
+            <div class="section-title">⚙️ APP MANAGEMENT</div>
+
+            <div style="margin-bottom: 20px;">
+                <label
+                    style="display: block; font-size: 12px; font-weight: 700; color: var(--text-gray); margin-bottom: 8px;">HOME
+                    YOUTUBE VIDEO</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="youtubeUrlInput" placeholder="YouTube URL (e.g. https://youtu.be/...)"
+                        class="text-input"
+                        style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+                    <button class="refresh-btn" onclick="saveYoutubeSettings()"
+                        style="margin-top: 0; background: var(--primary);">SAVE</button>
+                    <button class="refresh-btn" onclick="openYoutubePreview()"
+                        style="margin-top: 0; background: #FF0000;">PREVIEW</button>
+                </div>
+                <div style="font-size: 11px; color: var(--text-gray); margin-top: 5px;">
+                    * The video will be embedded on the app Home screen for all users. <br>
+                    * Use normal URL or Share URL.
+                </div>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 20px 0;">
+
+            <div style="font-size: 12px; color: var(--text-gray);">
+                <span
+                    style="display: inline-block; width: 10px; height: 10px; background: #22C55E; border-radius: 50%; margin-right: 5px;"></span>
+                Systems Operational (v5.1 Smart Schedule)
+            </div>
+        </div>
+
         <!-- MEMBERS TABLE -->
         <div class="section">
-            <div class="section-title">👥 ALL MEMBERS</div>
+            <div class="section-title">👥 MEMBERS</div>
             <table class="members-table">
                 <thead>
                     <tr>
                         <th>NAME</th>
                         <th>ROLE</th>
-                        <th>TSST</th>
+                        <th>TOKENS</th>
                         <th>JOINED</th>
                     </tr>
                 </thead>
@@ -538,69 +483,9 @@
                     </tr>
                 </tbody>
             </table>
-            <center style="margin-top: 20px;">
-                <button class="btn-primary" onclick="loadData()">🔄 REFRESH DATA</button>
+            <center>
+                <button class="refresh-btn" onclick="loadData()">🔄 REFRESH DATA</button>
             </center>
-        </div>
-
-        <!-- ANNOUNCEMENT POSTING -->
-        <div class="section">
-            <div class="section-title">📢 POST ANNOUNCEMENT</div>
-            <div style="margin-bottom: 15px;">
-                <label class="input-label">ANNOUNCEMENT CONTENT</label>
-                <textarea id="announcementContent" rows="4" class="text-input"
-                    placeholder="アナウンスメントを入力...（URLは自動的にリンクになります）"></textarea>
-            </div>
-
-            <!-- Link Attachment -->
-            <div style="margin-bottom: 15px;">
-                <label class="input-label">🔗 LINK URL（任意）</label>
-                <input type="url" id="announcementLink" class="text-input" placeholder="https://example.com">
-                <input type="text" id="announcementLinkLabel" class="text-input" style="margin-top: 8px;"
-                    placeholder="リンクのラベル（任意）">
-            </div>
-
-            <!-- Image Upload -->
-            <div style="margin-bottom: 15px;">
-                <label class="input-label">📷 IMAGE（任意 / 2MB以下推奨）</label>
-                <input type="file" id="announcementImage" accept="image/*" class="text-input"
-                    onchange="previewImage(this)">
-                <div id="imagePreview" style="margin-top: 10px; display: none;">
-                    <img id="previewImg"
-                        style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid var(--border);">
-                    <button type="button" onclick="clearImage()"
-                        style="margin-left: 10px; background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px;">✕
-                        削除</button>
-                </div>
-            </div>
-
-            <!-- PDF/Document Link -->
-            <div style="margin-bottom: 15px;">
-                <label class="input-label">📄 PDF / DOCUMENT LINK（任意）</label>
-                <input type="url" id="announcementPdfLink" class="text-input"
-                    placeholder="Google Drive / Dropbox などの共有リンク">
-                <p style="margin-top: 5px; font-size: 10px; color: var(--text-gray);">💡 PDFはGoogle
-                    DriveやDropboxにアップロードし、共有リンクを貼り付けてください</p>
-            </div>
-
-            <button class="btn-primary" onclick="postAnnouncement()">📢 POST ANNOUNCEMENT</button>
-            <p style="margin-top: 12px; font-size: 11px; color: var(--text-gray);">※ 投稿されたアナウンスメントはメインアプリのHOME画面に表示されます
-            </p>
-        </div>
-
-        <!-- YOUTUBE SETTINGS -->
-        <div class="section">
-            <div class="section-title">🎬 YOUTUBE SETTINGS</div>
-            <div style="margin-bottom: 15px;">
-                <label class="input-label">VIDEO ID</label>
-                <input type="text" id="youtubeVideoId" class="text-input"
-                    placeholder="YouTube Video ID (e.g. dQw4w9WgXcQ)">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label class="input-label">CAPTION / キャプション</label>
-                <input type="text" id="youtubeCaptionInput" class="text-input" placeholder="キャプションを入力...">
-            </div>
-            <button class="btn-primary" onclick="saveYouTubeSettings()">💾 SAVE SETTINGS</button>
         </div>
     </main>
 
@@ -609,396 +494,173 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
 
         // ============ LOAD DATA ============
+        // ============ LOAD DATA ============
         async function loadData() {
             try {
-                // Fetch stats from Backend
-                const statsRes = await fetch(`${SCRIPT_URL}?action=stats`);
-                const statsData = await statsRes.json();
+                const response = await fetch(SCRIPT_URL + '?action=data'); // get all
+                const res = await response.json();
 
-                // Fetch members
-                const membersRes = await fetch(`${SCRIPT_URL}?action=members`);
-                const membersData = await membersRes.json();
+                // Calculate stats if not provided directly
+                const stats = {
+                    totalMembers: res.members.length,
+                    totalTokens: res.totalTokens,
+                    totalPosts: res.posts.length,
+                    completedTasks: res.completedTasks
+                };
 
-                // Fetch posts
-                const postsRes = await fetch(`${SCRIPT_URL}?action=posts`);
-                const postsData = await postsRes.json();
+                renderStats(res);
+                renderRanking(res.topMembers);
+                renderMembers(res.members);
+                renderActivity(res.recentActivity);
 
-                const members = membersData.members || [];
-                const posts = postsData.posts || [];
-
-                renderStats(statsData, members, posts);
-                renderRanking(statsData.topMembers || members);
-                renderMembers(members);
-                
-                // Prioritize backend token logs if available, otherwise fallback to posts
-                if (statsData.recentActivity && statsData.recentActivity.length > 0) {
-                    renderActivity(statsData.recentActivity, 'log');
-                } else {
-                    renderActivity(posts, 'post');
-                }
-
-            } catch (error) {
-                console.error('Error loading data:', error);
-                // Show error state
-                document.getElementById('totalMembers').textContent = '!';
-                document.getElementById('totalTokens').textContent = '!';
-                document.getElementById('totalPosts').textContent = '!';
-                document.getElementById('completedTasks').textContent = '!';
+            } catch (e) {
+                console.error('Data load failed', e);
             }
         }
 
-        function renderStats(stats, members, posts) {
-            document.getElementById('totalMembers').textContent = stats.totalMembers || members.length || 0;
-            
-            // Show Total Issued (Lifetime) as main stat, Balance as sub
-            const totalEarned = stats.totalTokensIssued || stats.totalTokens || 0;
-            const currentBalance = stats.totalTokens || 0;
-            document.getElementById('totalTokens').textContent = totalEarned;
-            // Update label to show balance context
-            const tokenLabel = document.querySelector('#totalTokens + .stat-label');
-            if(tokenLabel) tokenLabel.textContent = `TOTAL EARNED (BAL: ${currentBalance})`;
-
-            document.getElementById('totalPosts').textContent = stats.totalPosts || posts.length || 0;
-            document.getElementById('completedTasks').textContent = stats.completedTasks || '-';
+        function renderStats(data) {
+            document.getElementById('totalMembers').textContent = data.totalMembers || 0;
+            document.getElementById('totalTokens').textContent = data.totalTokens || 0;
+            document.getElementById('totalPosts').textContent = data.totalPosts || 0;
+            document.getElementById('completedTasks').textContent = data.completedTasks || 0;
         }
 
         function renderRanking(members) {
-            // Sort by Total Earned (Lifetime Contribution)
-            const sorted = [...members].sort((a, b) => (b.totalEarned || b.tokens || 0) - (a.totalEarned || a.tokens || 0)).slice(0, 5);
+            if (!members) return;
             const list = document.getElementById('rankingList');
 
-            if (sorted.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🏆</div>
-                        <div>まだメンバーがいません</div>
-                    </div>
-                `;
-                return;
-            }
-
-            list.innerHTML = sorted.map((member, index) => `
+            list.innerHTML = members.map((member, index) => `
                 <li class="ranking-item">
                     <div class="ranking-number">${index + 1}</div>
                     <div class="ranking-info">
-                        <div class="ranking-name">${escapeHtml(member.name)}</div>
-                        <div class="ranking-role">${escapeHtml(member.role || 'メンバー')}</div>
+                        <div class="ranking-name">${member.name}</div>
+                        <div class="ranking-role">${member.role}</div>
                     </div>
-                    <div style="text-align:right;">
-                        <div class="ranking-tokens">${member.totalEarned || member.tokens || 0}</div>
-                        <div style="font-size:9px; color:#aaa;">LIFETIME</div>
-                    </div>
+                    <div class="ranking-tokens">${member.totalEarned || member.tokens}</div>
                 </li>
             `).join('');
         }
 
         function renderMembers(members) {
+            if (!members) return;
             const table = document.getElementById('membersTable');
 
-            if (members.length === 0) {
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="4">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">👥</div>
-                                <div>メンバーがいません</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
+            // Sort by join date or just list
             table.innerHTML = members.map(member => `
                 <tr class="member-row">
                     <td>
-                        <span class="member-avatar">${(member.name || '?').charAt(0).toUpperCase()}</span>
-                        <span class="member-name">${escapeHtml(member.name)}</span>
+                        <span class="member-avatar">${member.name.charAt(0)}</span>
+                        <span class="member-name">${member.name}</span>
                     </td>
-                    <td>${escapeHtml(member.role || 'メンバー')}</td>
-                    <td><span class="token-badge">💎 ${member.tokens || 0}</span></td>
-                    <td>${formatDate(member.joinedat || member.joinedAt || member.timestamp)}</td>
+                    <td>${member.role}</td>
+                    <td><span class="token-badge">💎 ${member.tokens}</span></td>
+                    <td>${new Date(member.joinedAt).toLocaleDateString()}</td>
                 </tr>
             `).join('');
         }
 
-        function renderActivity(data, mode = 'post') {
+        function renderActivity(activities) {
+            if (!activities) return;
             const list = document.getElementById('activityList');
 
-            if (!data || data.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <div>アクティビティがありません</div>
-                    </div>
-                `;
-                return;
-            }
-
-            let activities = [];
-
-            if (mode === 'log') {
-                // Parse Token Logs
-                activities = data.map(log => {
-                    let actionText = 'が活動しました';
-                    let icon = '📌';
-                    
-                    switch(log.action) {
-                        case 'post': 
-                            actionText = 'が投稿しました'; 
-                            icon = '📝'; 
-                            break;
-                        case 'comment': 
-                            actionText = 'がコメントしました'; 
-                            icon = '💬'; 
-                            break;
-                        case 'like_received': 
-                            actionText = 'がいいねを受け取りました'; 
-                            icon = '❤️'; 
-                            break;
-                        case 'task_add': 
-                            actionText = 'がタスクを追加しました'; 
-                            icon = '📌'; 
-                            break;
-                        case 'task_complete': 
-                            actionText = 'がタスクを完了しました'; 
-                            icon = '✅'; 
-                            break;
-                        case 'schedule_add': 
-                            actionText = 'が予定を追加しました'; 
-                            icon = '📅'; 
-                            break;
-                        case 'manual':
-                            actionText = 'にトークンが付与されました';
-                            icon = '💎';
-                            break;
-                    }
-
-                    // Append Amount if positive
-                    const amountStr = log.amount > 0 ? ` (+${log.amount} TSST)` : '';
-
-                    return {
-                        user: log.user,
-                        action: actionText,
-                        content: (log.description || '') + amountStr,
-                        time: formatRelativeTime(log.timestamp),
-                        icon: icon
-                    };
-                });
-            } else {
-                // Fallback: Post only mode
-                activities = data.slice(0, 5).map(post => ({
-                    user: post.author,
-                    action: 'が投稿しました',
-                    time: formatRelativeTime(post.timestamp),
-                    content: (post.content || '').substring(0, 30) + '...',
-                    icon: '📝'
-                }));
-            }
+            const icons = {
+                post: '📝',
+                task: '✅',
+                join: '👋',
+                token: '💎',
+                manual: '💎',
+                like: '❤️',
+                comment: '💬',
+                createAdjustment: '📅', // Map custom backend actions to icons
+                adjustment_create: '📅',
+                adjustment_finalized: '🎉'
+            };
 
             list.innerHTML = activities.map(activity => `
                 <li class="activity-item">
-                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-icon">${icons[activity.action] || icons[activity.type] || '📌'}</div>
                     <div class="activity-content">
-                        <div class="activity-text"><strong>${escapeHtml(activity.user)}</strong> ${activity.action}</div>
-                        <div class="activity-text" style="font-size:12px; color:#666;">${escapeHtml(activity.content)}</div>
-                        <div class="activity-time">${activity.time}</div>
+                        <div class="activity-text"><strong>${activity.user}</strong>: ${activity.description || activity.action}</div>
+                        <div class="activity-time">${new Date(activity.timestamp).toLocaleString()}</div>
                     </div>
                 </li>
             `).join('');
         }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
+        // ============ APP SETTINGS ============
+        async function loadSettings() {
             try {
-                const date = new Date(dateStr);
-                return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
-            } catch {
-                return '-';
-            }
-        }
-
-        function formatRelativeTime(dateStr) {
-            if (!dateStr) return '';
-            try {
-                const date = new Date(dateStr);
-                const now = new Date();
-                const diff = Math.floor((now - date) / 1000);
-
-                if (diff < 60) return 'たった今';
-                if (diff < 3600) return `${Math.floor(diff / 60)}分前`;
-                if (diff < 86400) return `${Math.floor(diff / 3600)}時間前`;
-                return `${Math.floor(diff / 86400)}日前`;
-            } catch {
-                return '';
-            }
-        }
-
-        // ============ ANNOUNCEMENT POSTING ============
-        let currentImageData = null;
-
-        function previewImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            // Check file size (2MB limit)
-            if (file.size > 2 * 1024 * 1024) {
-                alert('⚠️ 画像サイズは2MB以下にしてください');
-                input.value = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                currentImageData = e.target.result;
-                document.getElementById('previewImg').src = currentImageData;
-                document.getElementById('imagePreview').style.display = 'flex';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function clearImage() {
-            currentImageData = null;
-            document.getElementById('announcementImage').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-        }
-
-        async function postAnnouncement() {
-            const content = document.getElementById('announcementContent').value.trim();
-            if (!content) {
-                alert('アナウンスメントの内容を入力してください');
-                return;
-            }
-
-            // Get attachment data
-            const linkUrl = document.getElementById('announcementLink').value.trim();
-            const linkLabel = document.getElementById('announcementLinkLabel').value.trim() || linkUrl;
-            const pdfLink = document.getElementById('announcementPdfLink').value.trim();
-
-            // Build attachments array
-            const attachments = [];
-
-            if (linkUrl) {
-                attachments.push({
-                    type: 'link',
-                    url: linkUrl,
-                    label: linkLabel
-                });
-            }
-
-            if (currentImageData) {
-                attachments.push({
-                    type: 'image',
-                    data: currentImageData
-                });
-            }
-
-            if (pdfLink) {
-                attachments.push({
-                    type: 'pdf',
-                    url: pdfLink,
-                    label: 'PDF資料'
-                });
-            }
-
-            // Send to Backend
-            try {
-                const btn = document.querySelector('button[onclick="postAnnouncement()"]');
-                const originalText = btn.textContent;
-                btn.textContent = '送信中...';
-                btn.disabled = true;
-
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        action: 'postAnnouncement',
-                        author: 'TSS運営',
-                        content: content,
-                        attachments: attachments
-                    })
-                });
-
-                // Clear form
-                document.getElementById('announcementContent').value = '';
-                document.getElementById('announcementLink').value = '';
-                document.getElementById('announcementLinkLabel').value = '';
-                document.getElementById('announcementPdfLink').value = '';
-                clearImage();
-
-                btn.textContent = originalText;
-                btn.disabled = false;
-
-                alert('✅ アナウンスメントを全ユーザーに配信しました！');
-
+                const response = await fetch(SCRIPT_URL + '?action=settings');
+                const res = await response.json();
+                if (res.settings && res.settings.youtube_video_id) {
+                    // Check if it's full URL or ID. We prefer URL for input display, but if only ID is saved, show ID or construct URL
+                    const savedId = res.settings.youtube_video_id;
+                    document.getElementById('youtubeUrlInput').value = `https://youtu.be/${savedId}`;
+                }
             } catch (e) {
-                console.error(e);
-                alert('送信エラー: ' + e);
+                console.error('Settings load error', e);
             }
         }
 
-        // ============ YOUTUBE SETTINGS ============
-        function loadYouTubeSettings() {
-            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
-            document.getElementById('youtubeVideoId').value = settings.videoId || '';
-            document.getElementById('youtubeCaptionInput').value = settings.caption || '';
-        }
+        async function saveYoutubeSettings() {
+            const input = document.getElementById('youtubeUrlInput').value.trim();
+            if (!input) return alert('Please enter a YouTube URL');
 
-        async function saveYouTubeSettings() {
-            const videoId = document.getElementById('youtubeVideoId').value.trim();
-            const caption = document.getElementById('youtubeCaptionInput').value.trim();
-
-            if (!videoId) {
-                alert('Video IDを入力してください');
-                return;
+            // Extract ID
+            let videoId = '';
+            const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
+            if (match && match[1]) {
+                videoId = match[1];
+            } else {
+                return alert('Invalid YouTube URL');
             }
 
-            const settings = {
-                videoId: videoId,
-                caption: caption
-            };
-
-            // Save locally
-            localStorage.setItem('tss_youtube_settings', JSON.stringify(settings));
-
-            // Sync to Backend
             try {
-                const btn = document.querySelector('button[onclick="saveYouTubeSettings()"]');
+                const btn = event.target;
                 const originalText = btn.textContent;
-                btn.textContent = '保存中...';
+                btn.textContent = 'SAVING...';
                 btn.disabled = true;
 
+                // 1. Save Video ID
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({
                         action: 'saveSettings',
-                        key: 'youtube_settings',
-                        value: settings
+                        key: 'youtube_video_id', // Key expected by app/index.html loadYouTubeSettings
+                        value: videoId
                     })
                 });
 
+                // 2. Save Caption (Optional, hardcode or add input later)
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'saveSettings',
+                        key: 'youtube_caption',
+                        value: 'THEME SONG OF THE MONTH'
+                    })
+                });
+
+                alert('YouTube Settings Saved! Users will see this on reload.');
                 btn.textContent = originalText;
                 btn.disabled = false;
-                alert('✅ YouTube設定を全ユーザーに反映しました！');
 
             } catch (e) {
-                console.error(e);
-                alert('保存エラー: ' + e);
+                alert('Save failed: ' + e.message);
             }
+        }
+
+        function openYoutubePreview() {
+            const input = document.getElementById('youtubeUrlInput').value.trim();
+            if (input) window.open(input, '_blank');
         }
 
         // ============ INIT ============
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
-            loadYouTubeSettings();
+            loadSettings(); // Load existing settings
         });
     </script>
 </body>
