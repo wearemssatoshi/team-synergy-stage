@@ -1343,8 +1343,7 @@
                 style="flex: 2.5; display: flex; align-items: center; justify-content: space-between; background: var(--light-gray); border: 1px solid rgba(212, 175, 55, 0.3); padding: 8px 12px; border-radius: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;">
                     <div class="vision-photo" id="visionPhotoContainer"
-                        onclick="triggerVisionPhotoUpload(event); event.stopPropagation();"
-                        style="cursor: pointer; position: relative; width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                        style="position: relative; width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                         <img id="visionPhoto" src=""
                             style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                         <span id="visionPhotoPlaceholder" style="font-size: 18px; color: var(--primary);">👤</span>
@@ -1382,9 +1381,6 @@
                         style="font-size: 10px; color: #3E2723; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.05em;">
                         ROLE</div>
                     <div id="roleVisionText" style="font-size: 13px; font-weight: 700; color: #BF360C;">-</div>
-                    <button class="btn-secondary" onclick="triggerVisionPhotoUpload(event)"
-                        style="width: 100%; margin-top: 15px; font-size: 11px; border-color: #D2691E; color: #8B4513;">Change
-                        Photo 📷</button>
                 </div>
             </div>
         </div>
@@ -2819,6 +2815,7 @@
         function updateVisionDisplay() {
             const accordion = document.getElementById('visionAccordion');
             const futureText = document.getElementById('futureVisionText');
+            const futureDetail = document.getElementById('futureVisionDetail');
             const roleText = document.getElementById('roleVisionText');
             const photo = document.getElementById('visionPhoto');
             const placeholder = document.getElementById('visionPhotoPlaceholder');
@@ -2833,6 +2830,7 @@
             const profileImage = localStorage.getItem('tss_profile_image') || localStorage.getItem('tss_profile_photo') || '';
 
             futureText.textContent = future || '-';
+            if (futureDetail) futureDetail.textContent = future || 'No vision set yet.';
             roleText.textContent = role || '-';
 
             if (profileImage) {
