@@ -326,6 +326,150 @@
             background-color: var(--light-gray) !important;
         }
 
+        /* RANKING SYSTEM */
+        .ranking-container {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .top-three {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .rank-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            flex: 1;
+            position: relative;
+        }
+
+        .rank-card.rank-1 {
+            flex: 1.2;
+            border-color: #FFD700;
+            background: linear-gradient(to bottom, #FFF, #FFFDF5);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+            order: 2;
+            /* Center */
+        }
+
+        .rank-card.rank-2 {
+            border-color: #C0C0C0;
+            order: 1;
+            /* Left */
+        }
+
+        .rank-card.rank-3 {
+            border-color: #CD7F32;
+            order: 3;
+            /* Right */
+        }
+
+        .rank-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-gray);
+            font-size: 20px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .rank-1 .rank-avatar {
+            width: 55px;
+            height: 55px;
+            font-size: 26px;
+            border-color: #FFD700;
+        }
+
+        .rank-2 .rank-avatar {
+            border-color: #C0C0C0;
+        }
+
+        .rank-3 .rank-avatar {
+            border-color: #CD7F32;
+        }
+
+        .rank-crown {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+        }
+
+        .rank-name {
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-score {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--primary);
+        }
+
+        .rank-label {
+            font-size: 7px;
+            color: var(--text-gray);
+            letter-spacing: 1px;
+        }
+
+        .rank-list {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rank-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank-num {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            width: 25px;
+            color: var(--text-gray);
+        }
+
+        .rank-item-name {
+            flex: 1;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .rank-item-score {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--primary);
+        }
+
         /* CARDS */
         .card {
             background: var(--white);
@@ -1518,6 +1662,14 @@
                 </div>
             </div>
 
+            <!-- RANKING SECTION -->
+            <div class="section-title">🏆 HALL OF FAME</div>
+            <div id="rankingContainer" class="ranking-container">
+                <div class="loading" style="padding:20px;">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+
             <div class="section-title">🎬 FEATURED VIDEO</div>
             <div class="card">
                 <div class="youtube-container" id="youtubeContainer">
@@ -2167,6 +2319,7 @@
                 loadYouTubeSettings();
                 refreshAttendanceUI();
                 fetchLatestProfile(); // Sync Live Data
+                fetchRanking(); // Load Hall of Fame
 
                 // Fetch Version
                 checkAppVersion();
@@ -3077,6 +3230,81 @@
     `).join('');
         }
 
+        // ============ RANKING ============
+        function fetchRanking() {
+            fetch(SCRIPT_URL + '?action=getStats')
+                .then(r => r.json())
+                .then(res => renderRanking(res))
+                .catch(e => console.error('Ranking load failed', e));
+        }
+
+        function renderRanking(data) {
+            const container = document.getElementById('rankingContainer');
+            if (!data || !data.topMembers) {
+                container.innerHTML = '<div style="text-align:center;font-size:12px;color:#999;">No Data</div>';
+                return;
+            }
+
+            const top3 = data.topMembers.slice(0, 3);
+            const others = data.topMembers.slice(3);
+
+            let html = '<div class="top-three">';
+
+            // Rank 2 (Left)
+            if (top3[1]) {
+                html += `
+                <div class="rank-card rank-2">
+                    <div class="rank-crown">🥈</div>
+                    <div class="rank-avatar">${top3[1].name.charAt(0)}</div>
+                    <div class="rank-name">${top3[1].name}</div>
+                    <div class="rank-score">${top3[1].totalEarned || 0}</div>
+                    <div class="rank-label">EARNED</div>
+                </div>`;
+            }
+
+            // Rank 1 (Center)
+            if (top3[0]) {
+                html += `
+                <div class="rank-card rank-1">
+                    <div class="rank-crown">👑</div>
+                    <div class="rank-avatar">${top3[0].name.charAt(0)}</div>
+                    <div class="rank-name">${top3[0].name}</div>
+                    <div class="rank-score">${top3[0].totalEarned || 0}</div>
+                    <div class="rank-label">EARNED</div>
+                </div>`;
+            }
+
+            // Rank 3 (Right)
+            if (top3[2]) {
+                html += `
+                <div class="rank-card rank-3">
+                    <div class="rank-crown">🥉</div>
+                    <div class="rank-avatar">${top3[2].name.charAt(0)}</div>
+                    <div class="rank-name">${top3[2].name}</div>
+                    <div class="rank-score">${top3[2].totalEarned || 0}</div>
+                    <div class="rank-label">EARNED</div>
+                </div>`;
+            }
+            html += '</div>';
+
+            // List 4-10
+            if (others.length > 0) {
+                html += '<div class="rank-list">';
+                others.forEach((m, idx) => {
+                    html += `
+                    <div class="rank-item">
+                        <div class="rank-num">${idx + 4}</div>
+                        <div class="rank-item-name">${m.name}</div>
+                        <div class="rank-item-score">${m.totalEarned || 0} TSST</div>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ============ UTILS ============
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
