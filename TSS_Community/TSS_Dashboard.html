@@ -427,6 +427,40 @@
             </div>
         </div>
 
+        </div>
+
+        <!-- APP MANAGEMENT (YouTube & Settings) -->
+        <div class="section">
+            <div class="section-title">⚙️ APP MANAGEMENT</div>
+
+            <div style="margin-bottom: 20px;">
+                <label
+                    style="display: block; font-size: 12px; font-weight: 700; color: var(--text-gray); margin-bottom: 8px;">HOME
+                    YOUTUBE VIDEO</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="youtubeUrlInput" placeholder="YouTube URL (e.g. https://youtu.be/...)"
+                        class="text-input"
+                        style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+                    <button class="refresh-btn" onclick="saveYoutubeSettings()"
+                        style="margin-top: 0; background: var(--primary);">SAVE</button>
+                    <button class="refresh-btn" onclick="openYoutubePreview()"
+                        style="margin-top: 0; background: #FF0000;">PREVIEW</button>
+                </div>
+                <div style="font-size: 11px; color: var(--text-gray); margin-top: 5px;">
+                    * The video will be embedded on the app Home screen for all users. <br>
+                    * Use normal URL or Share URL.
+                </div>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 20px 0;">
+
+            <div style="font-size: 12px; color: var(--text-gray);">
+                <span
+                    style="display: inline-block; width: 10px; height: 10px; background: #22C55E; border-radius: 50%; margin-right: 5px;"></span>
+                Systems Operational (v5.1 Smart Schedule)
+            </div>
+        </div>
+
         <!-- MEMBERS TABLE -->
         <div class="section">
             <div class="section-title">👥 MEMBERS</div>
@@ -553,8 +587,81 @@
             `).join('');
         }
 
+        // ============ APP SETTINGS ============
+        async function loadSettings() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=settings');
+                const res = await response.json();
+                if (res.settings && res.settings.youtube_video_id) {
+                    // Check if it's full URL or ID. We prefer URL for input display, but if only ID is saved, show ID or construct URL
+                    const savedId = res.settings.youtube_video_id;
+                    document.getElementById('youtubeUrlInput').value = `https://youtu.be/${savedId}`;
+                }
+            } catch (e) {
+                console.error('Settings load error', e);
+            }
+        }
+
+        async function saveYoutubeSettings() {
+            const input = document.getElementById('youtubeUrlInput').value.trim();
+            if (!input) return alert('Please enter a YouTube URL');
+
+            // Extract ID
+            let videoId = '';
+            const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/)([^#&?]*))/);
+            if (match && match[1]) {
+                videoId = match[1];
+            } else {
+                return alert('Invalid YouTube URL');
+            }
+
+            try {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'SAVING...';
+                btn.disabled = true;
+
+                // 1. Save Video ID
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'saveSettings',
+                        key: 'youtube_video_id', // Key expected by app/index.html loadYouTubeSettings
+                        value: videoId
+                    })
+                });
+
+                // 2. Save Caption (Optional, hardcode or add input later)
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'saveSettings',
+                        key: 'youtube_caption',
+                        value: 'THEME SONG OF THE MONTH'
+                    })
+                });
+
+                alert('YouTube Settings Saved! Users will see this on reload.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+
+            } catch (e) {
+                alert('Save failed: ' + e.message);
+            }
+        }
+
+        function openYoutubePreview() {
+            const input = document.getElementById('youtubeUrlInput').value.trim();
+            if (input) window.open(input, '_blank');
+        }
+
         // ============ INIT ============
-        document.addEventListener('DOMContentLoaded', loadData);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            loadSettings(); // Load existing settings
+        });
     </script>
 </body>
 
