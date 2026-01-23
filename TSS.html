@@ -1311,49 +1311,61 @@
         <h1>TEAM SYNERGY STAGE</h1>
         <div class="header-sub">COMMUNITY APP</div>
         <div class="user-badge" id="userBadge" style="display: none;"></div>
-        <div class="token-display" id="tokenDisplay" style="display: none;">
-            <span class="token-icon">🪙</span>
-            <span class="token-balance" id="tokenBalance">0</span>
-            <span class="token-label">TSST</span>
-        </div>
-        <div style="font-size: 10px; opacity: 0.5; margin-top: 5px; color: #fff; text-align: center;">v5.1 Smart
-            Schedule
-        </div>
 
-        <!-- MY VISION Accordion -->
-        <div class="vision-accordion" id="visionAccordion" style="display: none;">
-            <!-- Hidden File Input for Quick Upload -->
+        <!-- TOKEN BADGE (High Visibility) -->
+        <div class="token-badge"
+            style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.3); display: inline-flex; flex-direction: column; align-items: center; min-width: 100px; margin-top: 10px;">
+            <div style="font-size: 10px; color: #FFD700; letter-spacing: 1px; margin-bottom: 2px; font-weight: 700;">
+                TOKENS</div>
+            <div style="display: flex; align-items: baseline; gap: 4px;">
+                <span class="icon" style="font-size: 14px;">💎</span>
+                <span class="token-balance" id="tokenBalance"
+                    style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 700; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">0</span>
+                <span class="token-label" style="font-size: 12px; font-weight: 600; color: #fff;">TSST</span>
+            </div>
+        </div>
+        <div
+            style="font-size: 10px; opacity: 0.9; margin-top: 8px; color: #fff; text-align: center; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+            v5.1 Smart Schedule</div>
+
+        <!-- MY VISION Accordion (High Contrast) -->
+        <div class="vision-accordion" id="visionAccordion" style="display: none; margin-top: 15px;">
             <input type="file" id="visionPhotoUpload" style="display: none;" accept="image/*"
                 onchange="handleVisionPhotoUpload(event)">
 
-            <div class="vision-accordion-header" onclick="toggleVisionAccordion()">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="vision-photo" id="visionPhotoContainer" onclick="triggerVisionPhotoUpload(event)"
-                            style="cursor: pointer;">
-                            <img id="visionPhoto" src="" style="display: none;">
-                            <span id="visionPhotoPlaceholder" style="font-size: 20px; color: white;">👤</span>
-                        </div>
-                        <div
-                            style="font-family: 'Montserrat', sans-serif; font-size: 10px; color: var(--primary); letter-spacing: 0.1em; font-weight: 600;">
-                            📌 MY VISION
-                        </div>
+            <div class="vision-accordion-header" onclick="toggleVisionAccordion()"
+                style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.95); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 12px 16px; border-radius: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="vision-photo" id="visionPhotoContainer" onclick="triggerVisionPhotoUpload(event)"
+                        style="cursor: pointer; position: relative;">
+                        <img id="visionPhoto" src="" style="display: none;">
+                        <span id="visionPhotoPlaceholder" style="font-size: 20px; color: white;">👤</span>
                     </div>
-                    <span class="vision-arrow" id="visionArrow">▼</span>
+                    <div>
+                        <div style="font-size: 10px; color: #444; font-weight: 700; letter-spacing: 0.05em;">MY VISION
+                        </div>
+                        <div id="futureVisionText"
+                            style="font-size: 12px; font-weight: 700; color: #1a1a1a; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
+                            ...</div>
+                    </div>
                 </div>
+                <div class="vision-arrow" id="visionArrow" style="color: #444;">▼</div>
             </div>
-            <div class="vision-accordion-content" id="visionAccordionContent">
-                <div style="padding: 12px 16px;">
-                    <div style="font-size: 11px;">
-                        <div style="color: var(--text-dark); margin-bottom: 10px;">
-                            <strong style="color: var(--primary);">✨ 3年後の自分</strong>
-                            <div id="futureVisionText" style="margin-top: 3px; color: var(--text-gray);">-</div>
-                        </div>
-                        <div style="color: var(--text-dark);">
-                            <strong style="color: var(--primary);">💼 役割</strong>
-                            <div id="roleVisionText" style="margin-top: 3px; color: var(--text-gray);">-</div>
-                        </div>
-                    </div>
+
+            <div class="vision-accordion-content" id="visionAccordionContent"
+                style="background: #fff; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                <div style="padding: 16px;">
+                    <div style="font-size: 10px; color: #666; margin-bottom: 4px; font-weight: 600;">3 YEARS LATER</div>
+                    <div id="futureVisionDetail"
+                        style="font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 12px; background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                        (Set in Profile > Edit)</div>
+
+                    <div style="font-size: 10px; color: #666; margin-bottom: 4px; font-weight: 600;">ROLE</div>
+                    <div id="roleVisionText" style="font-size: 13px; font-weight: 700; color: var(--primary);">-</div>
+
+                    <button class="btn-secondary" onclick="triggerVisionPhotoUpload(event)"
+                        style="width: 100%; margin-top: 15px; font-size: 11px; background: #f0f0f0; border: none;">Change
+                        Photo 📷</button>
                 </div>
             </div>
         </div>
@@ -1409,8 +1421,8 @@
                 </div>
 
                 <div class="input-group">
-                    <label class="input-label">PIN (4桁の数字など)</label>
-                    <input type="password" class="text-input" id="loginPin" placeholder="PINコード">
+                    <label class="input-label">PIN (4桁の数字)</label>
+                    <input type="tel" class="text-input" id="loginPin" placeholder="PINコード" maxlength="4" pattern="\d*">
                 </div>
 
                 <button class="btn-main" onclick="login()">LOGIN</button>
@@ -1419,50 +1431,7 @@
         </div>
 
         <!-- HOME SCREEN -->
-        <div class="screen" id="screen-schedule">
-            <div class="section-title">📅 SMART SCHEDULE</div>
-
-            <div style="text-align: right; margin-bottom: 15px;">
-                <button class="btn-main" onclick="openNewAdjustmentForm()"
-                    style="width: auto; padding: 10px 20px; font-size: 11px;">+ NEW ADJUSTMENT</button>
-            </div>
-
-            <!-- NEW ADJUSTMENT FORM -->
-            <div id="new-adjustment-form" class="card" style="display: none;">
-                <div class="card-title">✨ CREATE NEW</div>
-
-                <div class="input-group">
-                    <label class="input-label">EVENT TITLE</label>
-                    <input type="text" id="adjTitle" class="text-input" placeholder="例: 定例MTG">
-                </div>
-
-                <div class="input-group">
-                    <label class="input-label">CANDIDATES</label>
-                    <div id="adjDatesList"></div>
-                    <div style="display: flex; gap: 5px; margin-top: 5px;">
-                        <input type="datetime-local" id="adjDateInput" class="text-input" style="font-size: 12px;">
-                        <button onclick="addAdjDate()" class="btn-secondary"
-                            style="width: auto; margin-top:0;">ADD</button>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label class="input-label">MEMBERS (Names)</label>
-                    <input type="text" id="adjMemberInput" class="text-input" placeholder="Members (comma separated)">
-                </div>
-
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="closeNewAdjustmentForm()" class="btn-secondary">CANCEL</button>
-                    <button onclick="createAdjustment()" class="btn-main">CREATE & INVITE</button>
-                </div>
-            </div>
-
-            <div id="adjustmentsList">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                </div>
-            </div>
-        </div>
+        <!-- (Merged into TODO screen) -->
 
         <!-- HOME SCREEN -->
         <div class="screen" id="screen-home">
@@ -1558,6 +1527,48 @@
                         <div class="loading" style="padding:10px;">
                             <div class="loading-spinner" style="width:20px;height:20px;"></div>
                         </div>
+                    </div>
+
+                    <!-- SMART SCHEDULE (Moved from separate screen) -->
+                    <div class="section-title"
+                        style="justify-content: center; border: none; margin-top: 40px; margin-bottom: 15px; font-size: 12px; color: var(--primary);">
+                        ✨ SCHEDULE ADJUSTMENTS</div>
+
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <button class="btn-secondary" onclick="openNewAdjustmentForm()"
+                            style="width: auto; font-size: 11px;">+ NEW ADJUSTMENT</button>
+                    </div>
+
+                    <!-- NEW ADJUSTMENT FORM (Hidden) -->
+                    <div id="new-adjustment-form" class="card" style="display: none; border: 1px solid var(--primary);">
+                        <div class="card-title">create new adjustment</div>
+                        <div class="input-group">
+                            <label class="input-label">TITLE</label>
+                            <input type="text" id="adjTitle" class="text-input" placeholder="Event Name">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">CANDIDATES</label>
+                            <div id="adjDatesList"></div>
+                            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                                <input type="datetime-local" id="adjDateInput" class="text-input">
+                                <button onclick="addAdjDate()" class="btn-secondary"
+                                    style="width: auto; margin: 0;">ADD</button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">MEMBERS (comma separated)</label>
+                            <input type="text" id="adjMemberInput" class="text-input"
+                                placeholder="Names (e.g. Tanaka, Sato) or 'All'">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="closeNewAdjustmentForm()" class="btn-secondary">CANCEL</button>
+                            <button onclick="createAdjustment()" class="btn-main">CREATE</button>
+                        </div>
+                    </div>
+
+                    <div id="adjustmentsList" style="padding-bottom: 40px;">
+                        <div style="text-align: center; color: var(--text-gray); font-size: 11px;">Loading
+                            Adjustments...</div>
                     </div>
                 </div>
             </div>
@@ -1675,10 +1686,7 @@
                 <span class="nav-icon">⌂</span>
                 <span class="nav-label">HOME</span>
             </div>
-            <div class="nav-item" onclick="showScreen('screen-schedule')">
-                <span class="nav-icon">📅</span>
-                <span class="nav-label">SCHED</span>
-            </div>
+            <!-- SCHED REMOVED -->
             <div class="nav-item" onclick="showScreen('screen-board')">
                 <span class="nav-icon">≡</span>
                 <span class="nav-label">BOARD</span>
@@ -1699,6 +1707,10 @@
     </nav>
 
     <script>
+        // ========== CONFIGURATION ==========
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
+        const APP_VERSION = 'v5.1';
+
         // ========== Smart Schedule Functions ==========
         let currentAdjustments = [];
         let newAdjDates = [];
@@ -2135,7 +2147,7 @@
             const caption = document.getElementById('youtubeCaption');
 
             // Default video if none set
-            const defaultVideoId = 'YOUR_VIDEO_ID';
+            const defaultVideoId = 'M7lc1UVf-VE'; // Test video
             const videoId = settings.videoId || defaultVideoId;
 
             iframe.src = `https://www.youtube.com/embed/${videoId}`;
@@ -3687,10 +3699,14 @@
         const originalShowScreen = showScreen;
         showScreen = function (screenId) {
             originalShowScreen(screenId);
-            if (screenId === 'screen-todo' && calendar) {
-                setTimeout(() => {
-                    calendar.updateSize();
-                }, 200);
+            if (screenId === 'screen-todo') {
+                if (calendar) {
+                    setTimeout(() => {
+                        calendar.updateSize();
+                    }, 200);
+                }
+                // Also fetch adjustments when opening TODO
+                if (typeof fetchAdjustments === 'function') fetchAdjustments();
             }
         }
 
