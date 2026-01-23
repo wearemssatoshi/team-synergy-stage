@@ -1312,64 +1312,69 @@
         <div class="header-sub">COMMUNITY APP</div>
         <div class="user-badge" id="userBadge" style="display: none;"></div>
 
-        <!-- TOKEN BADGE (High Visibility) -->
-        <div class="token-badge" id="tokenDisplay"
-            style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.3); display: inline-flex; flex-direction: column; align-items: center; min-width: 100px; margin-top: 10px;">
-            <div style="font-size: 10px; color: #FFD700; letter-spacing: 1px; margin-bottom: 2px; font-weight: 700;">
-                TOKENS</div>
-            <div style="display: flex; align-items: baseline; gap: 4px;">
-                <span class="icon" style="font-size: 14px;">💎</span>
-                <span class="token-balance" id="tokenBalance"
-                    style="font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 700; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">0</span>
-                <span class="token-label" style="font-size: 12px; font-weight: 600; color: #fff;">TSST</span>
+        <!-- UNIFIED HEADER INFO (Tokens & Vision) -->
+        <div style="display: flex; gap: 10px; margin-top: 15px; align-items: stretch;">
+
+            <!-- TOKEN BADGE (Left) -->
+            <div class="token-badge" id="tokenDisplay"
+                style="flex: 1; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size: 9px; color: #FFD700; letter-spacing: 1px; font-weight: 700;">TOKENS</div>
+                <div style="display: flex; align-items: baseline; gap: 2px;">
+                    <span class="icon" style="font-size: 12px;">💎</span>
+                    <span id="tokenBalance"
+                        style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700; color: #fff;">0</span>
+                    <span style="font-size: 9px; font-weight: 600; color: #fff;">TSST</span>
+                </div>
+            </div>
+
+            <!-- MY VISION HEADER (Right) -->
+            <div class="vision-accordion-header" onclick="toggleVisionAccordion()"
+                style="flex: 2; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px 12px; border-radius: 12px; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="vision-photo" id="visionPhotoContainer"
+                        onclick="triggerVisionPhotoUpload(event); event.stopPropagation();"
+                        style="cursor: pointer; position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                        <img id="visionPhoto" src=""
+                            style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        <span id="visionPhotoPlaceholder" style="font-size: 18px; color: var(--primary);">👤</span>
+                    </div>
+                    <div style="overflow: hidden;">
+                        <div style="font-size: 8px; color: var(--primary); font-weight: 700; letter-spacing: 0.1em;">MY
+                            VISION</div>
+                        <div id="futureVisionText"
+                            style="font-size: 11px; font-weight: 700; color: #4A3200; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">
+                            ...</div>
+                    </div>
+                </div>
+                <div class="vision-arrow" id="visionArrow" style="color: var(--primary); font-size: 10px;">▼</div>
             </div>
         </div>
+
         <div
             style="font-size: 10px; opacity: 0.9; margin-top: 8px; color: #fff; text-align: center; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
             v5.1 Smart Schedule</div>
 
-        <!-- MY VISION Accordion (Gold Theme Revert) -->
-        <div class="vision-accordion" id="visionAccordion" style="display: none; margin-top: 15px;">
+        <!-- MY VISION CONTENT (Cream Background) -->
+        <div class="vision-accordion" id="visionAccordion" style="display: none; margin-top: 5px;">
             <input type="file" id="visionPhotoUpload" style="display: none;" accept="image/*"
                 onchange="handleVisionPhotoUpload(event)">
-
-            <div class="vision-accordion-header" onclick="toggleVisionAccordion()"
-                style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 12px 16px; border-radius: 12px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div class="vision-photo" id="visionPhotoContainer" onclick="triggerVisionPhotoUpload(event)"
-                        style="cursor: pointer; position: relative;">
-                        <img id="visionPhoto" src="" style="display: none;">
-                        <span id="visionPhotoPlaceholder" style="font-size: 20px; color: var(--primary);">👤</span>
-                    </div>
-                    <div>
-                        <div style="font-size: 10px; color: var(--primary); font-weight: 700; letter-spacing: 0.1em;">MY
-                            VISION
-                        </div>
-                        <div id="futureVisionText"
-                            style="font-size: 12px; font-weight: 700; color: #4A3200; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
-                            ...</div>
-                    </div>
-                </div>
-                <div class="vision-arrow" id="visionArrow" style="color: var(--primary);">▼</div>
-            </div>
-
             <div class="vision-accordion-content" id="visionAccordionContent"
-                style="background: rgba(255,255,255,0.6); border: 1px solid rgba(212,175,55,0.2);">
+                style="background: #FFFDD0; border: 1px solid rgba(212,175,55,0.4); border-radius: 12px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 <div style="padding: 16px;">
-                    <div style="font-size: 10px; color: #666; margin-bottom: 4px; font-weight: 600;">3 YEARS LATER</div>
+                    <div style="font-size: 10px; color: #8B4513; margin-bottom: 4px; font-weight: 600;">3 YEARS LATER
+                    </div>
                     <div id="futureVisionDetail"
-                        style="font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 12px; white-space: pre-wrap;">
+                        style="font-size: 13px; line-height: 1.6; color: #3e2723; margin-bottom: 12px; white-space: pre-wrap;">
                         (Set in Profile > Edit)</div>
-
-                    <div style="font-size: 10px; color: #666; margin-bottom: 4px; font-weight: 600;">ROLE</div>
-                    <div id="roleVisionText" style="font-size: 13px; font-weight: 700; color: var(--primary);">-</div>
-
+                    <div style="font-size: 10px; color: #8B4513; margin-bottom: 4px; font-weight: 600;">ROLE</div>
+                    <div id="roleVisionText" style="font-size: 13px; font-weight: 700; color: #D2691E;">-</div>
                     <button class="btn-secondary" onclick="triggerVisionPhotoUpload(event)"
-                        style="width: 100%; margin-top: 15px; font-size: 11px;">Change
+                        style="width: 100%; margin-top: 15px; font-size: 11px; border-color: #D2691E; color: #8B4513;">Change
                         Photo 📷</button>
                 </div>
             </div>
         </div>
+
     </header>
 
     <main>
@@ -1542,28 +1547,28 @@
 
                     <!-- NEW ADJUSTMENT FORM (Hidden) -->
                     <div id="new-adjustment-form" class="card" style="display: none; border: 1px solid var(--primary);">
-                        <div class="card-title">create new adjustment</div>
+                        <div class="card-title">日程調整を作成 (New Adjustment)</div>
                         <div class="input-group">
-                            <label class="input-label">TITLE</label>
-                            <input type="text" id="adjTitle" class="text-input" placeholder="Event Name">
+                            <label class="input-label">TITLE (タイトル)</label>
+                            <input type="text" id="adjTitle" class="text-input" placeholder="イベント名を入力">
                         </div>
                         <div class="input-group">
-                            <label class="input-label">CANDIDATES</label>
+                            <label class="input-label">候補日 (CANDIDATES)</label>
                             <div id="adjDatesList"></div>
                             <div style="display: flex; gap: 5px; margin-top: 5px;">
                                 <input type="datetime-local" id="adjDateInput" class="text-input">
                                 <button onclick="addAdjDate()" class="btn-secondary"
-                                    style="width: auto; margin: 0;">ADD</button>
+                                    style="width: auto; margin: 0;">追加</button>
                             </div>
                         </div>
                         <div class="input-group">
-                            <label class="input-label">MEMBERS (comma separated)</label>
+                            <label class="input-label">参加メンバー (MEMBERS)</label>
                             <input type="text" id="adjMemberInput" class="text-input"
-                                placeholder="Names (e.g. Tanaka, Sato) or 'All'">
+                                placeholder="名前を入力 (例: 田中, 佐藤) または 'All'">
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button onclick="closeNewAdjustmentForm()" class="btn-secondary">CANCEL</button>
-                            <button onclick="createAdjustment()" class="btn-main">CREATE</button>
+                            <button onclick="closeNewAdjustmentForm()" class="btn-secondary">キャンセル</button>
+                            <button onclick="createAdjustment()" class="btn-main">作成する</button>
                         </div>
                     </div>
 
@@ -2143,21 +2148,31 @@
 
         // ============ YOUTUBE ============
         function loadYouTubeSettings() {
-            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
-            const iframe = document.getElementById('youtubeEmbed');
-            const caption = document.getElementById('youtubeCaption');
+            try {
+                const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
+                const iframe = document.getElementById('youtubeEmbed');
+                const caption = document.getElementById('youtubeCaption');
 
-            // Default video if none set
-            const defaultVideoId = 'M7lc1UVf-VE'; // Test video
-            const videoId = settings.videoId || defaultVideoId;
+                if (!iframe) return; // Safety check
 
-            iframe.src = `https://www.youtube.com/embed/${videoId}`;
-            caption.textContent = settings.caption || '';
+                // Robust default video ID (TSS or placeholder)
+                const defaultVideoId = 'M7lc1UVf-VE';
+                let videoId = settings.videoId;
 
-            if (!settings.caption) {
-                caption.style.display = 'none';
-            } else {
-                caption.style.display = 'block';
+                // If invalid or empty, fallback
+                if (!videoId || videoId.length < 5) videoId = defaultVideoId;
+
+                const newSrc = `https://www.youtube.com/embed/${videoId}`;
+                if (iframe.src !== newSrc) { // Avoid reload if same
+                    iframe.src = newSrc;
+                }
+
+                if (caption) {
+                    caption.textContent = settings.caption || '';
+                    caption.style.display = settings.caption ? 'block' : 'none';
+                }
+            } catch (e) {
+                console.error('YouTube load error:', e);
             }
         }
 
