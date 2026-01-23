@@ -5,15 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TEAM SYNERGY STAGE</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TSS">
-    <link rel="apple-touch-icon" sizes="180x180" href="logo/TSS_icon.png">
-    <link rel="icon" type="image/png" href="logo/TSS_icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../logo/tss_icon.png">
+    <link rel="icon" type="image/png" href="../logo/tss_icon.png">
     <link rel="manifest" href="manifest.json">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         rel="stylesheet">
@@ -26,14 +24,16 @@
             --primary-dark: #B8960C;
             --primary-light: rgba(212, 175, 55, 0.15);
             --primary-glow: rgba(212, 175, 55, 0.35);
-            --accent: #B8960C;
-            --accent-light: rgba(184, 150, 12, 0.18);
+            --accent: #FFD700;
+            --accent-light: rgba(255, 215, 0, 0.15);
             --text-dark: #1a1a1a;
             --text-gray: #5a5a5a;
             --border: rgba(26, 26, 26, 0.1);
             --success: #22C55E;
             --warning: #F59E0B;
             --danger: #EF4444;
+            --gradient-primary: linear-gradient(135deg, #D4AF37, #FFD700);
+            --gradient-dark: linear-gradient(135deg, #2D2308, #4A3D14);
         }
 
         * {
@@ -41,10 +41,6 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        body.modal-open {
-            overflow: hidden;
         }
 
         body {
@@ -59,39 +55,62 @@
         header {
             padding: 20px;
             text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            background: rgba(255, 255, 255, 0.94);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: linear-gradient(135deg, #FBF5B7, #E5C158, #D4AF37, #C6A355);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             position: sticky;
             top: 0;
             z-index: 9999;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+            overflow: hidden;
+        }
+
+        /* Shine effect */
+        header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 60%);
+            opacity: 0.15;
+            transform: rotate(30deg);
+            pointer-events: none;
         }
 
         .logo-container {
             margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
         }
 
         .logo-container img {
-            height: 50px;
+            height: 45px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
 
         h1 {
             font-family: 'Montserrat', sans-serif;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
             letter-spacing: 0.05em;
-            color: var(--primary);
+            color: #4A3200;
+            background: none;
+            -webkit-text-fill-color: initial;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+            position: relative;
+            z-index: 2;
         }
 
         .header-sub {
             font-family: 'Montserrat', sans-serif;
             font-size: 10px;
-            color: var(--accent);
-            letter-spacing: 0.2em;
+            color: #5C4010;
+            letter-spacing: 0.25em;
             margin-top: 4px;
-            font-weight: 500;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
         }
 
         .user-badge {
@@ -110,8 +129,8 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: linear-gradient(135deg, var(--accent-light), rgba(245, 158, 11, 0.05));
-            border: 1px solid var(--accent);
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
             padding: 6px 14px;
             border-radius: 25px;
             margin-top: 10px;
@@ -139,7 +158,7 @@
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
             font-size: 13px;
-            color: var(--accent);
+            color: var(--primary);
         }
 
         .token-label {
@@ -147,6 +166,72 @@
             font-size: 9px;
             letter-spacing: 0.1em;
             color: var(--text-gray);
+        }
+
+        /* TOKEN EARNED ANIMATION */
+        .token-earned-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .token-earned-badge {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 30px;
+            background: var(--gradient-dark);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            box-shadow: 0 0 30px var(--primary-glow);
+            animation: tokenPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes tokenPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px var(--primary-glow);
+            }
+
+            50% {
+                box-shadow: 0 0 40px var(--primary), 0 0 60px var(--primary-glow);
+            }
+        }
+
+        .token-earned-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            animation: tokenBounce 0.6s ease-out;
+        }
+
+        @keyframes tokenBounce {
+            0% {
+                transform: scale(0) rotate(-45deg);
+            }
+
+            50% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+            }
+        }
+
+        .token-earned-amount {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .token-earned-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 4px;
         }
 
         main {
@@ -205,7 +290,7 @@
             background: var(--white);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 20px;
+            padding: 25px;
             margin-bottom: 16px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
         }
@@ -214,8 +299,15 @@
             font-family: 'Montserrat', sans-serif;
             font-size: 14px;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             color: var(--text-dark);
+        }
+
+        .card-title .icon {
+            font-size: 18px;
         }
 
         /* REGISTRATION */
@@ -231,10 +323,12 @@
         .register-title {
             font-family: 'Montserrat', sans-serif;
             font-size: 22px;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 8px;
-            letter-spacing: 0.05em;
-            color: var(--primary);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .register-sub {
@@ -263,10 +357,11 @@
             background: var(--light-gray);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 14px 16px;
+            padding: 12px 14px;
             color: var(--text-dark);
             font-family: 'Inter', sans-serif;
-            font-size: 15px;
+            font-size: 13px;
+            /* Smaller font size as requested */
         }
 
         .text-input::placeholder {
@@ -278,9 +373,14 @@
             border-color: var(--primary);
         }
 
+        textarea.text-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+
         /* BUTTONS */
         .btn-main {
-            background: var(--primary);
+            background: var(--gradient-primary);
             color: white;
             border: none;
             padding: 15px;
@@ -297,12 +397,12 @@
         }
 
         .btn-main:disabled {
-            opacity: 0.25;
+            opacity: 0.5;
             cursor: not-allowed;
         }
 
         .btn-main:hover:not(:disabled) {
-            box-shadow: 0 6px 20px var(--primary-glow);
+            box-shadow: 0 6px 25px var(--primary-glow);
             transform: translateY(-2px);
         }
 
@@ -328,173 +428,220 @@
             color: var(--primary);
         }
 
-        /* YouTube Section */
-        .youtube-section {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            color: white;
+        /* NAVIGATION */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 10px 0;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            z-index: 10000;
         }
 
-        .youtube-section .section-title {
-            color: white;
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
-        .youtube-section .section-title::before,
-        .youtube-section .section-title::after {
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            color: var(--text-gray);
         }
 
-        .youtube-embed {
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: 3px;
+        }
+
+        .nav-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            letter-spacing: 0.08em;
+            font-weight: 500;
+        }
+
+        /* YOUTUBE SECTION */
+        .youtube-container {
             position: relative;
             width: 100%;
             padding-bottom: 56.25%;
-            border-radius: 12px;
+            height: 0;
             overflow: hidden;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-bottom: 16px;
         }
 
-        .youtube-embed iframe {
+        .youtube-container iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             border: none;
+            border-radius: 12px;
         }
 
-        /* Board Section */
-        .board-post {
+        /* BOARD / POSTS */
+        .post-card {
             background: var(--white);
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
         }
 
-        .board-post-header {
+        .post-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        .board-avatar {
+        .post-avatar {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: var(--primary-light);
+            background: var(--gradient-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
         }
 
-        .board-author {
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
+        .post-meta {
+            flex: 1;
+        }
+
+        .post-author {
             font-weight: 600;
+            font-size: 13px;
             color: var(--text-dark);
         }
 
-        .board-time {
-            font-family: 'Inter', sans-serif;
-            font-size: 10px;
+        .post-time {
+            font-size: 11px;
             color: var(--text-gray);
         }
 
-        .board-content {
+        .post-content {
             font-size: 14px;
-            line-height: 1.7;
+            line-height: 1.6;
             color: var(--text-dark);
         }
 
-        .board-actions {
+        .post-actions {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             margin-top: 12px;
             padding-top: 12px;
             border-top: 1px solid var(--border);
         }
 
-        .board-action {
+        .post-action {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             font-size: 12px;
             color: var(--text-gray);
             cursor: pointer;
             transition: color 0.2s;
         }
 
-        .board-action:hover {
+        .post-action:hover {
             color: var(--primary);
         }
 
-        .board-action.liked {
-            color: var(--danger);
-        }
-
-        /* To-do List */
-        .todo-container {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        .todo-input-area {
+        /* TO-DO LIST */
+        .todo-tabs {
             display: flex;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
-        .todo-input-area input {
+        .todo-tab {
             flex: 1;
-            padding: 12px 14px;
+            padding: 10px;
             background: var(--light-gray);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-
-        .todo-input-area input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .todo-input-area button {
-            width: 44px;
-            height: 44px;
-            background: var(--primary);
-            border: none;
-            border-radius: 10px;
-            font-size: 20px;
-            color: white;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
             cursor: pointer;
+            text-align: center;
             transition: all 0.2s;
         }
 
-        .todo-input-area button:hover {
-            transform: scale(1.05);
+        .todo-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+        }
+
+        .todo-content {
+            display: none;
+        }
+
+        .todo-content.active {
+            display: block;
+        }
+
+        .todo-input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .todo-input-row input {
+            flex: 1;
+        }
+
+        .todo-add-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
         }
 
         .todo-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 14px;
+            padding: 12px;
             background: var(--light-gray);
             border-radius: 10px;
             margin-bottom: 8px;
         }
 
         .todo-item.completed {
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .todo-item.completed .todo-text {
@@ -513,345 +660,326 @@
             transition: all 0.2s;
         }
 
-        .todo-checkbox:hover {
-            border-color: var(--primary);
-        }
-
         .todo-checkbox.checked {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: var(--success);
+            border-color: var(--success);
         }
 
         .todo-checkbox.checked::after {
             content: '✓';
             color: white;
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 12px;
         }
 
         .todo-text {
             flex: 1;
             font-size: 14px;
-            color: var(--text-dark);
         }
 
         .todo-delete {
-            opacity: 0.5;
+            background: none;
+            border: none;
+            color: var(--text-gray);
             cursor: pointer;
-            transition: opacity 0.2s;
+            font-size: 16px;
         }
 
         .todo-delete:hover {
-            opacity: 1;
             color: var(--danger);
         }
 
-        /* NAV */
-        nav {
-            display: flex;
-            border-top: 1px solid var(--border);
-            background: var(--white);
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
-        }
-
-        .nav-item {
-            flex: 1;
-            padding: 11px 0;
+        .todo-empty {
             text-align: center;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 8px;
-            letter-spacing: 0.05em;
+            padding: 30px;
             color: var(--text-gray);
-            cursor: pointer;
-            transition: all 0.2s;
+            font-size: 13px;
         }
 
-        .nav-item.active {
+        /* AI CHAT */
+        .chat-container {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .chat-message {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-message.ai {
+            flex-direction: row;
+        }
+
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .chat-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .chat-message.ai .chat-avatar {
+            background: var(--gradient-primary);
+        }
+
+        .chat-message.user .chat-avatar {
+            background: var(--text-dark);
+        }
+
+        .chat-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .chat-message.ai .chat-bubble {
+            background: white;
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.user .chat-bubble {
+            background: var(--gradient-primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+        }
+
+        .chat-send-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            width: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* PROFILE PHOTO UPLOAD */
+        .profile-photo-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 4px 20px var(--primary-glow);
+            overflow: hidden;
+        }
+
+        .profile-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .photo-upload-input {
+            display: none;
+        }
+
+        /* COMMENT SECTION */
+        .comments-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--primary);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-author {
+            font-size: 11px;
+            font-weight: 600;
             color: var(--primary);
         }
 
-        .nav-icon {
-            font-size: 18px;
-            margin-bottom: 2px;
+        .comment-text {
+            font-size: 12px;
+            color: var(--text-dark);
+            margin-top: 2px;
         }
 
-        /* Profile Section */
-        .profile-card {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 16px;
-            padding: 24px;
+        .comment-input-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .comment-input-row input {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .comment-submit-btn {
+            background: var(--primary);
             color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* VERSION BADGE */
+        .version-badge {
             text-align: center;
-            margin-bottom: 20px;
-        }
-
-        /* SCHEDULE STYLES (New) */
-        .schedule-card {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
-
-        .schedule-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .schedule-title {
             font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-
-        .schedule-status {
             font-size: 10px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: var(--light-gray);
             color: var(--text-gray);
-        }
-
-        .schedule-status.active {
-            background: var(--primary-light);
-            color: var(--primary-dark);
-        }
-
-        .schedule-status.finalized {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .date-grid {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            margin-top: 10px;
-            border-top: 1px solid var(--border);
-            padding-top: 10px;
-        }
-
-        .date-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            background: var(--light-gray);
-            border-radius: 8px;
-            margin-bottom: 4px;
-        }
-
-        .vote-btn-group {
-            display: flex;
-            gap: 4px;
-        }
-
-        .vote-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .vote-btn.selected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .finalize-btn {
-            font-size: 10px;
-            padding: 6px 12px;
-            background: var(--text-dark);
-            color: white;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            margin: 0 auto 16px;
-            border: 3px solid rgba(255, 255, 255, 0.4);
-        }
-
-        /* SCHEDULE STYLES */
-        .schedule-card {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
-
-        .schedule-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .schedule-title {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--text-dark);
-        }
-
-        .schedule-status {
-            font-size: 10px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: var(--light-gray);
-            color: var(--text-gray);
-        }
-
-        .schedule-status.active {
-            background: var(--primary-light);
-            color: var(--primary-dark);
-        }
-
-        .schedule-status.finalized {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .date-grid {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            margin-top: 10px;
-            border-top: 1px solid var(--border);
-            padding-top: 10px;
-        }
-
-        .date-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            background: var(--light-gray);
-            border-radius: 8px;
-            margin-bottom: 4px;
-        }
-
-        .vote-btn-group {
-            display: flex;
-            gap: 4px;
-        }
-
-        .vote-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .vote-btn.selected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .finalize-btn {
-            font-size: 10px;
-            padding: 6px 12px;
-            background: var(--text-dark);
-            color: white;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
+            letter-spacing: 0.1em;
+            padding: 10px;
+            margin-top: 20px;
         }
 
         .profile-name {
             font-family: 'Montserrat', sans-serif;
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
-            margin-bottom: 4px;
+            color: var(--text-dark);
         }
 
         .profile-role {
-            font-size: 12px;
-            opacity: 0.8;
+            font-size: 13px;
+            color: var(--primary);
+            margin-top: 4px;
         }
 
         .profile-stats {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
             margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .profile-stat {
             text-align: center;
+            padding: 16px;
+            background: var(--light-gray);
+            border-radius: 12px;
         }
 
         .profile-stat-value {
             font-family: 'Montserrat', sans-serif;
             font-size: 24px;
             font-weight: 700;
+            color: var(--primary);
         }
 
         .profile-stat-label {
             font-size: 10px;
-            opacity: 0.7;
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+
+        .profile-section {
+            margin-top: 20px;
+        }
+
+        .profile-section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px;
+            color: var(--primary);
             letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
-        /* Sending Overlay */
-        .sending-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
+        .profile-bio {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--light-gray);
+            padding: 16px;
+            border-radius: 12px;
         }
 
-        .sending-overlay.active {
+        /* LOADING */
+        .loading {
             display: flex;
+            justify-content: center;
+            padding: 30px;
         }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--light-gray);
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border);
             border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -863,214 +991,314 @@
             }
         }
 
-        .sending-text {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 12px;
-            color: var(--text-gray);
-            margin-top: 15px;
-            letter-spacing: 0.1em;
+        /* ACCORDION - MY VISION */
+        .vision-accordion {
+            margin-top: 12px;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
         }
 
-        /* FOOTER */
-        footer {
-            padding: 12px;
-            text-align: center;
-            border-top: 1px solid var(--border);
-            background: var(--white);
-            font-family: 'Montserrat', sans-serif;
-            font-size: 9px;
-            letter-spacing: 0.3em;
-            color: var(--text-gray);
-        }
-
-        /* Profile Photo Upload */
-        .profile-photo-upload {
-            position: relative;
+        .vision-accordion-header {
+            padding: 12px 16px;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .profile-photo-upload input[type="file"] {
-            display: none;
+        .vision-accordion-header:hover {
+            background: rgba(212, 175, 55, 0.25);
         }
 
-        .profile-photo-upload .upload-hint {
-            position: absolute;
-            bottom: -5px;
-            right: -5px;
-            background: var(--primary);
-            color: white;
-            width: 28px;
-            height: 28px;
+        .vision-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            margin-top: -1px;
+        }
+
+        .vision-accordion-content.open {
+            max-height: 500px;
+        }
+
+        .vision-photo {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
+            background: var(--gradient-primary);
+            border: 2px solid var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            border: 2px solid white;
+            overflow: hidden;
+            flex-shrink: 0;
         }
 
-        .profile-avatar img {
+        .vision-photo img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 50%;
         }
 
-        /* Bio Section */
-        .bio-section {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .bio-textarea {
-            width: 100%;
-            min-height: 80px;
-            background: var(--light-gray);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            font-family: 'Noto Sans JP', sans-serif;
-            font-size: 14px;
-            color: var(--text-dark);
-            resize: none;
-        }
-
-        .bio-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        /* YouTube URL Settings */
-        .youtube-url-input {
-            width: 100%;
-            padding: 12px;
-            background: var(--light-gray);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            color: var(--text-dark);
-        }
-
-        .youtube-url-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        /* AI Chat */
-        .ai-chat-section {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            color: white;
-        }
-
-        .ai-chat-section .section-title {
-            color: white;
-        }
-
-        .ai-chat-section .section-title::before,
-        .ai-chat-section .section-title::after {
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        }
-
-        .ai-messages {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-bottom: 12px;
-        }
-
-        .ai-message {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 8px;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .ai-message.user {
-            background: rgba(255, 255, 255, 0.25);
-            text-align: right;
-        }
-
-        .ai-input-area {
-            display: flex;
-            gap: 8px;
-        }
-
-        .ai-input {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 25px;
-            font-family: 'Noto Sans JP', sans-serif;
-            font-size: 14px;
-        }
-
-        .ai-send-btn {
-            width: 44px;
-            height: 44px;
-            background: white;
-            color: var(--primary);
-            border: none;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .ai-send-btn:hover {
-            transform: scale(1.1);
-        }
-
-        /* Settings Card */
-        .settings-section {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .settings-item {
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .settings-item:last-child {
-            border-bottom: none;
-        }
-
-        .settings-label {
-            font-size: 11px;
-            color: var(--primary);
-            letter-spacing: 0.1em;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .save-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
+        .vision-arrow {
             font-size: 12px;
+            color: var(--primary);
+            transition: transform 0.3s;
+        }
+
+        .vision-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .vision-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        /* CALENDAR STYLISH UPDATE */
+        #calendar {
+            margin-top: 24px;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 20px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 450px;
+        }
+
+        /* Calendar Header */
+        .fc-toolbar {
+            margin-bottom: 1.5em !important;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.2rem !important;
+            font-weight: 800 !important;
+            color: var(--text-dark);
+            letter-spacing: 0.05em;
+        }
+
+        .fc-button {
+            background-color: transparent !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text-gray) !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            border-radius: 12px !important;
+            padding: 6px 12px !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .fc-button:hover,
+        .fc-button-active {
+            background-color: var(--primary-light) !important;
+            border-color: var(--primary) !important;
+            color: var(--primary) !important;
+        }
+
+        .fc-button:focus {
+            box-shadow: none !important;
+        }
+
+        /* Calendar Grid */
+        .fc-theme-standard td,
+        .fc-theme-standard th {
+            border: none !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03) !important;
+        }
+
+        .fc-scrollgrid {
+            border: none !important;
+        }
+
+        .fc-col-header-cell {
+            padding-bottom: 10px !important;
+        }
+
+        .fc-col-header-cell-cushion {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none !important;
+        }
+
+        .fc-daygrid-day-number {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            padding: 8px 12px !important;
+            text-decoration: none !important;
+        }
+
+        .fc-day-today {
+            background-color: transparent !important;
+        }
+
+        .fc-day-today .fc-daygrid-day-number {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 4px;
+        }
+
+        /* Events */
+        .fc-event {
             cursor: pointer;
-            margin-top: 12px;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 2px 4px !important;
+            margin-bottom: 2px !important;
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.1s;
+        }
+
+        .fc-event:hover {
+            transform: scale(1.02);
+            z-index: 5;
+        }
+
+        .fc-event-main {
+            padding: 1px 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Event Colors */
+        .fc-event.type-shared {
+            background: linear-gradient(135deg, #D4AF37, #E5C158) !important;
+            color: white !important;
+        }
+
+        .fc-event.type-personal {
+            background: linear-gradient(135deg, #4A90E2, #6AA9F6) !important;
+            color: #fff !important;
+        }
+
+        .fc-event.type-official {
+            background: var(--text-dark) !important;
+            border: 1px solid var(--primary) !important;
+            color: var(--primary) !important;
+        }
+
+        /* FILTERS */
+        .calendar-filters {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: var(--light-gray);
+            padding: 6px;
+            border-radius: 30px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .calendar-filter-tab {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            white-space: nowrap;
+            background: transparent;
+            border: none;
+            color: var(--text-gray);
+            transition: all 0.3s ease;
+            box-shadow: none;
+        }
+
+        .calendar-filter-tab.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 320px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--primary-light);
+        }
+
+        .modal-header {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .type-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .type-option {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             transition: all 0.2s;
         }
 
-        .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px var(--primary-glow);
+        .type-option:hover {
+            background: var(--light-gray);
+        }
+
+        .type-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .type-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -1078,994 +1306,2485 @@
 <body>
     <header>
         <div class="logo-container">
-            <img src="logo/TSS_logo.png" alt="TSS" onerror="this.style.display='none'">
+            <img src="../logo/tss_logo.png" alt="TSS Logo" onerror="this.style.display='none'">
         </div>
         <h1>TEAM SYNERGY STAGE</h1>
-        <div class="header-sub">SUPPORT EACH OTHER — GROW TOGETHER</div>
-        <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 5px;">
-            <div class="user-badge" id="userBadge" style="display: none;"></div>
-            <div class="token-display" id="tokenDisplay" style="display: none;">
-                <span class="token-icon">🪙</span>
-                <span class="token-balance" id="tokenBalance">0</span>
-                <span class="token-label">TSST</span>
+        <div class="header-sub">COMMUNITY APP</div>
+        <div class="user-badge" id="userBadge" style="display: none;"></div>
+        <div class="token-display" id="tokenDisplay" style="display: none;">
+            <span class="token-icon">🪙</span>
+            <span class="token-balance" id="tokenBalance">0</span>
+            <span class="token-label">TSST</span>
+        </div>
+        <div style="font-size: 10px; opacity: 0.5; margin-top: 5px; color: #fff; text-align: center;">v5.1 Smart
+            Schedule
+        </div>
+
+        <!-- MY VISION Accordion -->
+        <div class="vision-accordion" id="visionAccordion" style="display: none;">
+            <!-- Hidden File Input for Quick Upload -->
+            <input type="file" id="visionPhotoUpload" style="display: none;" accept="image/*"
+                onchange="handleVisionPhotoUpload(event)">
+
+            <div class="vision-accordion-header" onclick="toggleVisionAccordion()">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="vision-photo" id="visionPhotoContainer" onclick="triggerVisionPhotoUpload(event)"
+                            style="cursor: pointer;">
+                            <img id="visionPhoto" src="" style="display: none;">
+                            <span id="visionPhotoPlaceholder" style="font-size: 20px; color: white;">👤</span>
+                        </div>
+                        <div
+                            style="font-family: 'Montserrat', sans-serif; font-size: 10px; color: var(--primary); letter-spacing: 0.1em; font-weight: 600;">
+                            📌 MY VISION
+                        </div>
+                    </div>
+                    <span class="vision-arrow" id="visionArrow">▼</span>
+                </div>
+            </div>
+            <div class="vision-accordion-content" id="visionAccordionContent">
+                <div style="padding: 12px 16px;">
+                    <div style="font-size: 11px;">
+                        <div style="color: var(--text-dark); margin-bottom: 10px;">
+                            <strong style="color: var(--primary);">✨ 3年後の自分</strong>
+                            <div id="futureVisionText" style="margin-top: 3px; color: var(--text-gray);">-</div>
+                        </div>
+                        <div style="color: var(--text-dark);">
+                            <strong style="color: var(--primary);">💼 役割</strong>
+                            <div id="roleVisionText" style="margin-top: 3px; color: var(--text-gray);">-</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
     <main>
-        <!-- SCREEN 0: REGISTRATION -->
+        <!-- REGISTER SCREEN -->
         <div class="screen active" id="screen-register">
             <div class="register-card">
-                <div class="register-title">Welcome to TSS</div>
-                <div class="register-sub">TEAM SYNERGY STAGEへようこそ！<br>あなたの情報を登録してください</div>
+                <div class="register-title">Welcome</div>
+                <div class="register-sub">TEAM SYNERGY STAGEへようこそ！<br>プロフィールを登録してください</div>
+
                 <div class="input-group">
                     <label class="input-label">YOUR NAME</label>
-                    <input type="text" class="text-input" id="inputName" placeholder="例: 山田太郎">
+                    <input type="text" class="text-input" id="inputName" placeholder="名前を入力">
                 </div>
+
                 <div class="input-group">
-                    <label class="input-label">🔐 PIN（4桁の数字）</label>
-                    <input type="password" class="text-input" id="inputPin" placeholder="1234" maxlength="4"
-                        pattern="[0-9]*" inputmode="numeric"
-                        style="letter-spacing: 0.3em; text-align: center; font-size: 18px;">
-                    <div style="font-size: 10px; color: var(--text-gray); margin-top: 4px;">※ 次回ログイン時に必要です</div>
+                    <label class="input-label">PIN (4桁の数字など)</label>
+                    <input type="number" class="text-input" id="inputPin" placeholder="ログイン用の暗証番号" maxlength="4"
+                        oninput="validateRegistration()">
                 </div>
-                <button class="btn-main" id="btnRegister" onclick="register()">登録してはじめる</button>
-                <button class="btn-secondary" onclick="showLoginMode()">すでにアカウントをお持ちの方</button>
+
+                <div class="input-group">
+                    <label class="input-label">ROLE / 役割</label>
+                    <input type="text" class="text-input" id="inputRole" placeholder="例: リーダー、メンバーなど">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">BIO / 自己紹介</label>
+                    <textarea class="text-input" id="inputBio" placeholder="あなたのことを教えてください"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">3年後の自分は？</label>
+                    <textarea class="text-input" id="inputFuture" placeholder="3年後、どんな自分になっていたい？"></textarea>
+                </div>
+
+                <button class="btn-main" id="registerBtn" onclick="register()" disabled>JOIN COMMUNITY</button>
+                <button class="btn-secondary" onclick="showScreen('screen-login')">すでにアカウントをお持ちの方 (LOGIN)</button>
             </div>
         </div>
 
-        <!-- SCREEN 1: HOME -->
-        <div class="screen" id="screen-home">
-            <!-- YouTube Section -->
-            <div class="youtube-section">
-                <div class="section-title">🎵 TSS THEME SONG</div>
-                <div class="youtube-embed" id="youtubeEmbed">
-                    <!-- YouTube動画がここに埋め込まれます -->
-                    <div
-                        style="display: flex; align-items: center; justify-content: center; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3);">
-                        <span style="font-size: 48px;">🎬</span>
-                    </div>
-                </div>
-            </div>
+        <!-- LOGIN SCREEN -->
+        <div class="screen" id="screen-login">
+            <div class="register-card">
+                <div class="register-title">LOGIN</div>
+                <div class="register-sub">おかえりなさい！</div>
 
-            <!-- AI Chat Section -->
-            <div class="ai-chat-section">
-                <div class="section-title">🤖 TSS AI アシスタント</div>
-                <div class="ai-messages" id="aiMessages">
-                    <div class="ai-message">
-                        こんにちは！TSSアシスタントです。何でも相談してくださいね 😊
-                    </div>
+                <div class="input-group">
+                    <label class="input-label">YOUR NAME</label>
+                    <input type="text" class="text-input" id="loginName" placeholder="登録した名前">
                 </div>
-                <div class="ai-input-area">
-                    <input type="text" class="ai-input" id="aiInput" placeholder="質問を入力..."
-                        onkeypress="if(event.key==='Enter')askAI()">
-                    <button class="ai-send-btn" onclick="askAI()">➤</button>
-                </div>
-            </div>
 
-            <!-- Quick Stats -->
-            <div class="card">
-                <div class="card-title">📊 今日のアクティビティ</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div
-                        style="text-align: center; padding: 16px; background: var(--primary-light); border-radius: 12px;">
-                        <div
-                            style="font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 700; color: var(--primary);">
-                            0</div>
-                        <div style="font-size: 10px; color: var(--text-gray); letter-spacing: 0.1em;">投稿</div>
-                    </div>
-                    <div
-                        style="text-align: center; padding: 16px; background: var(--accent-light); border-radius: 12px;">
-                        <div
-                            style="font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 700; color: var(--accent);">
-                            0</div>
-                        <div style="font-size: 10px; color: var(--text-gray); letter-spacing: 0.1em;">応援</div>
-                    </div>
+                <div class="input-group">
+                    <label class="input-label">PIN (4桁の数字など)</label>
+                    <input type="password" class="text-input" id="loginPin" placeholder="PINコード">
                 </div>
-            </div>
 
-            <!-- Recent Activity -->
-            <div class="section-title">📢 最新の投稿</div>
-            <div id="recentPosts">
-                <div class="board-post">
-                    <div class="board-post-header">
-                        <div class="board-avatar">🎉</div>
-                        <div>
-                            <div class="board-author">TSSチーム</div>
-                            <div class="board-time">今日</div>
-                        </div>
-                    </div>
-                    <div class="board-content">
-                        TEAM SYNERGY STAGEへようこそ！みんなで応援し合い、一緒に成長していきましょう！🚀✨
-                    </div>
-                    <div class="board-actions">
-                        <div class="board-action"><span>❤️</span> 0</div>
-                        <div class="board-action"><span>💬</span> 0</div>
-                    </div>
-                </div>
+                <button class="btn-main" onclick="login()">LOGIN</button>
+                <button class="btn-secondary" onclick="showScreen('screen-register')">新規登録はこちら</button>
             </div>
         </div>
 
-        <!-- SCREEN 2: BOARD -->
-        <div class="screen" id="screen-board">
-            <div class="section-title">📋 掲示板</div>
-
-            <!-- 投稿フォーム -->
-            <div class="card" style="margin-bottom: 20px;">
-                <textarea class="text-input" id="boardInput" placeholder="今日の気づきや応援メッセージを共有しよう..."
-                    style="height: 80px; resize: none;"></textarea>
-                <button class="btn-main" onclick="postToBoard()" style="margin-top: 12px;">投稿する</button>
-            </div>
-
-            <div id="boardPosts">
-                <!-- 投稿がここに表示されます -->
-            </div>
-        </div>
-
-        <!-- SCREEN 3: SCHEDULE -->
+        <!-- HOME SCREEN -->
         <div class="screen" id="screen-schedule">
-            <div class="section-title">📅 スマート日程調整</div>
+            <div class="section-title">📅 SMART SCHEDULE</div>
 
             <div style="text-align: right; margin-bottom: 15px;">
                 <button class="btn-main" onclick="openNewAdjustmentForm()"
-                    style="width: auto; padding: 10px 20px; font-size: 11px;">+ 新しい調整を作成</button>
+                    style="width: auto; padding: 10px 20px; font-size: 11px;">+ NEW ADJUSTMENT</button>
             </div>
 
             <!-- NEW ADJUSTMENT FORM -->
             <div id="new-adjustment-form" class="card" style="display: none;">
-                <div class="card-title">✨ 新規日程調整</div>
+                <div class="card-title">✨ CREATE NEW</div>
 
                 <div class="input-group">
-                    <label class="input-label">イベント名</label>
+                    <label class="input-label">EVENT TITLE</label>
                     <input type="text" id="adjTitle" class="text-input" placeholder="例: 定例MTG">
                 </div>
 
                 <div class="input-group">
-                    <label class="input-label">候補日時</label>
+                    <label class="input-label">CANDIDATES</label>
                     <div id="adjDatesList"></div>
                     <div style="display: flex; gap: 5px; margin-top: 5px;">
                         <input type="datetime-local" id="adjDateInput" class="text-input" style="font-size: 12px;">
                         <button onclick="addAdjDate()" class="btn-secondary"
-                            style="width: auto; margin-top:0;">追加</button>
+                            style="width: auto; margin-top:0;">ADD</button>
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label class="input-label">参加メンバー (名前を入力)</label>
-                    <input type="text" id="adjMemberInput" class="text-input" placeholder="メンバー名か 'All' (全員)">
-                    <div style="font-size: 10px; color: var(--text-gray); margin-top:4px;">※
-                        現在は手入力です。後で選択式にします。カンマ区切りで複数可。</div>
+                    <label class="input-label">MEMBERS (Names)</label>
+                    <input type="text" id="adjMemberInput" class="text-input" placeholder="Members (comma separated)">
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button onclick="closeNewAdjustmentForm()" class="btn-secondary">キャンセル</button>
-                    <button onclick="createAdjustment()" class="btn-main">作成して招待</button>
+                    <button onclick="closeNewAdjustmentForm()" class="btn-secondary">CANCEL</button>
+                    <button onclick="createAdjustment()" class="btn-main">CREATE & INVITE</button>
                 </div>
             </div>
 
             <div id="adjustmentsList">
-                <div style="text-align: center; padding: 40px; color: var(--text-gray);">読み込み中...</div>
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
         </div>
 
-        <!-- SCREEN 4: TODO -->
+        <!-- HOME SCREEN -->
+        <div class="screen" id="screen-home">
+            <div class="section-title">🎬 FEATURED VIDEO</div>
+            <div class="card">
+                <div class="youtube-container" id="youtubeContainer">
+                    <iframe id="youtubeEmbed" src="" title="TEAM SYNERGY STAGE"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+                <p id="youtubeCaption"
+                    style="text-align: center; font-size: 12px; color: var(--text-gray); margin-top: 8px;"></p>
+            </div>
+
+            <div class="section-title">📢 ANNOUNCEMENTS</div>
+            <div id="announcementsList">
+                <!-- Announcements will be loaded dynamically -->
+                <div class="loading-text" style="text-align: center; color: var(--text-gray); padding: 20px;">読み込み中...
+                </div>
+            </div>
+        </div>
+
+        <!-- BOARD SCREEN -->
+        <div class="screen" id="screen-board">
+            <div class="section-title">💬 COMMUNITY BOARD</div>
+
+            <div class="card">
+                <div class="input-group">
+                    <textarea class="text-input" id="postContent" placeholder="投稿を書く..." rows="3"></textarea>
+                </div>
+                <button class="btn-main" onclick="submitPost()" style="margin-top: 0;">POST</button>
+            </div>
+
+            <div id="postsList">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TODO SCREEN -->
         <div class="screen" id="screen-todo">
-            <div class="section-title">✅ タスク管理</div>
-            <div class="todo-container">
-                <div class="todo-input-area">
-                    <input type="text" id="todoInput" placeholder="新しいタスクを追加...">
-                    <button onclick="addTodo()">+</button>
+            <div class="section-title">✅ TO-DO LIST</div>
+
+            <div class="card">
+                <div class="todo-tabs">
+                    <div class="todo-tab active" onclick="showTodoTab('daily')">DAILY</div>
+                    <div class="todo-tab" onclick="showTodoTab('weekly')">WEEKLY</div>
+                    <div class="todo-tab" onclick="showTodoTab('monthly')">MONTHLY</div>
                 </div>
-                <div id="todoList">
-                    <!-- タスクがここに表示されます -->
+
+                <div class="todo-content active" id="todo-daily">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="dailyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('daily')">+</button>
+                    </div>
+                    <div id="dailyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <div class="todo-content" id="todo-weekly">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="weeklyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('weekly')">+</button>
+                    </div>
+                    <div id="weeklyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <div class="todo-content" id="todo-monthly">
+                    <div class="todo-input-row">
+                        <input type="text" class="text-input" id="monthlyTodoInput" placeholder="タスクを追加...">
+                        <button class="todo-add-btn" onclick="addTodo('monthly')">+</button>
+                    </div>
+                    <div id="monthlyTodoList">
+                        <div class="todo-empty">タスクがありません</div>
+                    </div>
+                </div>
+
+                <!-- CALENDAR SECTION (Always visible in TODO screen) -->
+                <div style="margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px;">
+                    <div class="section-title"
+                        style="justify-content: center; border: none; margin-bottom: 10px; font-size: 12px;">📅 SCHEDULE
+                    </div>
+                    <div id='calendar'></div>
+
+                    <div class="section-title"
+                        style="justify-content: center; border: none; margin-top: 30px; margin-bottom: 15px; font-size: 12px;">
+                        📋 UPCOMING EVENTS</div>
+                    <div id="monthly-events-list" style="padding-bottom: 20px;">
+                        <div class="loading" style="padding:10px;">
+                            <div class="loading-spinner" style="width:20px;height:20px;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 4: PROFILE -->
-        <div class="screen" id="screen-profile">
-            <div class="profile-card">
-                <div class="profile-photo-upload" onclick="document.getElementById('photoInput').click()">
-                    <div class="profile-avatar" id="profileAvatar">👤</div>
-                    <div class="upload-hint">📷</div>
-                    <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoUpload(event)">
+        <!-- AI SCREEN -->
+        <div class="screen" id="screen-ai">
+            <div class="section-title">🤖 AI ASSISTANT</div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">💬</span>
+                    JINSEI AI
                 </div>
-                <div class="profile-name" id="profileName">-</div>
-                <div class="profile-role">TSSメンバー</div>
-                <div class="profile-stats">
-                    <div class="profile-stat">
-                        <div class="profile-stat-value" id="profilePosts">0</div>
-                        <div class="profile-stat-label">投稿</div>
+                <div
+                    style="font-size: 10px; color: var(--primary); letter-spacing: 0.1em; margin-top: -8px; margin-bottom: 12px; text-align: center;">
+                    Powered by Gemini 3 Flash
+                </div>
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-message ai">
+                        <div class="chat-avatar">🤖</div>
+                        <div class="chat-bubble">
+                            こんにちは！JINSEI AIです。<br>
+                            ビジネスやコミュニティのこと、何でも気軽に相談してください。
+                        </div>
                     </div>
-                    <div class="profile-stat">
-                        <div class="profile-stat-value" id="profilePoints">0</div>
-                        <div class="profile-stat-label">TSST</div>
-                    </div>
-                    <div class="profile-stat">
-                        <div class="profile-stat-value" id="profileDays">0</div>
-                        <div class="profile-stat-label">日</div>
-                    </div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" class="text-input" id="chatInput" placeholder="メッセージを入力...">
+                    <button class="chat-send-btn" onclick="sendChat()">→</button>
                 </div>
             </div>
-            <!-- TOKEN HISTORY LINK -->
-            <div style="margin-top: 15px;">
-                <button onclick="viewTokenHistory()"
-                    style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 20px; padding: 5px 15px; font-size: 10px; cursor: pointer;">
-                    📜 VIEW HISTORY
+
+            <!-- COMMUNITY NOTES SECTION -->
+            <div class="section-title">📝 COMMUNITY NOTES</div>
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">📓</span>
+                    ITO OFFICE NOTE
+                </div>
+                <div id="note-feed-container">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+                <button class="btn-secondary" onclick="window.open('https://note.com/ito_office0419', '_blank')"
+                    style="margin-top: 15px;">
+                    View All Notes ↗
                 </button>
             </div>
         </div>
 
-        <!-- 自己紹介 -->
-        <div class="bio-section">
-            <div class="card-title">📝 自己紹介</div>
-            <textarea class="bio-textarea" id="bioInput" placeholder="自己紹介を入力してください..."></textarea>
-        </div>
+        <div class="screen" id="screen-profile">
+            <div class="card">
+                <div class="profile-header">
+                    <div class="profile-photo-container">
+                        <div class="profile-avatar-large" id="profileAvatar">👤</div>
+                        <label class="photo-upload-btn" for="photoUpload">📷</label>
+                        <input type="file" id="photoUpload" class="photo-upload-input" accept="image/*"
+                            onchange="handlePhotoUpload(event)">
+                    </div>
+                    <div class="profile-name" id="profileName" onclick="openProfileEditor('editName')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                    <div class="profile-role" id="profileRole" onclick="openProfileEditor('editRole')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                </div>
 
-        <!-- YouTube テーマソング設定 -->
-        <div class="settings-section">
-            <div class="card-title">🎵 マイテーマソング</div>
-            <div class="settings-item">
-                <div class="settings-label">GOOGLE EMAIL (カレンダー連携用)</div>
-                <input type="email" class="youtube-url-input" id="emailInput" placeholder="example@gmail.com">
-            </div>
-            <div class="settings-item">
-                <div class="settings-label">YOUTUBE URL</div>
-                <input type="text" class="youtube-url-input" id="youtubeUrlInput"
-                    placeholder="https://www.youtube.com/watch?v=...">
-            </div>
-            <button class="save-btn" onclick="saveProfile()">保存する</button>
-        </div>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileTokens">0</div>
+                        <div class="profile-stat-label">トークン</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profilePosts">0</div>
+                        <div class="profile-stat-label">POSTS</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileDays">0</div>
+                        <div class="profile-stat-label">DAYS</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="profileTasks">0</div>
+                        <div class="profile-stat-label">TASKS</div>
+                    </div>
+                </div>
 
-        <!-- 設定 -->
-        <div class="card">
-            <div class="card-title">⚙️ 設定</div>
-            <div style="font-size:10px; color:var(--text-gray); margin-bottom:10px;">Ver. v5.1</div>
-            <button class="btn-secondary" onclick="forceUpdate()">🔄 最新データに更新 (キャッシュクリア)</button>
-            <button class="btn-secondary" onclick="logout()"
-                style="margin-top: 10px; color: var(--danger); border-color: var(--danger);">ログアウト</button>
-        </div>
+                <div class="profile-section">
+                    <div class="profile-section-title">BIO</div>
+                    <div class="profile-bio" id="profileBio" onclick="openProfileEditor('editBio')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                </div>
+                <div class="profile-section">
+                    <div class="profile-section-title">3年後の自分は？</div>
+                    <div class="profile-bio" id="profileFuture" onclick="openProfileEditor('editFuture')"
+                        style="cursor:pointer; position:relative;" title="クリックして編集">-</div>
+                </div>
+
+
+                <button class="btn-secondary" onclick="openProfileEditor()">プロフィールを編集</button>
+                <button class="btn-secondary" onclick="viewTokenHistory()"
+                    style="margin-top: 10px; border-color: var(--accent);">📜 View History</button>
+                <button class="btn-secondary" onclick="forceUpdate()" style="margin-top: 10px; font-size: 10px;">🔄
+                    Force Update (v5.1)</button>
+
+                <div id="versionDisplay" class="version-badge"
+                    style="text-align: center; color: #aaa; font-size: 10px; margin-top: 20px;">TSS v5.1 | Powered by
+                    ITO JINSEI</div>
+            </div>
         </div>
     </main>
 
-    <nav>
-        <div class="nav-item active" onclick="showScreen('home')">
-            <div class="nav-icon">🏠</div>
-            HOME
-        </div>
-        <div class="nav-item" onclick="showScreen('board')">
-            <div class="nav-icon">📋</div>
-            BOARD
-        </div>
-        <div class="nav-item" onclick="showScreen('schedule')">
-            <div class="nav-icon">📅</div>
-            SCHEDULE
-        </div>
-        <div class="nav-item" onclick="showScreen('todo')">
-            <div class="nav-icon">✅</div>
-            TODO
-        </div>
-        <div class="nav-item" onclick="showScreen('profile')">
-            <div class="nav-icon">👤</div>
-            PROFILE
+    <nav id="mainNav" style="display: none;">
+        <div class="nav-container">
+            <div class="nav-item active" onclick="showScreen('screen-home')">
+                <span class="nav-icon">⌂</span>
+                <span class="nav-label">HOME</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-schedule')">
+                <span class="nav-icon">📅</span>
+                <span class="nav-label">SCHED</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-board')">
+                <span class="nav-icon">≡</span>
+                <span class="nav-label">BOARD</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-todo')">
+                <span class="nav-icon">✓</span>
+                <span class="nav-label">TODO</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-ai')">
+                <span class="nav-icon">◈</span>
+                <span class="nav-label">AI</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('screen-profile')">
+                <span class="nav-icon">●</span>
+                <span class="nav-label">PROFILE</span>
+            </div>
         </div>
     </nav>
 
-    <div class="sending-overlay" id="sendingOverlay">
-        <div class="spinner"></div>
-        <div class="sending-text">処理中...</div>
+    // ========== Smart Schedule Functions ==========
+    let currentAdjustments = [];
+    let newAdjDates = [];
+
+    function openNewAdjustmentForm() {
+    document.getElementById('new-adjustment-form').style.display = 'block';
+    newAdjDates = [];
+    renderAdjDatesList();
+    }
+
+    function closeNewAdjustmentForm() {
+    document.getElementById('new-adjustment-form').style.display = 'none';
+    }
+
+    function addAdjDate() {
+    const val = document.getElementById('adjDateInput').value;
+    if (!val) return;
+    const start = new Date(val);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    newAdjDates.push({ start: start.toISOString(), end: end.toISOString() });
+    renderAdjDatesList();
+    document.getElementById('adjDateInput').value = '';
+    }
+
+    function renderAdjDatesList() {
+    const container = document.getElementById('adjDatesList');
+    container.innerHTML = newAdjDates.map((d, i) => `
+    <div
+        style="font-size: 11px; background: var(--light-gray); padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 2px;">
+        ${new Date(d.start).toLocaleString()}
+        <span onclick="newAdjDates.splice(${i},1);renderAdjDatesList()"
+            style="cursor:pointer; color:red; margin-left:4px;">×</span>
     </div>
+    `).join('');
+    }
 
-    <script>
-        // ========== Configuration ==========
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v5.1';
+    function createAdjustment() {
+    const title = document.getElementById('adjTitle').value;
+    const contextMembers = document.getElementById('adjMemberInput').value;
+    const profile = getProfile();
 
-        // ========== State ==========
-        let currentUser = null;
-        let todos = [];
-        let boardPosts = [];
+    if (!title) return alert('Title required');
+    if (newAdjDates.length === 0) return alert('Dates required');
 
-        // ========== Storage ==========
-        function saveToStorage(key, value) {
+    let participants = [profile.name];
+    if (contextMembers && contextMembers.toLowerCase() !== 'all') {
+    const others = contextMembers.split(',').map(s => s.trim());
+    participants = [...participants, ...others];
+    }
+
+    const payload = {
+    action: 'createAdjustment',
+    title: title,
+    author: profile.name,
+    candidates: newAdjDates,
+    participants: participants
+    };
+
+    // Use fetch directly
+    fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify(payload)
+    }).then(r=>r.json()).then(res=>{
+    if(res.success) {
+    alert('Created!');
+    closeNewAdjustmentForm();
+    fetchAdjustments();
+    } else alert('Error: ' + res.error);
+    });
+    }
+
+    function fetchAdjustments() {
+    const profile = getProfile();
+    if(!profile) return;
+    const url = SCRIPT_URL + '?action=getAdjustments&user=' + encodeURIComponent(profile.name) + '&_t=' + Date.now();
+
+    const container = document.getElementById('adjustmentsList');
+    container.innerHTML = '<div class="loading">
+        <div class="loading-spinner"></div>
+    </div>';
+
+    fetch(url)
+    .then(r => r.json())
+    .then(res => {
+    if (res.adjustments) {
+    currentAdjustments = res.adjustments;
+    renderAdjustments();
+    } else {
+    container.innerHTML = 'No data';
+    }
+    })
+    .catch(e => container.innerHTML = 'Error loading schedule');
+    }
+
+    function renderAdjustments() {
+    const container = document.getElementById('adjustmentsList');
+    if (currentAdjustments.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No active adjustments</div>';
+    return;
+    }
+
+    const profile = getProfile();
+
+    container.innerHTML = currentAdjustments.map(adj => {
+    const isAuthor = adj.author === profile.name;
+    const isFinalized = adj.status === 'finalized';
+
+    return `
+    <div class="card" style="padding:15px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+            <div>
+                <div style="font-weight:bold;color:var(--primary);">${adj.title}</div>
+                <div style="font-size:10px;color:#666;">By ${adj.author}</div>
+            </div>
+            <div
+                style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized?'green':'orange'}; color:${isFinalized?'green':'orange'};">
+                ${isFinalized ? 'FINALIZED' : 'ACTIVE'}
+            </div>
+        </div>
+
+        ${isFinalized ? `<div
+            style="background:#e6fffa;color:green;padding:5px;font-size:11px;border-radius:4px;margin-bottom:10px;">🎉
+            Fixed: ${new Date(adj.finalDate.start).toLocaleString()}</div>` : ''}
+
+        <div style="display:grid;gap:5px;">
+            ${adj.candidates.map((date, idx) => {
+            const dateStr = date.start;
+            const myVote = adj.responses[profile.name]?.[dateStr] || '-';
+            // Count votes
+            let o=0, x=0, d=0;
+            Object.values(adj.responses).forEach(r=>{
+            if(r[dateStr]==='O') o++;
+            else if(r[dateStr]==='X') x++;
+            else if(r[dateStr]==='△') d++;
+            });
+
+            return `
+            <div
+                style="display:flex;align-items:center;justify-content:space-between;background:#f9f9f9;padding:5px;border-radius:4px;">
+                <div style="font-size:11px;">
+                    ${new Date(date.start).toLocaleString()}
+                    <div style="font-size:9px;color:#aaa;">O:${o} △:${d} X:${x}</div>
+                </div>
+
+                ${!isFinalized ? `
+                <div style="display:flex;gap:2px;">
+                    <button onclick="submitVote('${adj.id}','${dateStr}','O')" class="btn-secondary"
+                        style="width:25px;padding:2px;font-size:10px;background:${myVote==='O'?'#ddd':''}">O</button>
+                    <button onclick="submitVote('${adj.id}','${dateStr}','△')" class="btn-secondary"
+                        style="width:25px;padding:2px;font-size:10px;background:${myVote==='△'?'#ddd':''}">△</button>
+                    <button onclick="submitVote('${adj.id}','${dateStr}','X')" class="btn-secondary"
+                        style="width:25px;padding:2px;font-size:10px;background:${myVote==='X'?'#ddd':''}">X</button>
+                </div>` : ''}
+
+                ${!isFinalized && isAuthor && idx===0 ? `
+                <!-- Finalize logic tricky in loop, simplified: user sees button on specific row if designed so. 
+                                             For now, let's just make the date clickable or add button if author. -->
+                <button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
+                    style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">DECIDE</button>
+                ` : ''}
+                ${!isFinalized && isAuthor && idx!==0 ? `<button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
+                    style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">DECIDE</button>`
+                : ''}
+            </div>
+            `;
+            }).join('')}
+        </div>
+    </div>`;
+    }).join('');
+    }
+
+    function submitVote(adjId, dateStr, vote) {
+    const profile = getProfile();
+    const adj = currentAdjustments.find(a => a.id === adjId);
+    if(!adj.responses[profile.name]) adj.responses[profile.name] = {};
+    adj.responses[profile.name][dateStr] = vote;
+    renderAdjustments(); // Optimistic
+
+    fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify({
+    action: 'submitVote',
+    adjustmentId: adjId,
+    user: profile.name,
+    votes: adj.responses[profile.name]
+    })
+    });
+    }
+
+    function finalizeAdjustment(adjId, dateIdx) {
+    if(!confirm('Fix schedule to this date?')) return;
+    const adj = currentAdjustments.find(a => a.id === adjId);
+    const finalDate = adj.candidates[dateIdx];
+
+    fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'text/plain'},
+    body: JSON.stringify({
+    action: 'finalizeAdjustment',
+    adjustmentId: adjId,
+    finalDate: finalDate
+    })
+    }).then(r=>r.json()).then(res=>{
+    if(res.success) {
+    alert('Schedule Finalized & Invites Sent!');
+    fetchAdjustments();
+    } else alert('Error: ' + res.error);
+    });
+    }
+    </script>
+    const SCRIPT_URL =
+    'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
+    const APP_VERSION = 'v5.1';
+
+    // ============ STATE ============
+    let todos = {
+    daily: [],
+    weekly: [],
+    monthly: []
+    };
+
+    let posts = [];
+    let chatHistory = [];
+
+
+    // ============ INITIALIZATION ============
+    function init() {
+    loadTodos();
+    const profile = getProfile();
+    if (profile) {
+    // Migrate legacy data
+    if (!localStorage.getItem('tss_future') && profile.future) localStorage.setItem('tss_future', profile.future);
+    if (!localStorage.getItem('tss_role') && profile.role) localStorage.setItem('tss_role', profile.role);
+    if (!localStorage.getItem('tss_profile_image') && localStorage.getItem('tss_profile_photo'))
+    localStorage.setItem('tss_profile_image', localStorage.getItem('tss_profile_photo'));
+
+    showUserBadge(profile);
+    updateTokenDisplay();
+    updateVisionDisplay();
+    showScreen('screen-home');
+    document.getElementById('mainNav').style.display = 'block';
+    loadPosts();
+
+    // Fetch Version
+    checkAppVersion();
+    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+    // Legacy code can be removed if checkAppVersion covers it
+    }
+    } else {
+    showScreen('screen-register');
+    }
+    }
+
+    // ========== Version & Cache Control V5.1 ==========
+    function checkAppVersion() {
+    fetch(SCRIPT_URL + '?action=version&_t=' + Date.now())
+    .then(r => r.json())
+    .then(res => {
+    if (res.version) {
+    const el = document.getElementById('versionDisplay');
+    if(el) el.textContent = `v${res.version} (Latest)`;
+    if (res.version !== APP_VERSION) {
+    if(confirm(`New Version (${res.version}) Available. Update?`)) {
+    forceUpdate();
+    }
+    }
+    }
+    })
+    .catch(e => console.log('Version check failed', e));
+    }
+
+    function forceUpdate() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', Date.now());
+    window.location.href = url.toString();
+    }
+
+    function viewTokenHistory() {
+    const profile = getProfile();
+    if(!profile) return;
+    location.href = SCRIPT_URL + '?action=history&user=' + encodeURIComponent(profile.name);
+    }
+
+    // ============ PROFILE ============
+    function getProfile() {
+    return JSON.parse(localStorage.getItem('tss_profile') || 'null');
+    }
+
+    function validateRegistration() {
+    const name = document.getElementById('inputName').value.trim();
+    const pin = document.getElementById('inputPin').value.trim();
+    document.getElementById('registerBtn').disabled = !(name && pin);
+    }
+
+    document.getElementById('inputName').addEventListener('input', validateRegistration);
+    document.getElementById('inputPin').addEventListener('input', validateRegistration);
+
+    // ============ PROFILE EDIT ============
+    function openProfileEditor(focusId = null) {
+    const profile = getProfile();
+    if (!profile) return;
+
+    // Create edit modal
+    const modal = document.createElement('div');
+    modal.id = 'editProfileModal';
+    modal.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); display: flex; align-items: center;
+    justify-content: center; z-index: 10000;
+    `;
+
+    modal.innerHTML = `
+    <div class="register-card" style="width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto;">
+        <div class="register-title" style="font-size: 18px;">EDIT PROFILE</div>
+
+        <div class="input-group">
+            <label class="input-label">YOUR NAME</label>
+            <input type="text" class="text-input" id="editName" value="${escapeHtml(profile.name)}">
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">ROLE / 役割</label>
+            <input type="text" class="text-input" id="editRole" value="${escapeHtml(profile.role)}">
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">EMAIL (Optional)</label>
+            <input type="email" class="text-input" id="editEmail" value="${escapeHtml(profile.email || '')}"
+                placeholder="For Calendar Invites">
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">BIO / 自己紹介</label>
+            <textarea class="text-input" id="editBio" rows="3">${escapeHtml(profile.bio || '')}</textarea>
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">3年後の自分は？</label>
+            <textarea class="text-input" id="editFuture" rows="3">${escapeHtml(profile.future || '')}</textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary" onclick="document.getElementById('editProfileModal').remove()">CANCEL</button>
+            <button class="btn-main" onclick="saveProfileEdit()">SAVE</button>
+        </div>
+    </div>
+    `;
+    document.body.appendChild(modal);
+
+    if (focusId) {
+    const el = document.getElementById(focusId);
+    if (el) {
+    setTimeout(() => {
+    el.focus();
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+    el.setSelectionRange(el.value.length, el.value.length);
+    }
+    }, 100);
+    }
+    }
+    }
+
+    function saveProfileEdit() {
+    const name = document.getElementById('editName').value.trim();
+    const role = document.getElementById('editRole').value.trim();
+    const email = document.getElementById('editEmail').value.trim();
+    const bio = document.getElementById('editBio').value.trim();
+    const future = document.getElementById('editFuture').value.trim();
+
+    if (!name) {
+    alert('名前は必須です');
+    return;
+    }
+
+    const profile = getProfile();
+    profile.name = name;
+    profile.role = role || 'メンバー';
+    profile.bio = bio;
+    profile.future = future;
+    if(email) profile.email = email;
+
+    localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+    // Update vision accordion data
+    localStorage.setItem('tss_future', future);
+    localStorage.setItem('tss_role', role || 'メンバー');
+
+    showUserBadge(profile);
+    updateVisionDisplay(); // Refresh the vision accordion
+
+
+    document.getElementById('editProfileModal').remove();
+
+    // Backend Sync
+    syncProfileToBackend(profile);
+
+    alert('プロフィールを更新しました！✨');
+    }
+
+    function syncProfileToBackend(profile) {
+    if (!SCRIPT_URL.includes('http')) {
+    alert('エラー: SCRIPT_URLが設定されていません');
+    return;
+    }
+    // alert('Syncing...');
+    fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Google Apps Script dislikes application/json sometimes,
+    text/plain is safer for CORS
+    body: JSON.stringify({
+    action: 'updateProfile',
+    name: profile.name,
+    pin: profile.pin || '', // Pass pin if exists
+    role: profile.role,
+    bio: profile.bio,
+    future: profile.future,
+    image: profile.image || '',
+    email: profile.email || '',
+    profileImage: profile.image || '' // Redundant but safe
+    })
+    })
+    .then(res => res.json())
+    .then(data => {
+    console.log('Profile synced:', data);
+    // Silent success
+    })
+    .catch(err => {
+    console.error('Sync failed:', err);
+    });
+    }
+
+    // ============ YOUTUBE ============
+    function loadYouTubeSettings() {
+    const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
+    const iframe = document.getElementById('youtubeEmbed');
+    const caption = document.getElementById('youtubeCaption');
+
+    // Default video if none set
+    const defaultVideoId = 'YOUR_VIDEO_ID';
+    const videoId = settings.videoId || defaultVideoId;
+
+    iframe.src = `https://www.youtube.com/embed/${videoId}`;
+    caption.textContent = settings.caption || '';
+
+    if (!settings.caption) {
+    caption.style.display = 'none';
+    } else {
+    caption.style.display = 'block';
+    }
+    }
+
+    async function register() {
+    const name = document.getElementById('inputName').value.trim();
+    const pin = document.getElementById('inputPin').value.trim();
+    const role = document.getElementById('inputRole').value.trim() || 'メンバー';
+    const bio = document.getElementById('inputBio').value.trim() || '';
+    const future = document.getElementById('inputFuture').value.trim() || '';
+
+    if (name && pin) {
+    const profile = {
+    name,
+    role,
+    bio,
+    future,
+    pin: pin, // User defined PIN
+    tokens: 10, // Welcome bonus
+    joinedAt: new Date().toISOString()
+    };
+    localStorage.setItem('tss_profile', JSON.stringify(profile));
+    localStorage.setItem('tss_future', future);
+    localStorage.setItem('tss_role', role);
+
+    // Sync with Backend (This will create V2 user)
+    syncProfileToBackend(profile);
+
+    showTokenEarned(10, 'Welcome Bonus! 🎉');
+    setTimeout(() => {
+    init();
+    }, 1500);
+    }
+    }
+
+    async function login() {
+    const name = document.getElementById('loginName').value.trim();
+    const pin = document.getElementById('loginPin').value.trim();
+
+    if (!name || !pin) {
+    alert('名前とPINを入力してください');
+    return;
+    }
+
+    try {
+    // Show loading state
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'LOGIN...';
+    btn.disabled = true;
+
+    const url = `${SCRIPT_URL}?action=login&name=${encodeURIComponent(name)}&pin=${encodeURIComponent(pin)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    btn.textContent = originalText;
+    btn.disabled = false;
+
+    if (data.success) {
+    const profile = {
+    name: data.name,
+    role: data.role || 'メンバー',
+    bio: data.bio || '',
+    future: data.future || '',
+    pin: pin, // Save used PIN
+    tokens: data.tokenBalance || 0,
+    image: data.profileImage || ''
+    };
+
+    localStorage.setItem('tss_profile', JSON.stringify(profile));
+    if (data.profileImage) {
+    localStorage.setItem('tss_profile_photo', data.profileImage);
+    localStorage.setItem('tss_profile_image', data.profileImage);
+    }
+    if (data.future) localStorage.setItem('tss_future', data.future);
+    if (data.role) localStorage.setItem('tss_role', data.role);
+
+    // If migration message exists, show it
+    if (data.message) {
+    alert(data.message);
+    } else {
+    alert('おかえりなさい！ログインしました。');
+    }
+    location.reload();
+    } else {
+    alert('ログイン失敗: ' + (data.error || '不明なエラー'));
+    }
+    } catch (e) {
+    console.error(e);
+    alert('ログイン・通信エラー: ' + e);
+    // Reset button
+    const btn = document.querySelector('#screen-login .btn-main'); // Fallback selector
+    if (btn) {
+    btn.textContent = 'LOGIN';
+    btn.disabled = false;
+    }
+    }
+    }
+
+    function showUserBadge(profile) {
+    const badge = document.getElementById('userBadge');
+    badge.textContent = `${profile.name} - ${profile.role}`;
+    badge.style.display = 'inline-block';
+
+    // Update profile screen
+    document.getElementById('profileName').textContent = profile.name;
+    document.getElementById('profileRole').textContent = profile.role;
+    document.getElementById('profileBio').textContent = profile.bio || '自己紹介がありません';
+    document.getElementById('profileFuture').textContent = profile.future || '未設定';
+
+    // Check for profile photo
+    const photoData = localStorage.getItem('tss_profile_photo');
+    const avatarEl = document.getElementById('profileAvatar');
+    if (photoData) {
+    avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+    } else {
+    avatarEl.textContent = profile.name.charAt(0).toUpperCase();
+    }
+    }
+
+    // ============ PROFILE PHOTO ============
+    function handlePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+    alert('画像サイズは2MB以下にしてください');
+    return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+    const photoData = e.target.result;
+    localStorage.setItem('tss_profile_photo', photoData);
+
+    // Update Profile Object
+    const profile = getProfile();
+    profile.image = photoData;
+    localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+    const avatarEl = document.getElementById('profileAvatar');
+    avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+
+    // Backend Sync
+    syncProfileToBackend(profile);
+
+    showTokenEarned(5, 'Photo Uploaded! 📸');
+    addTokens(5);
+    };
+    reader.readAsDataURL(file);
+    }
+
+    function updateTokenDisplay() {
+    const profile = getProfile();
+    if (profile) {
+    document.getElementById('tokenDisplay').style.display = 'inline-flex';
+    document.getElementById('tokenBalance').textContent = profile.tokens || 0;
+    document.getElementById('profileTokens').textContent = profile.tokens || 0;
+    }
+    }
+
+    function addTokens(amount) {
+    const profile = getProfile();
+    if (profile) {
+    profile.tokens = (profile.tokens || 0) + amount;
+    localStorage.setItem('tss_profile', JSON.stringify(profile));
+    updateTokenDisplay();
+    }
+    }
+
+    function showTokenEarned(amount, message) {
+    const container = document.createElement('div');
+    container.className = 'token-earned-container';
+    container.innerHTML = `
+    <div class="token-earned-badge">
+        <div class="token-earned-icon">💎</div>
+        <div class="token-earned-amount">+${amount}</div>
+        <div class="token-earned-label">${message}</div>
+    </div>
+    `;
+    container.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 99999;';
+    document.body.appendChild(container);
+    setTimeout(() => container.remove(), 3000);
+    }
+
+
+
+    // ============ NAVIGATION ============
+    // ============ NAVIGATION ============
+    function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const screen = document.getElementById(screenId);
+    if(screen) screen.classList.add('active');
+
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const navItem = document.querySelector(`.nav-item[onclick="showScreen('${screenId}')"]`);
+    if (navItem) navItem.classList.add('active');
+
+    if(screenId === 'screen-schedule' && typeof fetchAdjustments === 'function') {
+    fetchAdjustments();
+    }
+    }
+
+    // ============ MY VISION ACCORDION ============
+    let visionAccordionOpen = false;
+
+    // ============ QUICK PHOTO UPLOAD ============
+    function triggerVisionPhotoUpload(e) {
+    e.stopPropagation();
+    document.getElementById('visionPhotoUpload').click();
+    }
+
+    function handleVisionPhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+    alert('画像サイズは5MB以下にしてください');
+    return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+    const base64 = e.target.result;
+
+    // Save locally
+    localStorage.setItem('tss_profile_image', base64);
+    localStorage.setItem('tss_profile_photo', base64);
+
+    // Update Profile Object
+    const profile = getProfile();
+    if (profile) {
+    profile.image = base64;
+    localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+    // Backend Sync
+    syncProfileToBackend(profile);
+    }
+
+    // Update UI
+    updateVisionDisplay();
+    updateProfileStats();
+    loadPosts(); // Update my avatar in posts
+
+    // Award Tokens
+    showTokenEarned(5, 'Nice Photo! 📸');
+    addTokens(5);
+    };
+    reader.readAsDataURL(file);
+    }
+
+    function toggleVisionAccordion() {
+    const content = document.getElementById('visionAccordionContent');
+    const arrow = document.getElementById('visionArrow');
+
+    visionAccordionOpen = !visionAccordionOpen;
+
+    if (visionAccordionOpen) {
+    content.classList.add('open');
+    arrow.classList.add('open');
+    } else {
+    content.classList.remove('open');
+    arrow.classList.remove('open');
+    }
+    }
+
+    function updateVisionDisplay() {
+    const accordion = document.getElementById('visionAccordion');
+    const futureText = document.getElementById('futureVisionText');
+    const roleText = document.getElementById('roleVisionText');
+    const photo = document.getElementById('visionPhoto');
+    const placeholder = document.getElementById('visionPhotoPlaceholder');
+
+    // Get profile for user name
+    const profile = getProfile();
+    const userName = profile ? profile.name : '';
+
+    // Get stored values
+    const future = localStorage.getItem('tss_future') || '-';
+    const role = localStorage.getItem('tss_role') || '-';
+    const profileImage = localStorage.getItem('tss_profile_image') || localStorage.getItem('tss_profile_photo') || '';
+
+    futureText.textContent = future || '-';
+    roleText.textContent = role || '-';
+
+    if (profileImage) {
+    photo.src = profileImage;
+    photo.style.display = 'block';
+    placeholder.style.display = 'none';
+    } else {
+    photo.style.display = 'none';
+    placeholder.style.display = 'block';
+    // Show initial letter if userName exists
+    if (userName) {
+    placeholder.textContent = userName.charAt(0).toUpperCase();
+    }
+    }
+
+    // Show accordion if user is registered
+    if (userName) {
+    accordion.style.display = 'block';
+    }
+    }
+
+
+    // ============ TO-DO LIST ============
+    async function loadTodos() {
+    // Optimistic load
+    const saved = localStorage.getItem('tss_todos');
+    if (saved) {
+    todos = JSON.parse(saved);
+    renderTodos('daily');
+    renderTodos('weekly');
+    renderTodos('monthly');
+    }
+
+    if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_GAS_URL')) return;
+
+    const profile = getProfile();
+    if (!profile || !profile.name) return;
+
+    try {
+    const res = await fetch(`${SCRIPT_URL}?action=getTodos&user=${encodeURIComponent(profile.name)}`);
+    const data = await res.json();
+
+    if (data.todos) {
+    // Reset and organize
+    todos = { daily: [], weekly: [], monthly: [] };
+
+    data.todos.forEach(t => {
+    const type = t.type || 'daily';
+    if (todos[type]) {
+    todos[type].push(t);
+    } else {
+    // Fallback
+    todos.daily.push(t);
+    }
+    });
+
+    localStorage.setItem('tss_todos', JSON.stringify(todos));
+    renderTodos('daily');
+    renderTodos('weekly');
+    renderTodos('monthly');
+    updateProfileStats();
+    }
+    } catch (e) {
+    console.error('Failed to load todos from backend', e);
+    }
+    }
+
+    function saveTodos() {
+    localStorage.setItem('tss_todos', JSON.stringify(todos));
+    }
+
+    function showTodoTab(tab) {
+    document.querySelectorAll('.todo-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.todo-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('todo-' + tab).classList.add('active');
+    }
+
+    async function addTodo(type) {
+    const input = document.getElementById(type + 'TodoInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const profile = getProfile();
+    if (!profile) return;
+
+    // UI Feedback
+    input.disabled = true;
+
+    try {
+    // Backend Sync
+    let todoId = Date.now(); // Temp ID
+
+    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+    const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+    action: 'addTodo',
+    user: profile.name,
+    content: text,
+    type: type
+    })
+    });
+    const data = await res.json();
+    if (data.success && data.todoId) {
+    todoId = data.todoId;
+    }
+    }
+
+    const newTodo = {
+    id: todoId,
+    text: text,
+    completed: false,
+    createdAt: new Date().toISOString()
+    };
+
+    todos[type].unshift(newTodo);
+    saveTodos();
+    renderTodos(type);
+    input.value = '';
+
+    // Award token
+    addTokens(1);
+
+    } catch (e) {
+    alert('タスク追加に失敗しました');
+    console.error(e);
+    } finally {
+    input.disabled = false;
+    input.focus();
+    }
+    }
+
+    function toggleTodo(type, id) {
+    const todo = todos[type].find(t => t.id === id);
+    if (todo) {
+    todo.completed = !todo.completed;
+    saveTodos();
+    renderTodos(type);
+
+    // Award token for completing task locally
+    if (todo.completed) {
+    addTokens(2);
+    showTokenEarned(2, 'Task Complete! ✅');
+    }
+
+    // Backend Sync
+    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+    const profile = getProfile();
+    fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+    action: 'completeTodo',
+    todoId: id,
+    completed: todo.completed,
+    user: profile.name
+    })
+    }).catch(console.error);
+    }
+    }
+    }
+
+    function deleteTodo(type, id) {
+    const todo = todos[type].find(t => t.id === id);
+    if (!todo) return;
+
+    if (!confirm('タスクを削除しますか？')) return;
+
+    todos[type] = todos[type].filter(t => t.id !== id);
+    saveTodos();
+    renderTodos(type);
+
+    // Backend Sync
+    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+    fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+    action: 'deleteTodo',
+    todoId: id
+    })
+    }).catch(console.error);
+    }
+    }
+
+    function renderTodos(type) {
+    const list = document.getElementById(type + 'TodoList');
+    if (!list) return;
+
+    if (!todos[type] || todos[type].length === 0) {
+    list.innerHTML = '<div class="todo-empty">タスクがありません</div>';
+    return;
+    }
+
+    list.innerHTML = todos[type].map(todo => `
+    <div class="todo-item ${todo.completed ? 'completed' : ''}">
+        <div class="todo-checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleTodo('${type}', ${todo.id})"></div>
+        <span class="todo-text">${escapeHtml(todo.text)}</span>
+        <button class="todo-delete" onclick="deleteTodo('${type}', ${todo.id})">×</button>
+    </div>
+    `).join('');
+    }
+
+    function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+    }
+
+    // ============ BOARD / POSTS ============
+    function loadPosts() {
+    // 1. Load from localStorage for instant display
+    const saved = localStorage.getItem('tss_posts');
+    if (saved) {
+    posts = JSON.parse(saved);
+    renderPosts();
+    }
+
+    // 2. Background Sync with Backend
+    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+    // Fetch all data (default action)
+    fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(data => {
+    if (data.posts && Array.isArray(data.posts)) {
+    posts = data.posts;
+    localStorage.setItem('tss_posts', JSON.stringify(posts));
+    renderPosts(); // Re-render with profile images
+    updateProfileStats();
+    console.log('Posts synced from backend:', posts);
+    }
+    })
+    .catch(e => console.error('Background sync failed:', e));
+    } else {
+    updateProfileStats();
+    }
+    }
+
+    function submitPost() {
+    const content = document.getElementById('postContent').value.trim();
+    if (!content) return;
+
+    const profile = getProfile();
+    const newPost = {
+    id: Date.now(),
+    author: profile.name,
+    content: content,
+    createdAt: new Date().toISOString(),
+    likes: 0
+    };
+
+    posts.unshift(newPost);
+    localStorage.setItem('tss_posts', JSON.stringify(posts));
+    renderPosts();
+    document.getElementById('postContent').value = '';
+
+    // Update profile posts count
+    updateProfileStats();
+
+    // Backend Sync
+    fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+    action: 'post',
+    author: profile.name,
+    content: content
+    })
+    })
+    .then(res => res.json())
+    .then(data => console.log('Post synced:', data))
+    .catch(err => console.error('Post sync failed:', err));
+
+    // Award token for posting
+    addTokens(3);
+    showTokenEarned(3, 'Post Created! 📝');
+    }
+
+    // ============ BOARD COMMENTS ============
+    function togglePostComments(postId) {
+    const el = document.getElementById(`post-comments-${postId}`);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function submitPostComment(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const content = input.value.trim();
+    if (!content) return;
+
+    const profile = getProfile();
+    if (!profile) return;
+
+    // Optimistic Update
+    const list = document.getElementById(`post-comments-list-${postId}`);
+    const tempHtml = `
+    <div class="comment-item" style="margin-bottom:8px; display:flex; gap:8px; opacity:0.7;">
+        <div style="width:24px;height:24px;border-radius:50%;background:#eee;overflow:hidden;flex-shrink:0;">
+            ${profile.image ? `<img src="${profile.image}" style="width:100%;height:100%;object-fit:cover;">` : `<div
+                style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;font-size:10px;font-weight:bold;color:#888;">
+                ${profile.name.charAt(0)}</div>`}
+        </div>
+        <div style="flex:1; background:#f9f9f9; padding:8px; border-radius:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#555;">${escapeHtml(profile.name)} <span
+                    style="font-size:9px;color:#aaa;">Now</span></div>
+            <div style="font-size:12px; color:#333;">${escapeHtml(content)}</div>
+        </div>
+    </div>
+    `;
+    list.insertAdjacentHTML('beforeend', tempHtml);
+    input.value = '';
+
+    // Send to Backend
+    fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+    action: 'comment',
+    postId: postId,
+    author: profile.name,
+    content: content
+    })
+    })
+    .then(res => res.json())
+    .then(data => {
+    if (data.success) {
+    // Award tokens locally
+    addTokens(1);
+    showTokenEarned(1, 'Reply Bonus! 💬');
+    } else {
+    alert('コメント保存に失敗した可能性があります');
+    }
+    })
+    .catch(err => console.error(err));
+    }
+
+    function updateProfileStats() {
+    const profile = getProfile();
+    if (!profile) return;
+
+    // Count user's posts
+    const userPosts = posts.filter(p => p.author === profile.name);
+    const postsEl = document.getElementById('profilePosts');
+    if (postsEl) postsEl.textContent = userPosts.length;
+
+    // Count completed todos
+    const allTodos = [...todos.daily, ...todos.weekly, ...todos.monthly];
+    const completedTasks = allTodos.filter(t => t.completed).length;
+    const tasksEl = document.getElementById('profileTasks');
+    if (tasksEl) tasksEl.textContent = completedTasks;
+    }
+
+    function renderPosts() {
+    const list = document.getElementById('postsList');
+
+    if (posts.length === 0) {
+    list.innerHTML = '<div class="todo-empty">投稿がありません。最初の投稿をしてみましょう！</div>';
+    return;
+    }
+
+    console.log('Rendering posts:', posts); // Debugging
+
+    list.innerHTML = posts.map(post => {
+    // Profile Avatar Logic
+    let avatarHtml = post.author.charAt(0).toUpperCase();
+    if (post.authorImage) {
+    avatarHtml = `<img src="${post.authorImage}" alt="${post.author}"
+        style="width:100%;height:100%;object-fit:cover;">`;
+    }
+
+    // Check my like count
+    const likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+    const myCount = likedCounts[post.id] || 0;
+    const canLike = myCount < 10; return ` <div class="post-card">
+        <div class="post-header">
+            <div class="post-avatar" style="overflow:hidden;">${avatarHtml}</div>
+            <div class="post-meta">
+                <div class="post-author">${escapeHtml(post.author)} <span
+                        style="font-size:10px;color:#aaa;">${escapeHtml(post.authorRole || '')}</span></div>
+                <div class="post-time">${formatDate(post.createdAt)}</div>
+            </div>
+        </div>
+        <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
+        <div class="post-actions">
+            <div class="post-action ${canLike ? '' : 'disabled'}" onclick="likePost(${post.id})"
+                style="${canLike ? '' : 'opacity:0.5;cursor:default;'}">
+                ❤️ ${post.likes} <span style="font-size:10px;margin-left:4px;">(You: ${myCount}/10)</span>
+            </div>
+            <div class="post-action" onclick="togglePostComments(${post.id})">
+                💬 <span style="font-size:12px;">${(post.comments || []).length}</span>
+            </div>
+        </div>
+
+        <!-- Comment Section -->
+        <div id="post-comments-${post.id}" class="post-comments-section"
+            style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #eee;">
+            <div id="post-comments-list-${post.id}">
+                ${(post.comments || []).map(c => `
+                <div class="comment-item" style="margin-bottom:8px; display:flex; gap:8px;">
+                    <div
+                        style="width:24px;height:24px;border-radius:50%;background:#eee;overflow:hidden;flex-shrink:0;">
+                        ${c.authorImage ? `<img src="${c.authorImage}"
+                            style="width:100%;height:100%;object-fit:cover;">` : `<div
+                            style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;font-size:10px;font-weight:bold;color:#888;">
+                            ${c.author.charAt(0)}</div>`}
+                    </div>
+                    <div style="flex:1; background:#f9f9f9; padding:8px; border-radius:8px;">
+                        <div style="font-size:11px; font-weight:bold; color:#555;">${escapeHtml(c.author)} <span
+                                style="font-size:9px;color:#aaa;">${formatDate(c.createdAt)}</span></div>
+                        <div style="font-size:12px; color:#333;">${escapeHtml(c.content)}</div>
+                    </div>
+                </div>
+                `).join('')}
+            </div>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                <input type="text" id="comment-input-${post.id}" placeholder="コメントを書く..."
+                    style="flex:1; border:1px solid #ddd; border-radius:4px; padding:6px; font-size:12px;">
+                <button onclick="submitPostComment(${post.id})"
+                    style="background:var(--primary); color:white; border:none; border-radius:4px; padding:0 12px; font-size:12px; cursor:pointer;">送信</button>
+            </div>
+        </div>
+        </div>
+        `}).join('');
+        }
+
+        async function likePost(id) {
+        const post = posts.find(p => p.id === id);
+        if (!post) return;
+
+        // Check 10 likes limit
+        let likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+        const myCount = likedCounts[id] || 0;
+
+        if (myCount >= 10) {
+        alert('この投稿へのいいねは10回までです！たくさんの承認ありがとう！👏');
+        return;
+        }
+
+        // Update LOCAL state
+        post.likes++;
+        likedCounts[id] = myCount + 1;
+
+        localStorage.setItem('tss_posts', JSON.stringify(posts));
+        localStorage.setItem('tss_liked_post_counts', JSON.stringify(likedCounts));
+
+        renderPosts();
+
+        // Reward ME (Sender) +1 Token for Approval Action
+        addTokens(1);
+        showTokenEarned(1, `Nice! Like (${myCount + 1}/10) ❤️`);
+
+        // Sync with Backend (Also rewards Author in GAS)
+        try {
+        // Determine if SCRIPT_URL is valid
+        if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+        await fetch(`${SCRIPT_URL}?action=like&postId=${id}`);
+        }
+        } catch (e) {
+        console.error('Like sync failed', e);
+        }
+        }
+
+        function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}.${m}.${d}`;
+        }
+
+        // ============ AI CHAT ============
+        async function sendChat() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Add user message
+        addChatMessage('user', message);
+        input.value = '';
+
+        // Show typing indicator
+        addChatMessage('ai', '考え中...');
+
+        try {
+        // Try to call GAS backend with Gemini 3 Flash
+        if (SCRIPT_URL && SCRIPT_URL !== 'YOUR_GAS_URL_HERE') {
+        const profile = getProfile();
+        const userName = profile?.name || 'User';
+
+        // Send up to last 10 messages for context
+        const historyToSend = chatHistory.slice(-10);
+        const response = await
+        fetch(`${SCRIPT_URL}?action=chat&q=${encodeURIComponent(message)}&name=${encodeURIComponent(userName)}&history=${encodeURIComponent(JSON.stringify(historyToSend))}`);
+        const data = await response.json();
+
+        // Remove typing indicator and show response
+        removeLastAIMessage();
+        const aiResponse = data.response || generateLocalResponse(message);
+        addChatMessage('ai', aiResponse);
+
+        // Add to history
+        chatHistory.push({ role: 'user', text: message });
+        chatHistory.push({ role: 'model', text: aiResponse });
+        } else {
+        // Use local response if no GAS URL configured
+        removeLastAIMessage();
+        const aiResponse = generateLocalResponse(message);
+        addChatMessage('ai', aiResponse);
+
+        // Add to history even for local response
+        chatHistory.push({ role: 'user', text: message });
+        chatHistory.push({ role: 'model', text: aiResponse });
+        }
+        } catch (error) {
+        console.error('AI Error:', error);
+        removeLastAIMessage();
+        addChatMessage('ai', generateLocalResponse(message));
+        }
+        }
+
+        function removeLastAIMessage() {
+        const container = document.getElementById('chatContainer');
+        const messages = container.querySelectorAll('.chat-message.ai');
+        if (messages.length > 0) {
+        messages[messages.length - 1].remove();
+        }
+        }
+
+        function addChatMessage(type, message) {
+        const container = document.getElementById('chatContainer');
+        const avatar = type === 'ai' ? '🤖' : getProfile()?.name?.charAt(0).toUpperCase() || '👤';
+
+        container.innerHTML += `
+        <div class="chat-message ${type}">
+            <div class="chat-avatar">${avatar}</div>
+            <div class="chat-bubble">${escapeHtml(message).replace(/\n/g, '<br>')}</div>
+        </div>
+        `;
+
+        container.scrollTop = container.scrollHeight;
+        }
+
+        function generateLocalResponse(question) {
+        const q = question.toLowerCase();
+        const profile = getProfile();
+        const userName = profile?.name || 'あなた';
+
+        if (q.includes('こんにちは') || q.includes('はじめまして')) {
+        return `${userName}さん、こんにちは！JINSEI AIです😊 人生のこと、仕事のこと、チームのこと、何でも相談してくださいね。一緒に考えましょう！`;
+        }
+        if (q.includes('ありがとう') || q.includes('感謝')) {
+        return `${userName}さん、どういたしまして！また気軽に話しかけてくださいね。あなたの挑戦を応援しています🌟`;
+        }
+        if (q.includes('チーム') || q.includes('組織') || q.includes('メンバー')) {
+        return `${userName}さん、自走型組織を作るコツは「承認」です。メンバーの挑戦をまず認め、心理的安全性を高めること。失敗しても大丈夫という環境があれば、人は自然と主体的になります✨`;
+        }
+        if (q.includes('リーダー') || q.includes('上司') || q.includes('部下')) {
+        return `${userName}さん、良いリーダーは号令をかける人ではなく、共感できる人です。メンバー一人ひとりの声に耳を傾け、承認し、巻き込んでいく。そうすることで、チーム全体が自走し始めます🚀`;
+        }
+        if (q.includes('やる気') || q.includes('モチベーション') || q.includes('主体性')) {
+        return `${userName}さん、主体性を引き出す鍵は「使命」です。自分たちで決めたミッションがあると、「やらされ感」が「やりたい！」に変わります。一緒に目標を作ってみませんか？💪`;
+        }
+        if (q.includes('失敗') || q.includes('ミス') || q.includes('不安')) {
+        return `${userName}さん、失敗は学びのチャンスです。心理的安全性が高い組織では、失敗を恐れずチャレンジできます。まずあなたの挑戦を認めてくれる人を見つけましょう。きっといるはずです😊`;
+        }
+        if (q.includes('トークン') || q.includes('ポイント') || q.includes('TSST') || q.includes('tsst')) {
+        return `${userName}さん、TSSTは活動で獲得できます！\n📝 投稿: +3 TSST\n✅ タスク追加: +1 TSST\n🎯 タスク完了: +2 TSST\n📷 写真アップロード: +5
+        TSST\n积極的に活動して、コミュニティに貢献しましょう！`;
+        }
+        if (q.includes('使い方') || q.includes('ヘルプ')) {
+        return `${userName}さん、このアプリでは:\n🏠 HOME: お知らせ・動画\n💬 BOARD: 投稿・交流\n✅ TODO: タスク管理\n🤖 AI: 私に相談\n👤 PROFILE:
+        プロフィール確認\nができます！`;
+        }
+
+        const responses = [
+        `${userName}さん、いい質問ですね！もう少し詳しく教えていただけますか？一緒に考えましょう✨`,
+        `なるほど、${userName}さん、その悩みは多くの人が持っています。まず「心理的安全性」を意識してみてください。自分を認めてくれる環境があると、人は変われます😊`,
+        `素晴らしい視点ですね！${userName}さん、自走型組織を作る第一歩は、共感してくれる仲間を見つけること。あなたはすでにその一歩を踏み出していますよ🚀`
+        ];
+        return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // Enter key for chat
+        document.getElementById('chatInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') sendChat();
+        });
+
+        // ============ ANNOUNCEMENT INTERACTIONS ============
+        let announcementLikes = JSON.parse(localStorage.getItem('tss_announcement_likes') || '{}');
+        let announcementComments = JSON.parse(localStorage.getItem('tss_announcement_comments') || '{}');
+        let likedAnnouncements = JSON.parse(localStorage.getItem('tss_liked_announcements') || '[]');
+
+        function likeAnnouncement(id) {
+        const profile = getProfile();
+        if (!profile) return;
+
+        // Check if already liked
+        if (likedAnnouncements.includes(id)) {
+        alert('すでにいいねしています！');
+        return;
+        }
+
+        // Add like
+        announcementLikes[id] = (announcementLikes[id] || 0) + 1;
+        likedAnnouncements.push(id);
+
+        localStorage.setItem('tss_announcement_likes', JSON.stringify(announcementLikes));
+        localStorage.setItem('tss_liked_announcements', JSON.stringify(likedAnnouncements));
+
+        // Update display
+        document.getElementById(`announcement-likes-${id}`).textContent = announcementLikes[id];
+
+        // Award 1 TSST for liking
+        addTokens(1);
+        showTokenEarned(1, 'Like Bonus! ❤️');
+        }
+
+        function toggleComments(id) {
+        const section = document.getElementById(`comments-section-${id}`);
+        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        renderComments(id);
+        }
+
+        function submitComment(id) {
+        const input = document.getElementById(`comment-input-${id}`);
+        const content = input.value.trim();
+        if (!content) return;
+
+        const profile = getProfile();
+        if (!profile) return;
+
+        if (!announcementComments[id]) {
+        announcementComments[id] = [];
+        }
+
+        announcementComments[id].push({
+        id: Date.now(),
+        author: profile.name,
+        content: content,
+        time: new Date().toISOString(),
+        likes: 0
+        });
+
+        localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+        input.value = '';
+
+        renderComments(id);
+
+        // Award 1 TSST for commenting
+        addTokens(1);
+        showTokenEarned(1, 'Comment Bonus! 💬');
+        }
+
+        function likeAnnouncementComment(annId, commentId) {
+        const comments = announcementComments[annId];
+        if (!comments) return;
+
+        const comment = comments.find(c => c.id === commentId);
+        if (comment) {
+        // Check Limit
+        let likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
+        const myCount = likedCounts[commentId] || 0;
+
+        if (myCount >= 10) {
+        alert('このコメントへのいいねは10回までです！たくさんの承認ありがとう！👏');
+        return;
+        }
+
+        comment.likes = (comment.likes || 0) + 1;
+        likedCounts[commentId] = myCount + 1;
+
+        localStorage.setItem('tss_announcement_comments', JSON.stringify(announcementComments));
+        localStorage.setItem('tss_liked_comment_counts', JSON.stringify(likedCounts));
+
+        renderComments(annId);
+
+        // Award 1 Token for Liking Comment
+        addTokens(1);
+        showTokenEarned(1, `Nice! Comment Like (${myCount + 1}/10) ❤️`);
+        }
+        }
+
+        function renderComments(id) {
+        const list = document.getElementById(`comments-list-${id}`);
+        const comments = announcementComments[id] || [];
+
+        if (comments.length === 0) {
+        list.innerHTML = '<div style="text-align: center; color: var(--text-gray); padding: 10px; font-size: 12px;">
+            コメントはまだありません</div>';
+        return;
+        }
+
+        list.innerHTML = comments.map(comment => {
+        const likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
+        const myCount = likedCounts[comment.id] || 0;
+        const canLike = myCount < 10; return ` <div class="comment-item">
+            <div class="comment-avatar">${comment.author.charAt(0).toUpperCase()}</div>
+            <div class="comment-content">
+                <div class="comment-author">${escapeHtml(comment.author)}</div>
+                <div class="comment-text">${escapeHtml(comment.content)}</div>
+                <div style="margin-top: 4px; display: flex; gap: 10px; align-items: center;">
+                    <span class="comment-like-btn" onclick="likeAnnouncementComment(${id}, ${comment.id || 0})"
+                        style="font-size: 12px; color: ${canLike ? 'var(--text-gray)' : '#ccc'}; cursor: ${canLike ? 'pointer' : 'default'}; opacity: ${canLike ? 1 : 0.6}; display: flex; align-items: center; gap: 4px;">
+                        ❤️ <span style="font-weight: bold;">${comment.likes || 0}</span> <span
+                            style="font-size:10px;">(You: ${myCount}/10)</span>
+                    </span>
+                    <span style="font-size: 10px; color: #ccc;">${formatDate(comment.time)}</span>
+                </div>
+            </div>
+            </div>
+            `}).join('');
+            }
+
+            // Load and render announcements
+            async function loadAnnouncements() {
+            const container = document.getElementById('announcementsList');
+            let announcements = JSON.parse(localStorage.getItem('tss_announcements') || '[]');
+
+            // Try to fetch from backend
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
             try {
-                localStorage.setItem('tss_' + key, JSON.stringify(value));
+            const res = await fetch(`${SCRIPT_URL}?action=announcements`);
+            const data = await res.json();
+            if (data.announcements && Array.isArray(data.announcements)) {
+            announcements = data.announcements;
+            localStorage.setItem('tss_announcements', JSON.stringify(announcements));
+            }
             } catch (e) {
-                console.error('Storage error:', e);
+            console.log('Failed to fetch announcements, using cache');
             }
-        }
-
-        function loadFromStorage(key) {
-            try {
-                const data = localStorage.getItem('tss_' + key);
-                return data ? JSON.parse(data) : null;
-            } catch (e) {
-                console.error('Storage error:', e);
-                return null;
-            }
-        }
-
-        // ========== Init ==========
-        function init() {
-            currentUser = loadFromStorage('user');
-            todos = loadFromStorage('todos') || [];
-            boardPosts = loadFromStorage('boardPosts') || [];
-
-            if (currentUser) {
-                showLoggedInState();
-                showScreen('home');
-            } else {
-                showScreen('register');
             }
 
-            renderTodos();
-            renderTodos();
-            renderBoardPosts();
+            // Add default announcement if none exist and empty
+            if (announcements.length === 0) {
+            announcements.push({
+            id: 1,
+            author: 'TSS運営',
+            content: '🎉 TSSへようこそ！\nここにお知らせが表示されます。',
+            date: new Date().toISOString(),
+            likes: 0
+            });
+            }
 
-            // Check for updates
-            checkAppVersion();
-        }
+            container.innerHTML = announcements.map(ann => {
+            // Format date
+            const date = new Date(ann.date);
+            const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2,
+            '0')}.${String(date.getDate()).padStart(2, '0')}`;
 
-        // ========== Version & Cache Control ==========
-        function checkAppVersion() {
-            // Version check
-            fetch(SCRIPT_URL + '?action=version&_t=' + Date.now())
-                .then(r => r.json())
-                .then(res => {
-                    console.log('Backend Version:', res.version, 'Local:', APP_VERSION);
-                    if (res.version && res.version !== APP_VERSION) {
-                        // Different version detected
-                        if (confirm(`新しいバージョン (${res.version}) が利用可能です。\n更新しますか？`)) {
-                            forceUpdate();
-                        }
+            // Format content with line breaks and auto-link URLs
+            const formattedContent = escapeHtml(ann.content)
+            .replace(/\n/g, '<br>')
+            .replace(/(https?:\/\/[^\s<]+) /g, '<a href="$1" target="_blank" style="color: var(--primary);">$1</a>' );
+                // Build attachments HTML let attachmentsHtml='' ; if (ann.attachments && ann.attachments.length> 0) {
+                attachmentsHtml = '<div class="announcement-attachments"
+                    style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">';
+
+                    ann.attachments.forEach(att => {
+                    if (att.type === 'link') {
+                    attachmentsHtml += `
+                    <a href="${escapeHtml(att.url)}" target="_blank"
+                        style="display: flex; align-items: center; gap: 8px; padding: 10px; background: var(--primary-light); border-radius: 8px; text-decoration: none; color: var(--primary);">
+                        <span>🔗</span>
+                        <span
+                            style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(att.label
+                            || att.url)}</span>
+                        <span style="font-size: 10px;">↗</span>
+                    </a>
+                    `;
+                    } else if (att.type === 'image') {
+                    attachmentsHtml += `
+                    <div style="border-radius: 8px; overflow: hidden;">
+                        <img src="${att.data}" alt="添付画像" style="max-width: 100%; border-radius: 8px; cursor: pointer;"
+                            onclick="window.open('${att.data}', '_blank')">
+                    </div>
+                    `;
+                    } else if (att.type === 'pdf') {
+                    attachmentsHtml += `
+                    <a href="${escapeHtml(att.url)}" target="_blank"
+                        style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #FEE2E2; border-radius: 8px; text-decoration: none; color: #DC2626;">
+                        <span>📄</span>
+                        <span style="flex: 1;">${escapeHtml(att.label || 'PDF資料')}</span>
+                        <span style="font-size: 10px;">↗</span>
+                    </a>
+                    `;
                     }
-                })
-                .catch(e => console.log('Version check failed', e));
-        }
-
-        function forceUpdate() {
-            // Force reload with unique hash to bypass cache
-            const url = new URL(window.location.href);
-            url.searchParams.set('v', Date.now());
-            window.location.href = url.toString();
-        }
-
-        // ========== Auth ==========
-        function register() {
-            const name = document.getElementById('inputName').value.trim();
-            const pin = document.getElementById('inputPin').value.trim();
-
-            if (!name) {
-                alert('名前を入力してください');
-                return;
-            }
-            if (!pin || pin.length !== 4) {
-                alert('4桁のPINを入力してください');
-                return;
-            }
-
-            currentUser = {
-                name: name,
-                pin: pin,
-                tokenBalance: 0,
-                createdAt: new Date().toISOString()
-            };
-
-            saveToStorage('user', currentUser);
-            showLoggedInState();
-            showScreen('home');
-        }
-
-        function showLoginMode() {
-            document.querySelector('.register-title').textContent = 'ログイン';
-            document.querySelector('.register-sub').textContent = '登録済みの情報でログイン';
-            document.getElementById('btnRegister').textContent = 'ログイン';
-            document.getElementById('btnRegister').onclick = login;
-        }
-
-        function login() {
-            const name = document.getElementById('inputName').value.trim();
-            const pin = document.getElementById('inputPin').value.trim();
-
-            if (!name || !pin) {
-                alert('名前とPINを入力してください');
-                return;
-            }
-
-            // ローカルストレージから確認（後でバックエンド認証に置き換え）
-            const savedUser = loadFromStorage('user');
-            if (savedUser && savedUser.name === name && savedUser.pin === pin) {
-                currentUser = savedUser;
-                showLoggedInState();
-                showScreen('home');
-            } else {
-                alert('名前またはPINが正しくありません');
-            }
-        }
-
-        function logout() {
-            if (confirm('ログアウトしますか？')) {
-                currentUser = null;
-                localStorage.removeItem('tss_user');
-                location.reload();
-            }
-        }
-
-        function showLoggedInState() {
-            document.getElementById('userBadge').textContent = currentUser.name;
-            document.getElementById('userBadge').style.display = 'inline-block';
-            document.getElementById('tokenDisplay').style.display = 'inline-flex';
-            document.getElementById('tokenBalance').textContent = currentUser.tokenBalance || 0;
-            document.getElementById('profileName').textContent = currentUser.name;
-            document.getElementById('profilePoints').textContent = currentUser.tokenBalance || 0;
-            document.querySelector('nav').style.display = 'flex';
-        }
-
-        // ========== Screen Navigation ==========
-        function showScreen(screenName) {
-            if (!currentUser && screenName !== 'register') {
-                showScreen('register');
-                return;
-            }
-
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-            document.getElementById('screen-' + screenName).classList.add('active');
-            document.querySelector(`.nav-item[onclick="showScreen('${screenName}')"]`)?.classList.add('active');
-
-            if (screenName === 'schedule') {
-                fetchAdjustments();
-            }
-        }
-
-        // ========== Todo Functions ==========
-        function addTodo() {
-            const input = document.getElementById('todoInput');
-            const text = input.value.trim();
-            if (!text) return;
-
-            todos.push({
-                id: Date.now(),
-                text: text,
-                completed: false,
-                createdAt: new Date().toISOString()
-            });
-
-            saveToStorage('todos', todos);
-            input.value = '';
-            renderTodos();
-        }
-
-        function toggleTodo(id) {
-            const todo = todos.find(t => t.id === id);
-            if (todo) {
-                todo.completed = !todo.completed;
-                saveToStorage('todos', todos);
-                renderTodos();
-            }
-        }
-
-        function deleteTodo(id) {
-            todos = todos.filter(t => t.id !== id);
-            saveToStorage('todos', todos);
-            renderTodos();
-        }
-
-        function renderTodos() {
-            const container = document.getElementById('todoList');
-            if (todos.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-gray);">タスクがありません</div>';
-                return;
-            }
-
-            container.innerHTML = todos.map(todo => `
-                <div class="todo-item ${todo.completed ? 'completed' : ''}">
-                    <div class="todo-checkbox ${todo.completed ? 'checked' : ''}" onclick="toggleTodo(${todo.id})"></div>
-                    <div class="todo-text">${escapeHtml(todo.text)}</div>
-                    <div class="todo-delete" onclick="deleteTodo(${todo.id})">🗑️</div>
-                </div>
-            `).join('');
-        }
-
-        // ========== Board Functions ==========
-        function postToBoard() {
-            const input = document.getElementById('boardInput');
-            const content = input.value.trim();
-            if (!content) return;
-
-            boardPosts.unshift({
-                id: Date.now(),
-                author: currentUser.name,
-                content: content,
-                likes: 0,
-                comments: 0,
-                createdAt: new Date().toISOString()
-            });
-
-            saveToStorage('boardPosts', boardPosts);
-            input.value = '';
-            renderBoardPosts();
-
-            // トークン付与
-            currentUser.tokenBalance = (currentUser.tokenBalance || 0) + 1;
-            saveToStorage('user', currentUser);
-            document.getElementById('tokenBalance').textContent = currentUser.tokenBalance;
-        }
-
-        function likePost(id) {
-            const post = boardPosts.find(p => p.id === id);
-            if (post) {
-                post.likes++;
-                saveToStorage('boardPosts', boardPosts);
-                renderBoardPosts();
-            }
-        }
-
-        function renderBoardPosts() {
-            const container = document.getElementById('boardPosts');
-            if (boardPosts.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-gray);">まだ投稿がありません。<br>最初の投稿をしてみましょう！</div>';
-                return;
-            }
-
-            container.innerHTML = boardPosts.map(post => `
-                <div class="board-post">
-                    <div class="board-post-header">
-                        <div class="board-avatar">👤</div>
-                        <div>
-                            <div class="board-author">${escapeHtml(post.author)}</div>
-                            <div class="board-time">${formatTime(post.createdAt)}</div>
-                        </div>
-                    </div>
-                    <div class="board-content">${escapeHtml(post.content)}</div>
-                    <div class="board-actions">
-                        <div class="board-action" onclick="likePost(${post.id})"><span>❤️</span> ${post.likes}</div>
-                        <div class="board-action"><span>💬</span> ${post.comments}</div>
-                    </div>
-                </div>
-            `).join('');
-
-            // Home画面の最新投稿も更新
-            const recentContainer = document.getElementById('recentPosts');
-            if (recentContainer && boardPosts.length > 0) {
-                recentContainer.innerHTML = boardPosts.slice(0, 3).map(post => `
-                    <div class="board-post">
-                        <div class="board-post-header">
-                            <div class="board-avatar">👤</div>
-                            <div>
-                                <div class="board-author">${escapeHtml(post.author)}</div>
-                                <div class="board-time">${formatTime(post.createdAt)}</div>
-                            </div>
-                        </div>
-                        <div class="board-content">${escapeHtml(post.content)}</div>
-                        <div class="board-actions">
-                            <div class="board-action"><span>❤️</span> ${post.likes}</div>
-                            <div class="board-action"><span>💬</span> ${post.comments}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // ========== Utility Functions ==========
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatTime(isoString) {
-            const date = new Date(isoString);
-            const now = new Date();
-            const diff = now - date;
-
-            if (diff < 60000) return '今';
-            if (diff < 3600000) return Math.floor(diff / 60000) + '分前';
-            if (diff < 86400000) return Math.floor(diff / 3600000) + '時間前';
-            return date.toLocaleDateString('ja-JP');
-        }
-
-        // ========== Profile Functions ==========
-        function handlePhotoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            // 画像サイズチェック（1MB以下）
-            if (file.size > 1024 * 1024) {
-                alert('画像サイズは1MB以下にしてください');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const base64 = e.target.result;
-                // プロフィールアバターを更新
-                const avatar = document.getElementById('profileAvatar');
-                avatar.innerHTML = `<img src="${base64}" alt="プロフィール写真">`;
-                // ローカルに保存
-                saveToStorage('profilePhoto', base64);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function loadProfilePhoto() {
-            const photo = loadFromStorage('profilePhoto');
-            if (photo) {
-                const avatar = document.getElementById('profileAvatar');
-                if (avatar) {
-                    avatar.innerHTML = `<img src="${photo}" alt="プロフィール写真">`;
-                }
-            }
-        }
-
-        function saveProfile() {
-            const bio = document.getElementById('bioInput').value;
-            const youtubeUrl = document.getElementById('youtubeUrlInput').value;
-
-            saveToStorage('bio', bio);
-            saveToStorage('youtubeUrl', youtubeUrl);
-            saveToStorage('email', document.getElementById('emailInput').value); // Local Save
-
-            // YouTube動画を更新
-            updateYoutubeEmbed(youtubeUrl);
-
-            alert('プロフィールを保存しました！');
-        }
-
-        function viewTokenHistory() {
-            if (!currentUser) return;
-            const url = SCRIPT_URL + '?action=history&user=' + encodeURIComponent(currentUser.name);
-            window.location.href = url;
-        }
-
-        function loadProfile() {
-            const bio = loadFromStorage('bio');
-            const youtubeUrl = loadFromStorage('youtubeUrl');
-
-            if (bio) {
-                document.getElementById('bioInput').value = bio;
-            }
-            if (youtubeUrl) {
-                document.getElementById('youtubeUrlInput').value = youtubeUrl;
-                updateYoutubeEmbed(youtubeUrl);
-            }
-            const email = loadFromStorage('email');
-            if (email) document.getElementById('emailInput').value = email;
-        }
-
-        function viewTokenHistory() {
-            if (!currentUser) return;
-            const url = SCRIPT_URL + '?action=history&user=' + encodeURIComponent(currentUser.name);
-            window.location.href = url;
-        }
-
-        function updateYoutubeEmbed(url) {
-            if (!url) return;
-
-            // YouTube URLからビデオIDを抽出
-            let videoId = null;
-            const patterns = [
-                /(?:youtube\.com\/watch\?v=)([^&]+)/,
-                /(?:youtu\.be\/)([^?]+)/,
-                /(?:youtube\.com\/embed\/)([^?]+)/
-            ];
-
-            for (const pattern of patterns) {
-                const match = url.match(pattern);
-                if (match && match[1]) {
-                    videoId = match[1];
-                    break;
-                }
-            }
-
-            if (videoId) {
-                const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}`;
-                document.getElementById('youtubeEmbed').innerHTML =
-                    `<iframe src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-            }
-        }
-
-
-
-        // ========== Smart Schedule Functions ==========
-        let currentAdjustments = [];
-        let newAdjDates = [];
-
-        function openNewAdjustmentForm() {
-            document.getElementById('new-adjustment-form').style.display = 'block';
-            newAdjDates = [];
-            renderAdjDatesList();
-        }
-
-        function closeNewAdjustmentForm() {
-            document.getElementById('new-adjustment-form').style.display = 'none';
-        }
-
-        function addAdjDate() {
-            const val = document.getElementById('adjDateInput').value;
-            if (!val) return;
-            // Add default 1 hour duration
-            const start = new Date(val);
-            const end = new Date(start.getTime() + 60 * 60 * 1000);
-
-            newAdjDates.push({ start: start.toISOString(), end: end.toISOString() });
-            renderAdjDatesList();
-            document.getElementById('adjDateInput').value = '';
-        }
-
-        function renderAdjDatesList() {
-            const container = document.getElementById('adjDatesList');
-            container.innerHTML = newAdjDates.map((d, i) => `
-                <div style="font-size: 11px; background: var(--light-gray); padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 2px;">
-                    ${new Date(d.start).toLocaleString()} 
-                    <span onclick="newAdjDates.splice(${i},1);renderAdjDatesList()" style="cursor:pointer; color:red; margin-left:4px;">×</span>
-                </div>
-            `).join('');
-        }
-
-        function createAdjustment() {
-            const title = document.getElementById('adjTitle').value;
-            const contextMembers = document.getElementById('adjMemberInput').value;
-
-            if (!title) return alert('タイトルを入力してください');
-            if (newAdjDates.length === 0) return alert('候補日時を追加してください');
-            if (!contextMembers) return alert('参加メンバーを入力してください');
-
-            let participants = [currentUser.name];
-            if (contextMembers.toLowerCase() !== 'all') {
-                const others = contextMembers.split(',').map(s => s.trim());
-                participants = [...participants, ...others];
-            }
-
-            const payload = {
-                action: 'createAdjustment',
-                title: title,
-                author: currentUser.name,
-                candidates: newAdjDates,
-                participants: participants
-            };
-
-            callApi(payload, (res) => {
-                if (res.success) {
-                    alert('調整を作成しました！');
-                    closeNewAdjustmentForm();
-                    fetchAdjustments();
-                } else {
-                    alert('作成失敗: ' + res.error);
-                }
-            });
-        }
-
-        function fetchAdjustments() {
-            const container = document.getElementById('adjustmentsList');
-            // container.innerHTML = '<div style="text-align: center; padding: 20px;">読み込み中...</div>';
-
-            // callApi is GET for default? No, let's use a helper or simple fetch if we had one.
-            // But we don't have a generic callApi in the visible code above?
-            // Checking 'doPost' logic... standard fetch?
-            // Let's implement a simple fetch wrapper since I don't see one in the snippets I read.
-
-            // Ensure NO CACHE on fetch
-            const url = SCRIPT_URL + '?action=getAdjustments&user=' + encodeURIComponent(currentUser?.name || '') + '&_t=' + Date.now();
-            fetch(url)
-                .then(r => r.json())
-                .then(res => {
-                    if (res.adjustments) {
-                        currentAdjustments = res.adjustments;
-                        renderAdjustments();
-                    }
-                })
-                .catch(e => console.error(e));
-        }
-
-        function renderAdjustments() {
-            const container = document.getElementById('adjustmentsList');
-            if (currentAdjustments.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-gray);">予定はありません</div>';
-                return;
-            }
-
-            container.innerHTML = currentAdjustments.map(adj => {
-                const isAuthor = adj.author === currentUser.name;
-                const isFinalized = adj.status === 'finalized';
-
-                let html = `
-                <div class="schedule-card">
-                    <div class="schedule-header">
-                        <div>
-                            <div class="schedule-title">${escapeHtml(adj.title)}</div>
-                            <div style="font-size: 10px; color: var(--text-gray);">Author: ${adj.author}</div>
-                        </div>
-                        <div class="schedule-status ${adj.status === 'finalized' ? 'finalized' : 'active'}">
-                            ${adj.status === 'finalized' ? '確定済み' : '調整中'}
-                        </div>
-                    </div>
-                    
-                    ${isFinalized ? `
-                        <div style="font-size: 12px; background: #dcfce7; padding: 10px; border-radius: 8px; color: #166534; font-weight: bold;">
-                             🎉 決定: ${new Date(adj.finalDate.start).toLocaleString()}
-                        </div>
-                    ` : ''}
-
-                    <div class="date-grid">
-                        ${adj.candidates.map((date, idx) => {
-                    const dateStr = date.start; // Key for voting
-                    const myVote = adj.responses[currentUser.name]?.[dateStr] || '-';
-
-                    // Check votes count
-                    const counts = { O: 0, X: 0, D: 0 };
-                    Object.values(adj.responses).forEach(r => {
-                        const v = r[dateStr];
-                        if (v === 'O') counts.O++;
-                        else if (v === 'X') counts.X++;
-                        else if (v === '△') counts.D++;
                     });
 
-                    return `
-                                <div class="date-row">
-                                    <div style="font-size: 11px;">
-                                        ${new Date(date.start).toLocaleString()}
-                                        <div style="font-size: 9px; color: var(--text-gray);">
-                                            O:${counts.O} / △:${counts.D} / X:${counts.X}
-                                        </div>
-                                    </div>
-                                    
-                                    ${!isFinalized ? `
-                                        <div class="vote-btn-group">
-                                            <div class="vote-btn ${myVote === 'O' ? 'selected' : ''}" onclick="submitVote('${adj.id}', '${dateStr}', 'O')">O</div>
-                                            <div class="vote-btn ${myVote === '△' ? 'selected' : ''}" onclick="submitVote('${adj.id}', '${dateStr}', '△')">△</div>
-                                            <div class="vote-btn ${myVote === 'X' ? 'selected' : ''}" onclick="submitVote('${adj.id}', '${dateStr}', 'X')">X</div>
-                                        </div>
-                                    ` : ''}
-                                    
-                                    ${!isFinalized && isAuthor ? `
-                                        <button class="finalize-btn" onclick="finalizeAdjustment('${adj.id}', '${idx}')">決定</button>
-                                    ` : ''}
-                                </div>
-                            `;
-                }).join('')}
+                    attachmentsHtml += '
+                </div>';
+                }
+
+                return `
+                <div class="post-card" data-announcement-id="${ann.id}">
+                    <div class="post-header">
+                        <div class="post-avatar">${(ann.author || 'T').charAt(0).toUpperCase()}</div>
+                        <div class="post-meta">
+                            <div class="post-author">${escapeHtml(ann.author || 'TSS運営')}</div>
+                            <div class="post-time">${dateStr}</div>
+                        </div>
                     </div>
-                </div>`;
-                return html;
-            }).join('');
-        }
-
-        function submitVote(adjId, dateStr, vote) {
-            // Optimistic update
-            const adj = currentAdjustments.find(a => a.id === adjId);
-            if (!adj.responses[currentUser.name]) adj.responses[currentUser.name] = {};
-            adj.responses[currentUser.name][dateStr] = vote;
-            renderAdjustments(); // Re-render locally
-
-            const payload = {
-                action: 'submitVote',
-                adjustmentId: adjId,
-                user: currentUser.name,
-                votes: adj.responses[currentUser.name] // Send full votes object for simplicity
-            };
-
-            // Send to server (Fire and forget, or show spinner)
-            callApi(payload, (res) => {
-                if (!res.success) alert('投票エラー');
-            });
-        }
-
-        function finalizeAdjustment(adjId, dateIdx) {
-            if (!confirm('この日時で確定し、全員に招待メールを送りますか？')) return;
-
-            const adj = currentAdjustments.find(a => a.id === adjId);
-            const finalDate = adj.candidates[dateIdx];
-
-            document.getElementById('sendingOverlay').classList.add('active');
-
-            const payload = {
-                action: 'finalizeAdjustment',
-                adjustmentId: adjId,
-                finalDate: finalDate
-            };
-
-            callApi(payload, (res) => {
-                document.getElementById('sendingOverlay').classList.remove('active');
-                if (res.success) {
-                    alert('確定しました！カレンダー招待を送信しました。');
-                    fetchAdjustments();
-                } else {
-                    alert('エラー: ' + res.error);
-                }
-            });
-        }
-
-        // Helper API Call
-        function callApi(data, callback) {
-            const targetUrl = SCRIPT_URL + '?_t=' + Date.now();
-            fetch(targetUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(data)
-            })
-                .then(r => r.json())
-                .then(callback)
-                .catch(e => {
-                    console.error(e);
-                    alert('通信エラーが発生しました');
-                    document.getElementById('sendingOverlay')?.classList.remove('active');
-                });
-        }
-
-
-
-
-        // ========== AI Chat Functions ==========
-        async function askAI() {
-            const input = document.getElementById('aiInput');
-            const question = input.value.trim();
-            if (!question) return;
-
-            const messagesContainer = document.getElementById('aiMessages');
-
-            // ユーザーメッセージを追加
-            messagesContainer.innerHTML += `
-                <div class="ai-message user">${escapeHtml(question)}</div>
-            `;
-
-            input.value = '';
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            // ローディング表示
-            const loadingId = Date.now();
-            messagesContainer.innerHTML += `
-                <div class="ai-message" id="loading-${loadingId}">考え中...</div>
-            `;
-
-            try {
-                if (SCRIPT_URL) {
-                    const response = await fetch(
-                        SCRIPT_URL + '?action=chat&q=' + encodeURIComponent(question) + '&name=' + encodeURIComponent(currentUser?.name || 'ユーザー')
-                    );
-                    const data = await response.json();
-
-                    document.getElementById(`loading-${loadingId}`).remove();
-                    messagesContainer.innerHTML += `
-                        <div class="ai-message">${escapeHtml(data.response || 'すみません、うまく返答できませんでした。')}</div>
-                    `;
-                } else {
-                    // バックエンド未設定時のローカル応答
-                    document.getElementById(`loading-${loadingId}`).remove();
-                    const localResponses = [
-                        '素晴らしい質問ですね！もう少し詳しく教えてください 😊',
-                        'その点について一緒に考えましょう！',
-                        'TSSコミュニティの仲間にも相談してみるといいかもしれませんね 🤝',
-                        '一歩一歩前進していきましょう！💪'
-                    ];
-                    const randomResponse = localResponses[Math.floor(Math.random() * localResponses.length)];
-                    messagesContainer.innerHTML += `
-                        <div class="ai-message">${randomResponse}</div>
-                    `;
-                }
-            } catch (error) {
-                document.getElementById(`loading-${loadingId}`)?.remove();
-                messagesContainer.innerHTML += `
-                    <div class="ai-message">申し訳ありません、エラーが発生しました。</div>
+                    <div class="post-content">
+                        ${formattedContent}
+                        ${attachmentsHtml}
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action" onclick="likeAnnouncement(${ann.id})">
+                            ❤️ <span id="announcement-likes-${ann.id}">${announcementLikes[ann.id] || 0}</span>
+                        </div>
+                        <div class="post-action" onclick="toggleComments(${ann.id})">
+                            💬 コメント
+                        </div>
+                    </div>
+                    <div class="comments-section" id="comments-section-${ann.id}" style="display: none;">
+                        <div id="comments-list-${ann.id}"></div>
+                        <div class="comment-input-row">
+                            <input type="text" class="text-input" id="comment-input-${ann.id}" placeholder="コメントを入力..."
+                                onkeypress="if(event.key==='Enter')submitComment(${ann.id})">
+                            <button class="comment-submit-btn" onclick="submitComment(${ann.id})">送信</button>
+                        </div>
+                    </div>
+                </div>
                 `;
-            }
+                }).join('');
+                }
 
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
+                // Initialize announcement interactions
+                function initAnnouncementInteractions() {
+                loadAnnouncements();
+                }
 
-        // ========== Enter key handlers ==========
-        document.addEventListener('DOMContentLoaded', () => {
-            init();
+                // ============ PIN AUTHENTICATION ============
+                function checkPinAuth() {
+                const storedPin = localStorage.getItem('tss_pin');
+                const isAuthenticated = sessionStorage.getItem('tss_authenticated');
 
-            // プロフィール情報を読み込み
-            loadProfilePhoto();
-            loadProfile();
+                if (storedPin && !isAuthenticated) {
+                showPinModal('login');
+                return false;
+                }
+                return true;
+                }
 
-            document.getElementById('todoInput')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') addTodo();
-            });
-        });
-    </script>
+                function showPinModal(mode) {
+                const modal = document.createElement('div');
+                modal.id = 'pinModal';
+                modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8); display: flex; align-items: center;
+                justify-content: center; z-index: 99999;
+                `;
+
+                const title = mode === 'login' ? 'PINを入力' : 'PINを設定';
+                const btnText = mode === 'login' ? 'ログイン' : '設定';
+
+                modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 16px; text-align: center; width: 280px;">
+                    <h3 style="font-family: 'Montserrat', sans-serif; color: var(--primary); margin-bottom: 20px;">
+                        ${title}</h3>
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                        <input type="password" maxlength="1" class="pin-input"
+                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input"
+                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input"
+                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="password" maxlength="1" class="pin-input"
+                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                    </div>
+                    <button onclick="handlePin('${mode}')"
+                        style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">${btnText}</button>
+                    ${mode === 'setup' ? '<p style="margin-top: 15px; font-size: 12px; color: var(--text-gray);">
+                        セキュリティのため4桁のPINを設定してください</p>' : ''}
+                </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // Auto-focus and auto-advance
+                const inputs = modal.querySelectorAll('.pin-input');
+                inputs[0].focus();
+                inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                if (e.target.value && index < inputs.length - 1) { inputs[index + 1].focus(); } });
+                    input.addEventListener('keydown', (e)=> {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                    }
+                    });
+                    });
+                    }
+
+                    function handlePin(mode) {
+                    const inputs = document.querySelectorAll('.pin-input');
+                    const pin = Array.from(inputs).map(i => i.value).join('');
+
+                    if (pin.length !== 4) {
+                    alert('4桁のPINを入力してください');
+                    return;
+                    }
+
+                    if (mode === 'setup') {
+                    localStorage.setItem('tss_pin', pin);
+                    sessionStorage.setItem('tss_authenticated', 'true');
+                    document.getElementById('pinModal').remove();
+                    showTokenEarned(5, 'PIN設定完了! 🔐');
+                    addTokens(5);
+                    } else {
+                    const storedPin = localStorage.getItem('tss_pin');
+                    if (pin === storedPin) {
+                    sessionStorage.setItem('tss_authenticated', 'true');
+                    document.getElementById('pinModal').remove();
+                    } else {
+                    alert('PINが正しくありません');
+                    inputs.forEach(i => i.value = '');
+                    inputs[0].focus();
+                    }
+                    }
+                    }
+
+                    // ============ SERVICE WORKER ============
+                    if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                    console.log('SW registered: ', registration);
+
+                    // Check for updates
+                    registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New update available
+                    if (confirm('新しいバージョンがあります！更新しますか？')) {
+                    window.location.reload();
+                    }
+                    }
+                    });
+                    });
+                    })
+                    .catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                    });
+                    });
+                    }
+
+                    // ============ CALENDAR ============
+                    let calendar;
+                    let currentCalendarFilter = 'all';
+
+                    function setCalendarFilter(filter) {
+                    currentCalendarFilter = filter;
+                    document.querySelectorAll('.calendar-filter-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.innerText === (
+                    filter === 'all' ? 'ALL' :
+                    filter === 'personal' ? '自分' :
+                    filter === 'shared' ? 'みんな' : '運営'
+                    )) tab.classList.add('active');
+                    });
+                    if (calendar) calendar.refetchEvents();
+                    }
+
+                    function initCalendar() {
+                    const calendarEl = document.getElementById('calendar');
+                    if (!calendarEl) return;
+
+                    calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                    },
+                    locale: 'ja',
+                    height: 'auto',
+                    dayCellContent: function (e) {
+                    e.dayNumberText = e.dayNumberText.replace('日', '');
+                    return { html: e.dayNumberText };
+                    },
+                    events: function (info, successCallback, failureCallback) {
+                    const profile = getProfile();
+                    if (!profile) { successCallback([]); return; }
+
+                    const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
+
+                    // Construct URL with user param for privacy filtering
+                    const url = `${SCRIPT_URL}?action=getEvents&user=${encodeURIComponent(profile.name)}`;
+
+                    fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                    let eventsList = data.events || cached;
+                    if (data.events) {
+                    localStorage.setItem('tss_schedule_cache', JSON.stringify(data.events));
+                    }
+
+                    // CLIENT-SIDE FILTERING
+                    const filtered = eventsList.filter(e => {
+                    if (currentCalendarFilter === 'all') return true;
+                    if (currentCalendarFilter === 'personal') return e.type === 'personal';
+                    if (currentCalendarFilter === 'shared') return e.type === 'shared';
+                    if (currentCalendarFilter === 'official') return e.type === 'official' || e.type === 'management';
+                    return true;
+                    });
+
+                    // Update Monthly List View
+                    renderMonthlyEventsList(filtered);
+
+                    // MAP TO FULLCALENDAR FORMAT
+                    const mapped = filtered.map(e => {
+                    let className = 'type-shared';
+                    if (e.type === 'personal') className = 'type-personal';
+                    if (e.type === 'official' || e.type === 'management') className = 'type-official';
+
+                    return {
+                    id: e.id,
+                    title: (e.type === 'personal' ? '🔒 ' : '') + e.title,
+                    start: e.start,
+                    allDay: e.allDay,
+                    classNames: [className],
+                    extendedProps: {
+                    author: e.author,
+                    type: e.type || 'shared'
+                    }
+                    };
+                    });
+                    successCallback(mapped);
+                    })
+                    .catch(e => {
+                    console.log('Calendar Sync Error', e);
+                    successCallback([]); // Fallback
+                    });
+                    },
+                    dateClick: function (info) {
+                    openAddEventModal(info.dateStr);
+                    },
+                    eventClick: function (info) {
+                    const profile = getProfile();
+                    const props = info.event.extendedProps;
+                    const isMyEvent = props.author === (profile ? profile.name : '');
+
+                    let msg = `📅 ${info.event.title}\n`;
+                    msg += `作成者: ${props.author}\n`;
+                    msg += `タイプ: ${props.type === 'personal' ? '個人' : props.type === 'open' ? '共有' : '運営'}`;
+
+                    if (isMyEvent) {
+                    if (confirm(msg + '\n\n削除しますか？')) {
+                    const eventId = info.event.id;
+                    info.event.remove();
+
+                    // Also remove from list view (optimistic)
+                    document.getElementById(`event-list-item-${eventId}`)?.remove();
+
+                    fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                    action: 'deleteEvent',
+                    eventId: eventId
+                    })
+                    });
+                    }
+                    } else {
+                    alert(msg);
+                    }
+                    }
+                    });
+
+                    calendar.render();
+                    }
+
+                    function renderMonthlyEventsList(events) {
+                    const container = document.getElementById('monthly-events-list');
+                    if (!container) return;
+
+                    // Sort by date
+                    const sorted = [...events].sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                    // Filter for current view if possible (FullCalendar keeps track, but simple list of all fetched is
+                    okay for now)
+                    // Or strictly speaking, we might want only this month's events.
+                    // For simplicity, let's show upcoming events from today onwards, or all in the fetched range.
+                    // Let's filter for "This Month & Future" to keep it relevant.
+
+                    const now = new Date();
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+                    const upcoming = sorted.filter(e => new Date(e.start) >= startOfMonth);
+
+                    if (upcoming.length === 0) {
+                    container.innerHTML = '<div
+                        style="text-align:center; color:var(--text-gray); font-size:12px; padding:20px;">予定はありません</div>
+                    ';
+                    return;
+                    }
+
+                    container.innerHTML = upcoming.map(e => {
+                    const date = new Date(e.start);
+                    const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+                    const dayStr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][date.getDay()];
+
+                    let typeColor = 'var(--primary)';
+                    if (e.type === 'personal') typeColor = '#4A90E2';
+                    if (e.type === 'official') typeColor = '#1a1a1a';
+
+                    return `
+                    <div id="event-list-item-${e.id}" class="event-list-item"
+                        style="display:flex; align-items:center; background:var(--white); padding:12px 16px; margin-bottom:10px; border-radius:12px; border-left:4px solid ${typeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                        <div style="text-align:center; margin-right:16px; min-width:40px;">
+                            <div style="font-size:10px; font-weight:700; color:var(--text-gray);">${dayStr}</div>
+                            <div style="font-size:18px; font-weight:800; color:var(--text-dark); line-height:1;">
+                                ${date.getDate()}</div>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:13px; font-weight:600; color:var(--text-dark); margin-bottom:2px;">
+                                ${escapeHtml(e.title)}</div>
+                            <div style="font-size:10px; color:var(--text-gray); display:flex; gap:8px;">
+                                <span>👤 ${escapeHtml(e.author)}</span>
+                                <span style="color:${typeColor}; font-weight:600;">${e.type === 'personal' ? 'Personal'
+                                    : e.type === 'official' ? 'Official' : 'Shared'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                    }).join('');
+                    }
+
+                    // --- CALENDAR MODAL LOGIC ---
+                    let selectedDateForEvent = '';
+                    let selectedEventType = 'shared';
+
+                    function openAddEventModal(dateStr) {
+                    selectedDateForEvent = dateStr;
+
+                    // Create Modal if not exists
+                    if (!document.getElementById('addEventModal')) {
+                    const modalHtml = `
+                    <div id="addEventModal" class="modal-overlay">
+                        <div class="modal-content">
+                            <div class="modal-header">ADD SCHEDULE</div>
+                            <div style="font-size:12px; color:var(--text-gray); margin-bottom:15px; text-align:center;">
+                                ${dateStr}</div>
+
+                            <div class="input-group">
+                                <label class="input-label">TITLE</label>
+                                <input type="text" id="eventTitleInput" class="text-input" placeholder="予定のタイトル">
+                            </div>
+
+                            <div class="type-selector">
+                                <div class="type-option selected" onclick="selectEventType(this, 'shared')">
+                                    <div class="type-indicator" style="background:var(--primary);"></div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:12px; font-weight:bold;">みんなに共有</div>
+                                        <div style="font-size:9px; color:var(--text-gray);">全員のカレンダーに表示</div>
+                                    </div>
+                                </div>
+                                <div class="type-option" onclick="selectEventType(this, 'personal')">
+                                    <div class="type-indicator" style="background:#4A90E2;"></div>
+                                    <div style="flex:1;">
+                                        <div style="font-size:12px; font-weight:bold;">自分だけの予定</div>
+                                        <div style="font-size:9px; color:var(--text-gray);">自分だけに表示 (非公開)</div>
+                                    </div>
+                                </div>
+                                <!-- Management option hidden for normal users usually, but available for simplicity here -->
+                            </div>
+
+                            <button class="btn-main" onclick="submitEvent()">ADD EVENT</button>
+                            <button class="btn-secondary"
+                                onclick="document.getElementById('addEventModal').style.display='none'">CANCEL</button>
+                        </div>
+                    </div>
+                    `;
+                    document.body.insertAdjacentHTML('beforeend', modalHtml);
+                    }
+
+                    // Reset
+                    document.getElementById('eventTitleInput').value = '';
+                    selectEventType(document.querySelector('.type-option'), 'shared'); // Default shared
+
+                    document.getElementById('addEventModal').style.display = 'flex';
+                    setTimeout(() => document.getElementById('eventTitleInput').focus(), 100);
+                    }
+
+                    function selectEventType(el, type) {
+                    selectedEventType = type;
+                    document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+                    el.classList.add('selected');
+                    }
+
+                    function submitEvent() {
+                    const title = document.getElementById('eventTitleInput').value.trim();
+                    if (!title) return;
+
+                    const profile = getProfile();
+                    const authorName = profile ? profile.name : 'Unknown';
+
+                    // Optimistic UI Update (Refetch will happen but adds snappy feel if we manually add?)
+                    // Actually simpler to just send and refetch.
+                    // Let's optimistic add for instant feedback
+
+                    let className = 'type-shared';
+                    if (selectedEventType === 'personal') className = 'type-personal';
+
+                    calendar.addEvent({
+                    id: 'temp-' + Date.now(),
+                    title: (selectedEventType === 'personal' ? '🔒 ' : '') + title,
+                    start: selectedDateForEvent,
+                    allDay: true,
+                    classNames: [className],
+                    extendedProps: { author: authorName, type: selectedEventType }
+                    });
+
+                    document.getElementById('addEventModal').style.display = 'none';
+
+                    // Backend
+                    fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                    action: 'addEvent',
+                    title: title,
+                    start: selectedDateForEvent,
+                    allDay: true,
+                    author: authorName,
+                    type: selectedEventType
+                    })
+                    }).then(res => res.json())
+                    .then(data => {
+                    if (data.success) {
+                    addTokens(1);
+                    showTokenEarned(1, 'Schedule Added! 📅');
+                    calendar.refetchEvents(); // Get real ID
+                    }
+                    });
+                    }
+
+                    function saveCalendarEvents() {
+                    if (!calendar) return;
+                    const events = calendar.getEvents().map(e => ({
+                    id: e.id,
+                    title: e.title,
+                    start: e.start,
+                    allDay: e.allDay
+                    }));
+                    localStorage.setItem('tss_schedule_events', JSON.stringify(events));
+
+                    // Background Sync (Optional, future proofing)
+                    if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    // Future sync implementation
+                    }
+                    }
+
+                    // Hook into tab switching to resize calendar if needed causes of display:none
+                    const originalShowTodoTab = showTodoTab;
+                    showTodoTab = function (tab) {
+                    originalShowTodoTab(tab);
+                    // If calendar is visible (e.g. widely shared or if we put it in separate tab later)
+                    // For now it is always in TODO screen, so whenever TODO screen opens...
+                    }
+
+                    const originalShowScreen = showScreen;
+                    showScreen = function (screenId) {
+                    originalShowScreen(screenId);
+                    if (screenId === 'screen-todo' && calendar) {
+                    setTimeout(() => {
+                    calendar.updateSize();
+                    }, 200);
+                    }
+                    }
+
+                    // ============ START ============
+                    // Modified init to include PIN check & PIN Setup Check
+                    const originalInit = init;
+                    init = function () {
+                    const profile = getProfile();
+                    const storedPin = localStorage.getItem('tss_pin');
+                    const pinSkip = localStorage.getItem('tss_pin_skip');
+
+                    // 1. PIN Authentication Check (if PIN exists)
+                    if (profile && storedPin) {
+                    if (!checkPinAuth()) {
+                    // Wait for PIN authentication
+                    const checkAuth = setInterval(() => {
+                    if (sessionStorage.getItem('tss_authenticated')) {
+                    clearInterval(checkAuth);
+                    originalInit();
+                    initAnnouncementInteractions();
+                    }
+                    }, 100);
+                    return;
+                    }
+                    }
+
+                    loadYouTubeSettings();
+                    originalInit();
+                    initAnnouncementInteractions();
+                    initCalendar();
+                    loadNoteRSS();
+
+                    // 2. PIN Setup Prompt (if NO PIN and NOT skipped)
+                    if (profile && !storedPin && !pinSkip) {
+                    setTimeout(() => {
+                    if (confirm('セキュリティ強化のためPINを設定しますか？\n（キャンセルすると、しばらく表示されません）')) {
+                    showPinModal('setup');
+                    } else {
+                    // User skipped PIN setup
+                    localStorage.setItem('tss_pin_skip', 'true');
+                    }
+                    }, 2000);
+                    }
+                    };
+
+                    function loadNoteRSS() {
+                    const RSS_URL = 'https://note.com/ito_office0419/rss';
+                    const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+                    const container = document.getElementById('note-feed-container');
+
+                    fetch(API_URL)
+                    .then(response => response.json())
+                    .then(data => {
+                    if (data.status === 'ok' && data.items.length > 0) {
+                    const items = data.items.slice(0, 3); // Top 3 articles
+                    container.innerHTML = items.map(item => `
+                    <div class="note-item" onclick="window.open('${item.link}', '_blank')"
+                        style="cursor: pointer; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px;">
+                        <div style="flex: 1;">
+                            <div
+                                style="font-family: 'Montserrat', sans-serif; font-size: 10px; color: var(--text-gray); margin-bottom: 4px;">
+                                ${formatDate(item.pubDate)}</div>
+                            <div
+                                style="font-weight: 600; font-size: 13px; line-height: 1.4; color: var(--text-dark); margin-bottom: 6px;">
+                                ${item.title}</div>
+                            <div
+                                style="font-size: 11px; color: var(--text-gray); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                ${item.description.replace(/<[^>]*>?/gm, '')}</div>
+                        </div>
+                        ${item.thumbnail ? `<div
+                            style="width: 60px; height: 60px; border-radius: 8px; background-image: url('${item.thumbnail}'); background-size: cover; background-position: center; flex-shrink: 0;">
+                        </div>` : ''}
+                    </div>
+                    `).join('');
+                    } else {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">
+                        記事の読み込みに失敗しました</div>';
+                    }
+                    })
+                    .catch(error => {
+                    console.error('RSS Error:', error);
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">
+                        読み込みエラー</div>';
+                    });
+                    }
+
+                    document.addEventListener('DOMContentLoaded', init);
+                    </script>
 </body>
 
 </html>
