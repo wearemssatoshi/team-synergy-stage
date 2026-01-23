@@ -1891,16 +1891,15 @@ function handleAttendance(ss, data) {
     dateStr
   ]);
   
-  // Award Tokens (5 Tokens Fixed)
-  const bonus = 5;
-  const description = type === 'check_in' ? 'Check-In Bonus' : 'Check-Out Bonus';
-  const result = addTokensToUser(ss, data.user, bonus, 'attendance', description);
+  // Award Tokens (0 Tokens - User Request: "No Incentive")
+  const bonus = 0; 
+  // const result = addTokensToUser(ss, data.user, bonus, 'attendance', description); // Skipped
   
   return createResponse({
     success: true,
-    message: `${type === 'check_in' ? 'Check-In' : 'Check-Out'} Successful! (+${bonus} TSST)`,
-    tokensEarned: bonus,
-    newBalance: result.newBalance
+    message: `${type === 'check_in' ? 'Check-In' : 'Check-Out'} Complete!`,
+    tokensEarned: 0,
+    newBalance: 0 // No change
   });
 }
 
