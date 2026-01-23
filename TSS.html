@@ -589,6 +589,101 @@
             margin-bottom: 20px;
         }
 
+        /* SCHEDULE STYLES (New) */
+        .schedule-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .schedule-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .schedule-status {
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--light-gray);
+            color: var(--text-gray);
+        }
+
+        .schedule-status.active {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .schedule-status.finalized {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .date-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-top: 10px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: var(--light-gray);
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+
+        .vote-btn-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .vote-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .vote-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .finalize-btn {
+            font-size: 10px;
+            padding: 6px 12px;
+            background: var(--text-dark);
+            color: white;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
         .profile-avatar {
             width: 80px;
             height: 80px;
@@ -600,6 +695,101 @@
             font-size: 36px;
             margin: 0 auto 16px;
             border: 3px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* SCHEDULE STYLES */
+        .schedule-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .schedule-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .schedule-status {
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--light-gray);
+            color: var(--text-gray);
+        }
+
+        .schedule-status.active {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .schedule-status.finalized {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .date-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-top: 10px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: var(--light-gray);
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+
+        .vote-btn-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .vote-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .vote-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .finalize-btn {
+            font-size: 10px;
+            padding: 6px 12px;
+            background: var(--text-dark);
+            color: white;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
         }
 
         .profile-name {
@@ -1012,7 +1202,53 @@
             </div>
         </div>
 
-        <!-- SCREEN 3: TODO -->
+        <!-- SCREEN 3: SCHEDULE -->
+        <div class="screen" id="screen-schedule">
+            <div class="section-title">📅 スマート日程調整</div>
+
+            <div style="text-align: right; margin-bottom: 15px;">
+                <button class="btn-main" onclick="openNewAdjustmentForm()"
+                    style="width: auto; padding: 10px 20px; font-size: 11px;">+ 新しい調整を作成</button>
+            </div>
+
+            <!-- NEW ADJUSTMENT FORM -->
+            <div id="new-adjustment-form" class="card" style="display: none;">
+                <div class="card-title">✨ 新規日程調整</div>
+
+                <div class="input-group">
+                    <label class="input-label">イベント名</label>
+                    <input type="text" id="adjTitle" class="text-input" placeholder="例: 定例MTG">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">候補日時</label>
+                    <div id="adjDatesList"></div>
+                    <div style="display: flex; gap: 5px; margin-top: 5px;">
+                        <input type="datetime-local" id="adjDateInput" class="text-input" style="font-size: 12px;">
+                        <button onclick="addAdjDate()" class="btn-secondary"
+                            style="width: auto; margin-top:0;">追加</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">参加メンバー (名前を入力)</label>
+                    <input type="text" id="adjMemberInput" class="text-input" placeholder="メンバー名か 'All' (全員)">
+                    <div style="font-size: 10px; color: var(--text-gray); margin-top:4px;">※
+                        現在は手入力です。後で選択式にします。カンマ区切りで複数可。</div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="closeNewAdjustmentForm()" class="btn-secondary">キャンセル</button>
+                    <button onclick="createAdjustment()" class="btn-main">作成して招待</button>
+                </div>
+            </div>
+
+            <div id="adjustmentsList">
+                <div style="text-align: center; padding: 40px; color: var(--text-gray);">読み込み中...</div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: TODO -->
         <div class="screen" id="screen-todo">
             <div class="section-title">✅ タスク管理</div>
             <div class="todo-container">
@@ -1062,6 +1298,10 @@
             <div class="settings-section">
                 <div class="card-title">🎵 マイテーマソング</div>
                 <div class="settings-item">
+                    <div class="settings-label">GOOGLE EMAIL (カレンダー連携用)</div>
+                    <input type="email" class="youtube-url-input" id="emailInput" placeholder="example@gmail.com">
+                </div>
+                <div class="settings-item">
                     <div class="settings-label">YOUTUBE URL</div>
                     <input type="text" class="youtube-url-input" id="youtubeUrlInput"
                         placeholder="https://www.youtube.com/watch?v=...">
@@ -1087,6 +1327,10 @@
             <div class="nav-icon">📋</div>
             BOARD
         </div>
+        <div class="nav-item" onclick="showScreen('schedule')">
+            <div class="nav-icon">📅</div>
+            SCHEDULE
+        </div>
         <div class="nav-item" onclick="showScreen('todo')">
             <div class="nav-icon">✅</div>
             TODO
@@ -1104,7 +1348,7 @@
 
     <script>
         // ========== Configuration ==========
-        const SCRIPT_URL = ''; // GASのデプロイURLを設定
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec'; // GASのデプロイURLを設定
 
         // ========== State ==========
         let currentUser = null;
@@ -1230,6 +1474,10 @@
 
             document.getElementById('screen-' + screenName).classList.add('active');
             document.querySelector(`.nav-item[onclick="showScreen('${screenName}')"]`)?.classList.add('active');
+
+            if (screenName === 'schedule') {
+                fetchAdjustments();
+            }
         }
 
         // ========== Todo Functions ==========
@@ -1418,6 +1666,7 @@
 
             saveToStorage('bio', bio);
             saveToStorage('youtubeUrl', youtubeUrl);
+            saveToStorage('email', document.getElementById('emailInput').value); // Local Save
 
             // YouTube動画を更新
             updateYoutubeEmbed(youtubeUrl);
@@ -1436,6 +1685,8 @@
                 document.getElementById('youtubeUrlInput').value = youtubeUrl;
                 updateYoutubeEmbed(youtubeUrl);
             }
+            const email = loadFromStorage('email');
+            if (email) document.getElementById('emailInput').value = email;
         }
 
         function updateYoutubeEmbed(url) {
@@ -1451,24 +1702,246 @@
 
             for (const pattern of patterns) {
                 const match = url.match(pattern);
-                if (match) {
+                if (match && match[1]) {
                     videoId = match[1];
                     break;
                 }
             }
 
             if (videoId) {
-                const embed = document.getElementById('youtubeEmbed');
-                embed.innerHTML = `
-                    <iframe 
-                        src="https://www.youtube.com/embed/${videoId}" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                    </iframe>
-                `;
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}`;
+                document.getElementById('youtubeEmbed').innerHTML =
+                    `<iframe src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
             }
         }
+
+
+
+        // ========== Smart Schedule Functions ==========
+        let currentAdjustments = [];
+        let newAdjDates = [];
+
+        function openNewAdjustmentForm() {
+            document.getElementById('new-adjustment-form').style.display = 'block';
+            newAdjDates = [];
+            renderAdjDatesList();
+        }
+
+        function closeNewAdjustmentForm() {
+            document.getElementById('new-adjustment-form').style.display = 'none';
+        }
+
+        function addAdjDate() {
+            const val = document.getElementById('adjDateInput').value;
+            if (!val) return;
+            // Add default 1 hour duration
+            const start = new Date(val);
+            const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+            newAdjDates.push({ start: start.toISOString(), end: end.toISOString() });
+            renderAdjDatesList();
+            document.getElementById('adjDateInput').value = '';
+        }
+
+        function renderAdjDatesList() {
+            const container = document.getElementById('adjDatesList');
+            container.innerHTML = newAdjDates.map((d, i) => `
+                <div style="font-size: 11px; background: var(--light-gray); padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 2px;">
+                    ${new Date(d.start).toLocaleString()} 
+                    <span onclick="newAdjDates.splice(${i},1);renderAdjDatesList()" style="cursor:pointer; color:red; margin-left:4px;">×</span>
+                </div>
+            `).join('');
+        }
+
+        function createAdjustment() {
+            const title = document.getElementById('adjTitle').value;
+            const contextMembers = document.getElementById('adjMemberInput').value;
+
+            if (!title) return alert('タイトルを入力してください');
+            if (newAdjDates.length === 0) return alert('候補日時を追加してください');
+            if (!contextMembers) return alert('参加メンバーを入力してください');
+
+            let participants = [currentUser.name];
+            if (contextMembers.toLowerCase() !== 'all') {
+                const others = contextMembers.split(',').map(s => s.trim());
+                participants = [...participants, ...others];
+            }
+
+            const payload = {
+                action: 'createAdjustment',
+                title: title,
+                author: currentUser.name,
+                candidates: newAdjDates,
+                participants: participants
+            };
+
+            callApi(payload, (res) => {
+                if (res.success) {
+                    alert('調整を作成しました！');
+                    closeNewAdjustmentForm();
+                    fetchAdjustments();
+                } else {
+                    alert('作成失敗: ' + res.error);
+                }
+            });
+        }
+
+        function fetchAdjustments() {
+            const container = document.getElementById('adjustmentsList');
+            // container.innerHTML = '<div style="text-align: center; padding: 20px;">読み込み中...</div>';
+
+            // callApi is GET for default? No, let's use a helper or simple fetch if we had one.
+            // But we don't have a generic callApi in the visible code above?
+            // Checking 'doPost' logic... standard fetch?
+            // Let's implement a simple fetch wrapper since I don't see one in the snippets I read.
+
+            const url = SCRIPT_URL + '?action=getAdjustments&user=' + encodeURIComponent(currentUser.name);
+            fetch(url)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.adjustments) {
+                        currentAdjustments = res.adjustments;
+                        renderAdjustments();
+                    }
+                })
+                .catch(e => console.error(e));
+        }
+
+        function renderAdjustments() {
+            const container = document.getElementById('adjustmentsList');
+            if (currentAdjustments.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-gray);">予定はありません</div>';
+                return;
+            }
+
+            container.innerHTML = currentAdjustments.map(adj => {
+                const isAuthor = adj.author === currentUser.name;
+                const isFinalized = adj.status === 'finalized';
+
+                let html = `
+                <div class="schedule-card">
+                    <div class="schedule-header">
+                        <div>
+                            <div class="schedule-title">${escapeHtml(adj.title)}</div>
+                            <div style="font-size: 10px; color: var(--text-gray);">Author: ${adj.author}</div>
+                        </div>
+                        <div class="schedule-status ${adj.status === 'finalized' ? 'finalized' : 'active'}">
+                            ${adj.status === 'finalized' ? '確定済み' : '調整中'}
+                        </div>
+                    </div>
+                    
+                    ${isFinalized ? `
+                        <div style="font-size: 12px; background: #dcfce7; padding: 10px; border-radius: 8px; color: #166534; font-weight: bold;">
+                             🎉 決定: ${new Date(adj.finalDate.start).toLocaleString()}
+                        </div>
+                    ` : ''}
+
+                    <div class="date-grid">
+                        ${adj.candidates.map((date, idx) => {
+                    const dateStr = date.start; // Key for voting
+                    const myVote = adj.responses[currentUser.name]?.[dateStr] || '-';
+
+                    // Check votes count
+                    const counts = { O: 0, X: 0, D: 0 };
+                    Object.values(adj.responses).forEach(r => {
+                        const v = r[dateStr];
+                        if (v === 'O') counts.O++;
+                        else if (v === 'X') counts.X++;
+                        else if (v === '△') counts.D++;
+                    });
+
+                    return `
+                                <div class="date-row">
+                                    <div style="font-size: 11px;">
+                                        ${new Date(date.start).toLocaleString()}
+                                        <div style="font-size: 9px; color: var(--text-gray);">
+                                            O:${counts.O} / △:${counts.D} / X:${counts.X}
+                                        </div>
+                                    </div>
+                                    
+                                    ${!isFinalized ? `
+                                        <div class="vote-btn-group">
+                                            <div class="vote-btn ${myVote === 'O' ? 'selected' : ''}" onclick="submitVote('${adj.id}', '${dateStr}', 'O')">O</div>
+                                            <div class="vote-btn ${myVote === '△' ? 'selected' : ''}" onclick="submitVote('${adj.id}', '${dateStr}', '△')">△</div>
+                                            <div class="vote-btn ${myVote === 'X' ? 'selected' : ''}" onclick="submitVote('${adj.id}', '${dateStr}', 'X')">X</div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${!isFinalized && isAuthor ? `
+                                        <button class="finalize-btn" onclick="finalizeAdjustment('${adj.id}', '${idx}')">決定</button>
+                                    ` : ''}
+                                </div>
+                            `;
+                }).join('')}
+                    </div>
+                </div>`;
+                return html;
+            }).join('');
+        }
+
+        function submitVote(adjId, dateStr, vote) {
+            // Optimistic update
+            const adj = currentAdjustments.find(a => a.id === adjId);
+            if (!adj.responses[currentUser.name]) adj.responses[currentUser.name] = {};
+            adj.responses[currentUser.name][dateStr] = vote;
+            renderAdjustments(); // Re-render locally
+
+            const payload = {
+                action: 'submitVote',
+                adjustmentId: adjId,
+                user: currentUser.name,
+                votes: adj.responses[currentUser.name] // Send full votes object for simplicity
+            };
+
+            // Send to server (Fire and forget, or show spinner)
+            callApi(payload, (res) => {
+                if (!res.success) alert('投票エラー');
+            });
+        }
+
+        function finalizeAdjustment(adjId, dateIdx) {
+            if (!confirm('この日時で確定し、全員に招待メールを送りますか？')) return;
+
+            const adj = currentAdjustments.find(a => a.id === adjId);
+            const finalDate = adj.candidates[dateIdx];
+
+            document.getElementById('sendingOverlay').classList.add('active');
+
+            const payload = {
+                action: 'finalizeAdjustment',
+                adjustmentId: adjId,
+                finalDate: finalDate
+            };
+
+            callApi(payload, (res) => {
+                document.getElementById('sendingOverlay').classList.remove('active');
+                if (res.success) {
+                    alert('確定しました！カレンダー招待を送信しました。');
+                    fetchAdjustments();
+                } else {
+                    alert('エラー: ' + res.error);
+                }
+            });
+        }
+
+        // Helper API Call
+        function callApi(data, callback) {
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(data)
+            })
+                .then(r => r.json())
+                .then(callback)
+                .catch(e => {
+                    console.error(e);
+                    alert('通信エラーが発生しました');
+                    document.getElementById('sendingOverlay')?.classList.remove('active');
+                });
+        }
+
+
+
 
         // ========== AI Chat Functions ==========
         async function askAI() {

@@ -47,6 +47,15 @@ function doPost(e) {
         return handleAddEvent(ss, data);
       case 'deleteEvent':
         return handleDeleteEvent(ss, data);
+      case 'deleteEvent':
+        return handleDeleteEvent(ss, data);
+      // ============ SMART SCHEDULE (v3.2) ============
+      case 'createAdjustment':
+        return handleCreateAdjustment(ss, data);
+      case 'submitVote':
+        return handleSubmitVote(ss, data);
+      case 'finalizeAdjustment':
+        return handleFinalizeAdjustment(ss, data);
       default:
         return createResponse({ error: 'Unknown action' });
     }
@@ -91,6 +100,10 @@ function doGet(e) {
         return getAnnouncements(ss);
       case 'settings':
         return getSettings(ss);
+      case 'settings':
+        return getSettings(ss);
+      case 'getAdjustments':
+        return getAdjustments(ss, e.parameter);
       
       // ============ EXISTING ============
       case 'members':
@@ -183,8 +196,8 @@ function handlePostAnnouncement(ss, data) {
   let sheet = ss.getSheetByName('TSS_Announcements');
   if (!sheet) {
     sheet = ss.insertSheet('TSS_Announcements');
-    sheet.getRange(1, 1, 1, 5).setValues([['Timestamp', 'Content', 'Attachments', 'AnnouncementId', 'Author']]);
-    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'Content', 'Attachments', 'AnnouncementId', 'Author', 'Likes']]);
+    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
   }
   
   const id = Date.now();
@@ -195,7 +208,8 @@ function handlePostAnnouncement(ss, data) {
     data.content,
     attachments,
     id,
-    data.author || 'TSS運営'
+    data.author || 'TSS運営',
+    0 // Likes
   ];
   
   sheet.appendRow(row);
@@ -219,7 +233,8 @@ function getAnnouncements(ss) {
       content: row[1],
       attachments: attachments,
       id: row[3],
-      author: row[4] || 'TSS運営'
+      author: row[4] || 'TSS運営',
+      likes: row[5] || 0
     };
   });
   
@@ -602,26 +617,36 @@ function getAllData(ss) {
 // ============ POST INTERACTIONS ============
 
 function handleLike(ss, data) {
-  const sheet = ss.getSheetByName('TSS_Posts');
-  if (!sheet) return createResponse({ error: 'Posts sheet not found' });
+  const type = data.type || 'post'; // 'post' or 'announcement'
+  const sheetName = type === 'announcement' ? 'TSS_Announcements' : 'TSS_Posts';
+  const idColIndex = type === 'announcement' ? 3 : 4; // AnnouncementId: Col 4 (idx 3), PostId: Col 5 (idx 4)
+  const likesColIndex = type === 'announcement' ? 5 : 3; // Likes: Col 6 (idx 5), Likes: Col 4 (idx 3)
   
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return createResponse({ error: 'Sheet not found' });
+  
+  const targetId = String(data.postId || data.id); // 'postId' for posts, 'id' for announcements
   const allData = sheet.getDataRange().getValues();
+  
   for (let i = 1; i < allData.length; i++) {
-    if (String(allData[i][4]) === String(data.postId)) {
-      const currentLikes = allData[i][3] || 0;
-      const author = allData[i][1]; // Author is column 2 (index 1)
+    const rowId = String(allData[i][idColIndex]);
+    
+    if (rowId === targetId) {
+      const currentLikes = Number(allData[i][likesColIndex] || 0);
+      const author = allData[i][type === 'announcement' ? 4 : 1]; // Author col index
       
       // Update likes
-      sheet.getRange(i + 1, 4).setValue(currentLikes + 1);
+      sheet.getRange(i + 1, likesColIndex + 1).setValue(currentLikes + 1);
       
-      // Award token to author (Approval Bonus!)
-      // Use standard function for logging
-      addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${data.postId})`);
+      // Award token to author (Approval Bonus!) if it's a post (Announcements are usually admin)
+      if (type === 'post') {
+        addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${targetId})`);
+      }
       
       return createResponse({ success: true, likes: currentLikes + 1 });
     }
   }
-  return createResponse({ error: 'Post not found' });
+  return createResponse({ error: 'Target not found' });
 }
 
 function handleComment(ss, data) {
@@ -783,7 +808,7 @@ function getTodos(ss, params) {
 
 // ============ JINSEI AI v3.0 (Based on MINDFUL SATOSHI AI pattern) ============
 
-function askJinseiAI(question, userName, userContext = {}) {
+function askJinseiAI(question, userName, userContext = []) {
   try {
     const GEMINI_API_KEY = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
     
@@ -799,70 +824,36 @@ function askJinseiAI(question, userName, userContext = {}) {
     if (userName && userName !== 'User') {
       contextInfo += `相談者: ${userName}さん\n`;
     }
-    if (userContext.role) {
-      contextInfo += `役割: ${userContext.role}\n`;
-    }
-
-    // RAG: ナレッジベース検索
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const knowledge = searchKnowledgeBase(ss, question);
-    let knowledgeText = '';
-    if (knowledge.length > 0) {
-        knowledgeText = `\n## 参照すべきJINSEIメソッド（以下の内容に基づいてアドバイスしてください）\n${knowledge.map(k => `### ${k.title}\n${k.content}`).join('\n\n')}\n`;
-    }
     
     const systemPrompt = `あなたは「JINSEI」です。チームビルディングと自走型組織づくりの専門家として、働く仲間をサポートするAIメンターです。
-特に、以下の「JINSEIメソッド」の知識を最大限に活用し、その哲学や具体的なエピソードを引用しながらアドバイスしてください。
 
-## 仁成（JINSEI）メソッドの核心
-（以下は基本理念ですが、検索された「JINSEIメソッド」の内容を優先してください）
+## JINSEIメソッドの哲学
+- **自走型組織**: 指示待ちではなく、自ら考えて動くチームを作る
+- **心理的安全性**: 「失敗しても大丈夫」という安心感が挑戦を生む
+- **承認の力**: 否定から入らず、まず「認める」ことで信頼関係を築く
+- **ミッション・ビジョン**: 「やらされ感」を「やりたい」に変える原動力
 
-### 自走型組織とは
-- 経営者が指示・命令しなくても社員が自ら考えて行動できる組織
-- チーム全体で「右腕」として機能する組織づくり
-- 個人プレイではなく、チームで協力し力を結集させる
-
-### 心理的安全性の重要性
-- 人が主体的に行動するには心理的安全性が必須
-- 「無知だと思われる不安」「無能だと思われる不安」を取り除く
-- 失敗しても大丈夫という安心感がチャレンジを生む
-
-### 承認の力
-- 相手の挑戦や取り組みをまず「認める」ことが大切
-- 叱る前に褒める、結果より過程を評価
-- 心理的安全性を高める最も効果的な方法
-
-### ミッション・ビジョンの重要性
-- 使命があることで「やらされ感」が「やりたい」に変わる
-- 自分たちで決めたミッションだからこそ習慣化しやすい
-- ビジョンに共感する人材が集まる
-
-${knowledgeText}
-
-## あなたの基本姿勢
-- **まず聴く**: 相談者の話の意図を正確に理解することを最優先にする
-- **JINSEIとして語る**: 提供されたメソッドのエピソードや言葉遣いを参考に、JINSEI本人になりきって語る
-- **押し付けない**: 「こうすべき」ではなく「こういう方法もある」と選択肢を提示
-- **実用的**: 抽象論より、明日から使える具体的なアドバイスを優先
-- **寄り添う**: 一緒に考えるパートナーとして接する
-
-## 対応できるトピック
-チームビルディング、キャリア・成長、仕事の悩み
+## あなたのスタンス
+- 相談者の話を否定せず、まずは受け止めて承認する
+- 抽象的な正論ではなく、明日から使える具体的なアクションを提案する
+- 堅苦しい先生ではなく、頼れるパートナーとして接する
+- 時にユーモアや絵文字を交えて、話しやすい雰囲気を作る
 
 ## 相談者の情報
-${contextInfo || '（初めての相談者です）'}
+${contextInfo}
 
-## 回答ガイドライン
-1. 質問に直接答える（関係ない話に飛ばない）
-2. 200〜400文字程度で簡潔に
-3. **必ず「JINSEIメソッド」の内容（エピソードや考え方）を絡めて回答する**
-4. 具体的な次のアクションを1つ提案
-5. 必要に応じて絵文字を使う（控えめに）
-6. 相談者の名前が分かる場合は名前で呼びかける`;
+## 回答のルール
+1. 質問に対して、JINSEIメソッドの視点（自走・承認・心理的安全性）からアドバイスする
+2. 長文になりすぎないよう、200〜400文字程度で簡潔にまとめる
+3. 最後に「あなたはどう思う？」や「まずこれを試してみて」といった、次につながる言葉を添える`;
 
     // 履歴を含めたコンテンツを構築
     const contents = [];
     
+    // システムプロンプトを最初のメッセージとして設定（Gemini 1.5/Pro系の一部パターン、またはUserメッセージとして工夫）
+    // ここではMINDFUL同様、直近のプロンプトにコンテキストを埋め込む方式と、マルチターン履歴を組み合わせる
+    
+    // 過去の会話履歴を追加
     if (userContext && Array.isArray(userContext) && userContext.length > 0) {
       userContext.forEach(msg => {
         contents.push({
@@ -872,10 +863,11 @@ ${contextInfo || '（初めての相談者です）'}
       });
     }
 
-    // 現在の質問を追加（システムプロンプトを先頭に付与）
+    // 現在の質問を追加（システムプロンプトを付与してキャラ付けを強化）
+    // 会話の最初、または毎回システムプロンプトを付与することでキャラクターを維持
     const currentQuestionText = contents.length === 0 
       ? systemPrompt + '\n\n相談内容: ' + question 
-      : question;
+      : systemPrompt + '\n\n(継続会話) 相談内容: ' + question; 
       
     contents.push({
       role: 'user',
@@ -905,8 +897,6 @@ ${contextInfo || '（初めての相談者です）'}
     console.log('API Response:', responseText);
     
     const result = JSON.parse(responseText);
-    console.log('Parsed result:', JSON.stringify(result));
-    
     const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || generateLocalJinseiResponse(question);
     
     return ContentService.createTextOutput(JSON.stringify({ 
@@ -966,45 +956,7 @@ function generateLocalJinseiResponse(question) {
   return responses[Math.floor(Math.random() * responses.length)];
 }
 
-function searchKnowledgeBase(ss, query) {
-  const sheet = ss.getSheetByName('TSS_KnowledgeBase');
-  if (!sheet) return [];
-  
-  const data = sheet.getDataRange().getValues();
-  if (data.length < 2) return []; // Header only or empty
-  
-  const headers = data[0]; // Source, Title, Content
-  const rows = data.slice(1);
-  const keywords = query.toLowerCase().replace(/[？?！!。、\s]+/g, ' ').trim().split(' ').filter(k => k.length > 1);
-  
-  if (keywords.length === 0) return [];
 
-  const scored = rows.map(row => {
-    const title = String(row[1] || '').toLowerCase();
-    const content = String(row[2] || '').toLowerCase();
-    let score = 0;
-    
-    keywords.forEach(word => {
-      if (title.includes(word)) score += 5; // Title match weight
-      if (content.includes(word)) score += 1; // Content match weight
-    });
-    
-    return {
-      source: row[0],
-      title: row[1],
-      content: row[2], // Return original case content
-      score: score
-    };
-  });
-  
-  // Filter relevant and sort by score
-  const results = scored
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3); // Top 3
-    
-  return results;
-}
 
 // テスト用関数
 function testJinseiAI() {
@@ -1144,9 +1096,9 @@ function getUsersSheet(ss) {
     sheet.getRange(1, 1, 1, 11).setValues([[
       'Name', 'PIN_Hash', 'Role', 'Bio', 'Future',
       'Token_Balance', 'Profile_Image', 'Theme_Song_URL',
-      'Created_At', 'Last_Login', 'Settings_JSON'
+      'Created_At', 'Last_Login', 'Settings_JSON', 'Total_Earned', 'Email'
     ]]);
-    sheet.getRange(1, 1, 1, 11).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, 13).setFontWeight('bold');
   }
   return sheet;
 }
@@ -1219,8 +1171,8 @@ function registerUser(params) {
     const pinHash = hashPin(pin);
     const now = new Date().toISOString();
     
-    // Name, PIN_Hash, Role, Bio, Future, Token_Balance, Profile_Image, Theme_Song_URL, Created_At, Last_Login, Settings_JSON, Total_Earned
-    sheet.appendRow([name, pinHash, role, bio, future, 10, '', '', now, now, '{}', 10]);
+    // Name, PIN_Hash, Role, Bio, Future, Token_Balance, Profile_Image, Theme_Song_URL, Created_At, Last_Login, Settings_JSON, Total_Earned, Email
+    sheet.appendRow([name, pinHash, role, bio, future, 10, '', '', now, now, '{}', 10, '']);
     
     // TSS_Membersにも追加（後方互換性）
     addToLegacyMembers(ss, name, role, bio);
@@ -1289,7 +1241,10 @@ function loginUser(params) {
           future: data[i][4] || '',
           tokenBalance: data[i][5] || 0,
           profileImage: data[i][6] || '',
-          themeSongUrl: data[i][7] || ''
+          tokenBalance: data[i][5] || 0,
+          profileImage: data[i][6] || '',
+          themeSongUrl: data[i][7] || '',
+          email: data[i][12] || ''
         });
       }
     }
@@ -1384,6 +1339,9 @@ function syncUserData(params) {
           tokenBalance: data[i][5] || 0,
           profileImage: data[i][6] || '',
           themeSongUrl: data[i][7] || '',
+          profileImage: data[i][6] || '',
+          themeSongUrl: data[i][7] || '',
+          email: data[i][12] || '',
           todos: todos
         });
       }
@@ -1475,7 +1433,9 @@ function updateProfile(params) {
     const role = params?.role;
     const future = params?.future;
     const profileImage = params?.profileImage;
+
     const themeSongUrl = params?.themeSongUrl;
+    const email = params?.email;
     
     if (!name) {
       return createResponse({ 
@@ -1505,7 +1465,9 @@ function updateProfile(params) {
         if (bio !== undefined) usersSheet.getRange(i + 1, 4).setValue(bio);
         if (future !== undefined) usersSheet.getRange(i + 1, 5).setValue(future);
         if (profileImage !== undefined) usersSheet.getRange(i + 1, 7).setValue(profileImage);
+        if (profileImage !== undefined) usersSheet.getRange(i + 1, 7).setValue(profileImage);
         if (themeSongUrl !== undefined) usersSheet.getRange(i + 1, 8).setValue(themeSongUrl);
+        if (email !== undefined) usersSheet.getRange(i + 1, 13).setValue(email); // Email is Col 13
         
         return createResponse({ success: true, message: 'V2 Updated' });
       }
@@ -1566,10 +1528,12 @@ function updateProfile(params) {
               10, // Welcome token
               profileImage || '',
               themeSongUrl || '',
-              new Date().toISOString(),
-              new Date().toISOString(),
-              ''
-         ];
+               new Date().toISOString(), // Created
+               new Date().toISOString(), // Last Login
+               '{}', // Settings
+               10, // Total Earned
+               email || '' // Email
+          ];
          usersSheet.appendRow(newRow);
          return createResponse({ success: true, message: 'Created New V2 User' });
     }
@@ -1591,3 +1555,203 @@ function updateProfile(params) {
 }
 
 // End of file
+
+// ============ SMART SCHEDULE IMPLEMENTATION ============
+
+function handleCreateAdjustment(ss, data) {
+  let sheet = getAdjustmentsSheet(ss);
+  const adjustmentId = String(Date.now());
+  
+  // Candidates: Array of { start: ISO, end: ISO }
+  // Participants: Array of Name Strings
+  const candidates = JSON.stringify(data.candidates || []);
+  const participants = JSON.stringify(data.participants || []);
+  const initialResponses = JSON.stringify({});
+
+  // Columns: AdjustmentId, Title, Author, Candidates, Participants, Responses, Status, FinalDate, Timestamp
+  const row = [
+    adjustmentId,
+    data.title || '日程調整',
+    data.author || 'Anonymous',
+    candidates,
+    participants,
+    initialResponses,
+    'adjusting',
+    '',
+    new Date().toISOString()
+  ];
+  
+  sheet.appendRow(row);
+  
+  // Reward author
+  if (data.author) {
+    addTokensToUser(ss, data.author, 2, 'adjustment_create', 'Created schedule adjustment');
+  }
+  
+  return createResponse({ success: true, adjustmentId: adjustmentId });
+}
+
+function handleSubmitVote(ss, data) {
+  const sheet = getAdjustmentsSheet(ss);
+  const allData = sheet.getDataRange().getValues();
+  const targetId = String(data.adjustmentId);
+  const user = data.user;
+  // Votes: { "2024-01-01T10:00": "O", "2024-01-01T12:00": "X" }
+  const votes = data.votes || {}; 
+  
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][0]) === targetId) { // AdjustmentId is Col 1
+      let responses = {};
+      try {
+        responses = JSON.parse(allData[i][5]); // Responses is Col 6 (index 5)
+      } catch (e) {}
+      
+      // Update user's vote
+      responses[user] = votes;
+      
+      // Save back
+      sheet.getRange(i + 1, 6).setValue(JSON.stringify(responses));
+      
+      return createResponse({ success: true, message: 'Vote submitted' });
+    }
+  }
+  return createResponse({ error: 'Adjustment not found' });
+}
+
+function handleFinalizeAdjustment(ss, data) {
+  const sheet = getAdjustmentsSheet(ss);
+  const allData = sheet.getDataRange().getValues();
+  const targetId = String(data.adjustmentId);
+  const finalDate = data.finalDate; // { start: ISO, end: ISO }
+  
+  // Find event
+  let eventRowIndex = -1;
+  let eventTitle = '';
+  let participants = [];
+  
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][0]) === targetId) {
+      eventRowIndex = i;
+      eventTitle = allData[i][1];
+      try {
+        participants = JSON.parse(allData[i][4]);
+      } catch(e) { participants = []; }
+      // Add author to participants if not included
+      const author = allData[i][2];
+      if (!participants.includes(author)) participants.push(author);
+      break;
+    }
+  }
+  
+  if (eventRowIndex === -1) return createResponse({ error: 'Adjustment not found' });
+  
+  // 1. Get Emails
+  const emailMap = getUserEmails(ss, participants);
+  const guestEmails = participants.map(p => emailMap[p]).filter(e => e && e.includes('@'));
+  const guestList = guestEmails.join(',');
+
+  // 2. Create Google Calendar Event
+  let calendarEventId = '';
+  try {
+    const startTime = new Date(finalDate.start);
+    const endTime = new Date(finalDate.end);
+    
+    // Advanced options to send invites
+    const options = {
+      description: `TSSで調整された予定です。\n参加者: ${participants.join(', ')}\n\n(Created by Team Synergy Stage App)`,
+      guests: guestList,
+      sendInvites: true
+    };
+    
+    const calEvent = CalendarApp.getDefaultCalendar().createEvent(eventTitle, startTime, endTime, options);
+    calendarEventId = calEvent.getId();
+    
+  } catch (e) {
+    return createResponse({ error: 'Calendar Error: ' + e.message });
+  }
+  
+  // 3. Update Sheet Status
+  sheet.getRange(eventRowIndex + 1, 7).setValue('finalized'); // Status
+  sheet.getRange(eventRowIndex + 1, 8).setValue(JSON.stringify(finalDate)); // FinalDate
+  
+  // 4. Reward Participants
+  participants.forEach(p => {
+    addTokensToUser(ss, p, 5, 'adjustment_finalized', 'Schedule finalized');
+  });
+  
+  return createResponse({ 
+    success: true, 
+    message: 'Event finalized and invites sent', 
+    count: guestEmails.length 
+  });
+}
+
+function getAdjustments(ss, params) {
+  const sheet = getAdjustmentsSheet(ss);
+  const user = params.user || '';
+  const data = sheet.getDataRange().getValues();
+  const result = [];
+  
+  // Helper to check if user is participant
+  const isRelated = (author, parts) => {
+    if (author === user) return true;
+    if (parts.includes(user)) return true;
+    return false;
+  };
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    let participants = [];
+    try { participants = JSON.parse(row[4]); } catch(e){}
+    
+    if (isRelated(row[2], participants)) {
+      result.push({
+        id: row[0],
+        title: row[1],
+        author: row[2],
+        candidates: JSON.parse(row[3] || '[]'),
+        participants: participants,
+        responses: JSON.parse(row[5] || '{}'),
+        status: row[6],
+        finalDate: JSON.parse(row[7] || 'null'),
+        timestamp: row[8]
+      });
+    }
+  }
+  
+  return createResponse({ adjustments: result.reverse() });
+}
+
+// Helper: Get Adjustment Sheet
+function getAdjustmentsSheet(ss) {
+  let sheet = ss.getSheetByName('TSS_Adjustments');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Adjustments');
+    // AdjustmentId, Title, Author, Candidates, Participants, Responses, Status, FinalDate, Timestamp
+    sheet.getRange(1, 1, 1, 9).setValues([[
+      'AdjustmentId', 'Title', 'Author', 'Candidates', 'Participants', 'Responses', 'Status', 'FinalDate', 'Timestamp'
+    ]]);
+    sheet.getRange(1, 1, 1, 9).setFontWeight('bold');
+  }
+  return sheet;
+}
+
+// Helper: Get Emails for list of names
+function getUserEmails(ss, names) {
+  const usersSheet = ss.getSheetByName('TSS_Users');
+  const data = usersSheet.getDataRange().getValues();
+  const map = {};
+  
+  // Name is col 0, Email is col 12
+  for (let i = 1; i < data.length; i++) {
+    const n = data[i][0];
+    const e = data[i][12];
+    if (names.includes(n) && e) {
+      map[n] = e;
+    }
+  }
+  return map;
+}
+
+// Helper for Legacy Member compat (if needed later)
+
