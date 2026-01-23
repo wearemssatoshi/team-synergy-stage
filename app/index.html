@@ -1300,6 +1300,16 @@
             height: 12px;
             border-radius: 50%;
         }
+
+        @keyframes coinSpin {
+            0% {
+                transform: rotateY(0deg);
+            }
+
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -1319,10 +1329,11 @@
             <div class="token-badge" id="tokenDisplay"
                 style="flex: 1; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <div style="font-size: 9px; color: #FFD700; letter-spacing: 1px; font-weight: 700;">TOKENS</div>
-                <div style="display: flex; align-items: baseline; gap: 2px;">
-                    <span class="icon" style="font-size: 12px;">💎</span>
+                <div style="display: flex; align-items: baseline; gap: 4px;">
+                    <span class="icon"
+                        style="font-size: 16px; display: inline-block; animation: coinSpin 3s linear infinite;">🪙</span>
                     <span id="tokenBalance"
-                        style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700; color: #fff;">0</span>
+                        style="font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">0</span>
                     <span style="font-size: 9px; font-weight: 600; color: #fff;">TSST</span>
                 </div>
             </div>
@@ -1361,13 +1372,16 @@
             <div class="vision-accordion-content" id="visionAccordionContent"
                 style="background: #FFFDD0; border: 1px solid rgba(212,175,55,0.4); border-radius: 12px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 <div style="padding: 16px;">
-                    <div style="font-size: 10px; color: #8B4513; margin-bottom: 4px; font-weight: 600;">3 YEARS LATER
-                    </div>
+                    <div
+                        style="font-size: 10px; color: #3E2723; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.05em;">
+                        3 YEARS LATER</div>
                     <div id="futureVisionDetail"
-                        style="font-size: 13px; line-height: 1.6; color: #3e2723; margin-bottom: 12px; white-space: pre-wrap;">
+                        style="font-size: 13px; line-height: 1.6; color: #1a1a1a; margin-bottom: 12px; white-space: pre-wrap; font-weight: 600;">
                         (Set in Profile > Edit)</div>
-                    <div style="font-size: 10px; color: #8B4513; margin-bottom: 4px; font-weight: 600;">ROLE</div>
-                    <div id="roleVisionText" style="font-size: 13px; font-weight: 700; color: #D2691E;">-</div>
+                    <div
+                        style="font-size: 10px; color: #3E2723; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.05em;">
+                        ROLE</div>
+                    <div id="roleVisionText" style="font-size: 13px; font-weight: 700; color: #BF360C;">-</div>
                     <button class="btn-secondary" onclick="triggerVisionPhotoUpload(event)"
                         style="width: 100%; margin-top: 15px; font-size: 11px; border-color: #D2691E; color: #8B4513;">Change
                         Photo 📷</button>
