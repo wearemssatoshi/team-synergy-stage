@@ -56,6 +56,8 @@ function doPost(e) {
         return handleSubmitVote(ss, data);
       case 'finalizeAdjustment':
         return handleFinalizeAdjustment(ss, data);
+      case 'deleteAdjustment':
+        return handleDeleteAdjustment(ss, data);
       // ============ ATTENDANCE ============
       case 'attendance':
         return handleAttendance(ss, data);
@@ -1903,3 +1905,23 @@ function handleAttendance(ss, data) {
   });
 }
 
+function handleDeleteAdjustment(ss, data) {
+  const sheet = getAdjustmentsSheet(ss);
+  const allData = sheet.getDataRange().getValues();
+  const targetId = String(data.adjustmentId);
+  const user = data.user;
+  
+  for (let i = 1; i < allData.length; i++) {
+    const rowId = String(allData[i][0]);
+    const author = allData[i][2];
+    
+    if (rowId === targetId) {
+      if (author !== user) {
+        return createResponse({ error: 'Permission denied' });
+      }
+      sheet.deleteRow(i + 1);
+      return createResponse({ success: true, message: 'Adjustment deleted' });
+    }
+  }
+  return createResponse({ error: 'Adjustment not found' });
+}

@@ -1974,9 +1974,12 @@
                 <div style="font-weight:bold;color:var(--primary);">${adj.title}</div>
                 <div style="font-size:10px;color:#666;">By ${adj.author}</div>
             </div>
-            <div
-                style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized ? 'green' : 'orange'}; color:${isFinalized ? 'green' : 'orange'};">
-                ${isFinalized ? 'FINALIZED' : 'ACTIVE'}
+            <div style="display:flex; gap:5px; align-items:center;">
+                ${isAuthor ? `<button onclick="deleteAdjustment('${adj.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;opacity:0.6;" title="Delete">🗑️</button>` : ''}
+                <div
+                    style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized ? 'green' : 'orange'}; color:${isFinalized ? 'green' : 'orange'};">
+                    ${isFinalized ? 'FINALIZED' : 'ACTIVE'}
+                </div>
             </div>
         </div>
 
@@ -2066,6 +2069,26 @@
             }).then(r => r.json()).then(res => {
                 if (res.success) {
                     alert('Schedule Finalized & Invites Sent!');
+                    fetchAdjustments();
+                } else alert('Error: ' + res.error);
+            });
+        }
+
+        function deleteAdjustment(adjId) {
+            if (!confirm('本当に削除しますか？ (Are you sure you want to delete this adjustment?)')) return;
+            const profile = getProfile();
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'deleteAdjustment',
+                    adjustmentId: adjId,
+                    user: profile.name
+                })
+            }).then(r => r.json()).then(res => {
+                if (res.success) {
+                    alert('Deleted!');
                     fetchAdjustments();
                 } else alert('Error: ' + res.error);
             });
