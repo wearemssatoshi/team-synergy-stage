@@ -946,18 +946,20 @@
 
         // ============ YOUTUBE SETTINGS ============
         // ============ YOUTUBE SETTINGS ============
+        function extractYoutubeId(input) {
+            if (!input) return null;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = input.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : input;
+        }
+
         async function loadYouTubeSettings() {
             try {
-                // Fetch Settings from Backend
                 const response = await fetch(SCRIPT_URL + '?action=settings');
                 const res = await response.json();
-
                 if (res.settings) {
-                    const videoId = res.settings.youtube_video_id || '';
-                    const caption = res.settings.youtube_caption || '';
-
-                    document.getElementById('youtubeVideoId').value = videoId;
-                    document.getElementById('youtubeCaptionInput').value = caption;
+                    document.getElementById('youtubeVideoId').value = res.settings.youtube_video_id || '';
+                    document.getElementById('youtubeCaptionInput').value = res.settings.youtube_caption || '';
                 }
             } catch (error) {
                 console.error('Error loading YouTube settings:', error);
@@ -965,8 +967,9 @@
         }
 
         async function saveYouTubeSettings() {
-            const videoId = document.getElementById('youtubeVideoId').value.trim();
+            const rawId = document.getElementById('youtubeVideoId').value.trim();
             const caption = document.getElementById('youtubeCaptionInput').value.trim();
+            const videoId = extractYoutubeId(rawId);
 
             if (!videoId) {
                 alert('Video IDを入力してください');

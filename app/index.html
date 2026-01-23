@@ -2317,43 +2317,48 @@
         }
 
         // ============ YOUTUBE ============
-        // ============ YOUTUBE ============
+        function extractYoutubeId(input) {
+            if (!input) return null;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = input.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : input;
+        }
+
         function loadYouTubeSettings() {
-            // First check local cache for instant load
             const cached = JSON.parse(localStorage.getItem('tss_youtube_cache') || '{}');
             const iframe = document.getElementById('youtubeEmbed');
             const caption = document.getElementById('youtubeCaption');
             if (!iframe) return;
 
-            // Render cached if available
             if (cached.videoId) {
-                const newSrc = `https://www.youtube.com/embed/${cached.videoId}`;
+                const videoId = extractYoutubeId(cached.videoId);
+                const newSrc = `https://www.youtube.com/embed/${videoId}`;
                 if (iframe.src !== newSrc) iframe.src = newSrc;
                 if (caption) caption.textContent = cached.caption || '';
             }
 
-            // Sync with Backend for latest
             fetch(`${SCRIPT_URL}?action=settings`)
                 .then(r => r.json())
                 .then(res => {
                     if (res.settings && res.settings.youtube_video_id) {
-                        const videoId = res.settings.youtube_video_id;
+                        const rawId = res.settings.youtube_video_id;
+                        const videoId = extractYoutubeId(rawId);
                         const capText = res.settings.youtube_caption || '';
 
-                        // Update UI
-                        const newSrc = `https://www.youtube.com/embed/${videoId}`;
-                        if (iframe.src !== newSrc) iframe.src = newSrc;
+                        if (videoId) {
+                            const newSrc = `https://www.youtube.com/embed/${videoId}`;
+                            if (iframe.src !== newSrc) iframe.src = newSrc;
 
-                        if (caption) {
-                            caption.textContent = capText;
-                            caption.style.display = capText ? 'block' : 'none';
+                            if (caption) {
+                                caption.textContent = capText;
+                                caption.style.display = capText ? 'block' : 'none';
+                            }
+
+                            localStorage.setItem('tss_youtube_cache', JSON.stringify({
+                                videoId: videoId,
+                                caption: capText
+                            }));
                         }
-
-                        // Update Cache
-                        localStorage.setItem('tss_youtube_cache', JSON.stringify({
-                            videoId: videoId,
-                            caption: capText
-                        }));
                     }
                 })
                 .catch(e => console.error('YouTube sync error:', e));
