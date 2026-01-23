@@ -1857,13 +1857,20 @@ function getAdjustmentsSheet(ss) {
 // Helper: Get Emails for list of names
 function getUserEmails(ss, names) {
   const usersSheet = ss.getSheetByName('TSS_Users');
-  const data = usersSheet.getDataRange().getValues();
-  const map = {};
+  if (!usersSheet) return {};
   
-  // Name is col 0, Email is col 12
+  const data = usersSheet.getDataRange().getValues();
+  if (data.length < 1) return {};
+  
+  const headers = data[0];
+  let emailIdx = headers.indexOf('Email');
+  if (emailIdx === -1) emailIdx = headers.indexOf('email'); // Fallback
+  if (emailIdx === -1) emailIdx = 12; // Legacy Fallback (Col 13)
+  
+  const map = {};
   for (let i = 1; i < data.length; i++) {
-    const n = data[i][0];
-    const e = data[i][12];
+    const n = data[i][0]; // Name is Col 0
+    const e = data[i][emailIdx];
     if (names.includes(n) && e) {
       map[n] = e;
     }
