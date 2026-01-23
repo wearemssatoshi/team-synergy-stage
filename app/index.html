@@ -1577,8 +1577,22 @@
                         </div>
                         <div class="input-group">
                             <label class="input-label">参加メンバー (MEMBERS)</label>
-                            <input type="text" id="adjMemberInput" class="text-input"
-                                placeholder="名前を入力 (例: 田中, 佐藤) または 'All'">
+
+                            <!-- Selected Members Tags -->
+                            <div id="selectedMembersContainer"
+                                style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                                <!-- Tags will be injected here -->
+                            </div>
+
+                            <!-- Member Select Dropdown -->
+                            <div style="display: flex; gap: 5px;">
+                                <select id="adjMemberSelect" class="text-input" onchange="addMemberFromSelect(this)"
+                                    style="-webkit-appearance: none; appearance: none; background-image: none;">
+                                    <option value="">メンバーを選択 / Select Member...</option>
+                                    <option value="All">全員 (All Members)</option>
+                                </select>
+                            </div>
+                            <input type="hidden" id="adjMemberInput"> <!-- Legacy compatibility -->
                         </div>
                         <div style="display: flex; gap: 10px;">
                             <button onclick="closeNewAdjustmentForm()" class="btn-secondary">キャンセル</button>
@@ -1739,6 +1753,9 @@
             document.getElementById('new-adjustment-form').style.display = 'block';
             newAdjDates = [];
             renderAdjDatesList();
+            selectedAdjMembers = [];
+            renderMemberTags();
+            loadMemberSelectOptions();
         }
 
         function closeNewAdjustmentForm() {
@@ -1767,18 +1784,107 @@
     `).join('');
         }
 
+        // ============ MEMBER SELECTION LOGIC ============
+        let selectedAdjMembers = [];
+
+        function loadMemberSelectOptions() {
+            fetch(`${SCRIPT_URL}?action=members`)
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('adjMemberSelect');
+                    if (!data.members || !select) return;
+
+                    // Clear existing (keep first 2: select... and All)
+                    while (select.options.length > 2) {
+                        select.remove(2);
+                    }
+
+                    // Sort members alphabetically or by role
+                    const sorted = data.members.sort((a, b) => a.name.localeCompare(b.name));
+
+                    sorted.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.name;
+                        opt.textContent = `${m.name} (${m.role})`;
+                        select.appendChild(opt);
+                    });
+                })
+                .catch(e => console.error('Member load err:', e));
+        }
+
+        function addMemberFromSelect(selectEl) {
+            const val = selectEl.value;
+            if (!val) return;
+
+            // Handle "All"
+            if (val === 'All') {
+                selectedAdjMembers = ['All'];
+                renderMemberTags();
+                selectEl.value = '';
+                return;
+            }
+
+            // Normal Member (Prevent duplicates)
+            if (!selectedAdjMembers.includes(val) && val !== 'All') {
+                // If "All" was previously selected, clear it
+                if (selectedAdjMembers.includes('All')) selectedAdjMembers = [];
+
+                selectedAdjMembers.push(val);
+                renderMemberTags();
+            }
+            selectEl.value = '';
+        }
+
+        function removeMemberTag(name) {
+            selectedAdjMembers = selectedAdjMembers.filter(m => m !== name);
+            renderMemberTags();
+        }
+
+        function renderMemberTags() {
+            const container = document.getElementById('selectedMembersContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            selectedAdjMembers.forEach(m => {
+                const tag = document.createElement('div');
+                tag.style.cssText = `
+                    background: var(--primary-light); 
+                    color: var(--primary); 
+                    padding: 4px 10px; 
+                    border-radius: 15px; 
+                    font-size: 11px; 
+                    font-weight: 600; 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 5px;`;
+
+                tag.innerHTML = `
+                    ${m}
+                    <span onclick="removeMemberTag('${m}')" style="cursor: pointer; font-weight: bold; opacity: 0.7;">×</span>
+                `;
+                container.appendChild(tag);
+            });
+        }
+
         function createAdjustment() {
             const title = document.getElementById('adjTitle').value;
-            const contextMembers = document.getElementById('adjMemberInput').value;
+            // Use selected Array instead of input value
+            const contextMembers = selectedAdjMembers.length > 0 ? selectedAdjMembers.join(',') : '';
             const profile = getProfile();
 
-            if (!title) return alert('Title required');
-            if (newAdjDates.length === 0) return alert('Dates required');
+            if (!title) return alert('Title required (タイトルを入力してください)');
+            if (newAdjDates.length === 0) return alert('Dates required (候補日を追加してください)');
+            // Default to author if empty? Or required? Let's assume empty means open to all if not 'All'? 
+            // Better to warn if empty.
+            if (!contextMembers) return alert('Members required (メンバーを選択してください)');
 
             let participants = [profile.name];
             if (contextMembers && contextMembers.toLowerCase() !== 'all') {
                 const others = contextMembers.split(',').map(s => s.trim());
-                participants = [...participants, ...others];
+                // Merge unique
+                participants = [...new Set([...participants, ...others])];
+            } else if (contextMembers.toLowerCase() === 'all') {
+                participants = ['All']; // Flag for backend to handle or UI logic
             }
 
             const payload = {
