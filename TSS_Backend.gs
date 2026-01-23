@@ -75,9 +75,9 @@ function doGet(e) {
       // ============ VERSION ============
       case 'version':
         return createResponse({
-          version: '3.2.0',
+          version: 'v5.1',
           name: 'TSS Backend Group Suite',
-          features: ['グループスケジュール', 'PIN認証', 'To-Do同期', 'JINSEI AI'],
+          features: ['Smart Schedule (GCal Sync)', 'Token History', 'PIN Auth', 'JINSEI AI'],
           deployedAt: new Date().toISOString()
         });
       
@@ -104,6 +104,8 @@ function doGet(e) {
         return getSettings(ss);
       case 'getAdjustments':
         return getAdjustments(ss, e.parameter);
+      case 'history':
+        return handleGetMyStats(ss, e.parameter);
       
       // ============ EXISTING ============
       case 'members':
@@ -1684,6 +1686,117 @@ function handleFinalizeAdjustment(ss, data) {
     message: 'Event finalized and invites sent', 
     count: guestEmails.length 
   });
+}
+
+function handleGetMyStats(ss, params) {
+  const user = params.user;
+  if (!user) return ContentService.createTextOutput("User not specified");
+
+  const usersSheet = ss.getSheetByName('TSS_Users');
+  const logsSheet = ss.getSheetByName('TSS_TokenLogs');
+  
+  // 1. Get User Summary
+  let balance = 0;
+  let total = 0;
+  if (usersSheet) {
+    const data = usersSheet.getDataRange().getValues();
+    for(let i=1; i<data.length; i++) {
+        if(data[i][0] === user) {
+            balance = data[i][5] || 0;
+            total = data[i][11] || balance;
+            break;
+        }
+    }
+  }
+
+  // 2. Get Logs
+  let historyRows = [];
+  if (logsSheet) {
+      const data = logsSheet.getDataRange().getValues();
+      // Timestamp, User, Amount, Action, Description
+      // Filter for user and reverse
+      for(let i=1; i<data.length; i++) {
+          if(data[i][1] === user) {
+              historyRows.push({
+                  ts: new Date(data[i][0]).toLocaleString('ja-JP'),
+                  amount: data[i][2],
+                  action: data[i][3],
+                  desc: data[i][4]
+              });
+          }
+      }
+  }
+  historyRows.reverse();
+
+  // 3. Generate HTML
+  const html = `
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Token History for ${user}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Noto Sans JP', sans-serif; background: #FFFDF5; padding: 20px; color: #1a1a1a; max-width: 600px; margin: 0 auto; }
+            h1 { font-family: 'Montserrat', sans-serif; color: #D4AF37; font-size: 20px; text-align: center; }
+            .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; }
+            .balance { font-size: 36px; font-weight: bold; color: #B8960C; font-family: 'Montserrat', sans-serif; }
+            .label { font-size: 10px; color: #888; letter-spacing: 0.1em; margin-bottom: 5px; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th { text-align: left; color: #D4AF37; border-bottom: 2px solid #eee; padding: 8px; }
+            td { border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; }
+            .amount { font-weight: bold; font-family: 'Montserrat', sans-serif; }
+            .plus { color: #D4AF37; }
+            .minus { color: #EF4444; }
+            .back-btn { display: block; text-align: center; margin-top: 20px; color: #888; text-decoration: none; font-size: 12px; }
+        </style>
+    </head>
+    <body>
+        <h1>${user}'s Token History</h1>
+        
+        <div class="card">
+            <div class="label">CURRENT BALANCE</div>
+            <div class="balance">${balance} <span style="font-size:14px">TSST</span></div>
+            <div style="margin-top:10px; font-size:11px; color:#666;">
+                生涯獲得総数: <b>${total}</b> TSST
+            </div>
+        </div>
+
+        <h3>History Log</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Action</th>
+                    <th style="text-align:right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${historyRows.length === 0 ? '<tr><td colspan="3" style="text-align:center; padding:20px;">No history yet</td></tr>' : ''}
+                ${historyRows.map(row => `
+                    <tr>
+                        <td style="color:#666;">${row.ts.split(' ')[0]}<br><span style="font-size:10px">${row.ts.split(' ')[1]}</span></td>
+                        <td>
+                            <div style="font-weight:bold;">${row.action}</div>
+                            <div style="font-size:10px; color:#666;">${row.desc}</div>
+                        </td>
+                        <td style="text-align:right;" class="amount ${row.amount > 0 ? 'plus' : 'minus'}">
+                            ${row.amount > 0 ? '+' : ''}${row.amount}
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        
+        <a href="javascript:history.back()" class="back-btn">← Back to App</a>
+    </body>
+    </html>
+  `;
+
+  return HtmlService.createHtmlOutput(html)
+      .setTitle(`Token History - ${user}`)
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function getAdjustments(ss, params) {
