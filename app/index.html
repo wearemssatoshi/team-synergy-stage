@@ -1313,7 +1313,7 @@
         <div class="user-badge" id="userBadge" style="display: none;"></div>
 
         <!-- TOKEN BADGE (High Visibility) -->
-        <div class="token-badge"
+        <div class="token-badge" id="tokenDisplay"
             style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.3); display: inline-flex; flex-direction: column; align-items: center; min-width: 100px; margin-top: 10px;">
             <div style="font-size: 10px; color: #FFD700; letter-spacing: 1px; margin-bottom: 2px; font-weight: 700;">
                 TOKENS</div>
@@ -2331,8 +2331,9 @@
 
         function updateTokenDisplay() {
             const profile = getProfile();
-            if (profile) {
-                document.getElementById('tokenDisplay').style.display = 'inline-flex';
+            const el = document.getElementById('tokenDisplay');
+            if (profile && el) {
+                el.style.display = 'inline-flex';
                 document.getElementById('tokenBalance').textContent = profile.tokens || 0;
                 document.getElementById('profileTokens').textContent = profile.tokens || 0;
             }
