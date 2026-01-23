@@ -56,6 +56,9 @@ function doPost(e) {
         return handleSubmitVote(ss, data);
       case 'finalizeAdjustment':
         return handleFinalizeAdjustment(ss, data);
+      // ============ ATTENDANCE ============
+      case 'attendance':
+        return handleAttendance(ss, data);
       default:
         return createResponse({ error: 'Unknown action' });
     }
@@ -1866,5 +1869,38 @@ function getUserEmails(ss, names) {
   return map;
 }
 
-// Helper for Legacy Member compat (if needed later)
+// ============ ATTENDANCE HANDLERS ============
+
+function handleAttendance(ss, data) {
+  let sheet = ss.getSheetByName('TSS_Attendance');
+  if (!sheet) {
+    sheet = ss.insertSheet('TSS_Attendance');
+    sheet.getRange(1, 1, 1, 4).setValues([['Timestamp', 'User', 'Type', 'Date']]); // Date for easier daily processing
+    sheet.getRange(1, 1, 1, 4).setFontWeight('bold');
+  }
+  
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ja-JP'); // YYYY/MM/DD
+  const type = data.type || 'check_in'; // check_in or check_out
+  
+  // Log Attendance
+  sheet.appendRow([
+    now.toISOString(),
+    data.user,
+    type,
+    dateStr
+  ]);
+  
+  // Award Tokens (5 Tokens Fixed)
+  const bonus = 5;
+  const description = type === 'check_in' ? 'Check-In Bonus' : 'Check-Out Bonus';
+  const result = addTokensToUser(ss, data.user, bonus, 'attendance', description);
+  
+  return createResponse({
+    success: true,
+    message: `${type === 'check_in' ? 'Check-In' : 'Check-Out'} Successful! (+${bonus} TSST)`,
+    tokensEarned: bonus,
+    newBalance: result.newBalance
+  });
+}
 
