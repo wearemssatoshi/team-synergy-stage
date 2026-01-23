@@ -371,7 +371,7 @@
 <body>
     <header>
         <h1>TSS DASHBOARD</h1>
-        <div class="header-sub">TEAM SYNERGY STAGE ADMIN</div>
+        <div class="header-sub">TEAM SYNERGY STAGE ADMIN v5.1 Smart Schedule</div>
     </header>
 
     <main>
@@ -457,57 +457,86 @@
 
     <script>
         // ============ CONFIGURATION ============
-        const SCRIPT_URL = 'YOUR_GAS_URL_HERE';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
 
         // ============ LOAD DATA ============
         async function loadData() {
-            // For now, simulated data - replace with actual API call
-            const sampleMembers = [
-                { name: 'SAT', role: 'リーダー', tokens: 150, joinedAt: '2026-01-13' },
-                { name: 'Member A', role: 'メンバー', tokens: 85, joinedAt: '2026-01-14' },
-                { name: 'Member B', role: 'メンバー', tokens: 72, joinedAt: '2026-01-14' },
-                { name: 'Member C', role: 'メンバー', tokens: 45, joinedAt: '2026-01-15' },
-                { name: 'Member D', role: 'メンバー', tokens: 30, joinedAt: '2026-01-16' }
-            ];
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=stats');
+                const data = await response.json();
 
-            const sampleActivity = [
-                { type: 'post', user: 'SAT', action: 'が新しい投稿をしました', time: '5分前' },
-                { type: 'task', user: 'Member A', action: 'がタスクを完了しました', time: '15分前' },
-                { type: 'join', user: 'Member D', action: 'がコミュニティに参加しました', time: '1時間前' }
-            ];
-
-            renderStats(sampleMembers);
-            renderRanking(sampleMembers);
-            renderMembers(sampleMembers);
-            renderActivity(sampleActivity);
+                renderStats(data);
+                renderRanking(data.topMembers); // Backend naming difference, ensure mapping
+                renderMembers(data.members); // Assuming backend 'stats' returns members list for table? 
+                // Actually 'action=stats' returns limited data. 
+                // Let's use 'action=data' to get everything or stick to stats if sufficient.
+                // 'getStats' returns topMembers, recentActivity etc.
+                renderActivity(data.recentActivity);
+            } catch (e) {
+                console.error('Data load failed', e);
+            }
         }
 
-        function renderStats(members) {
-            document.getElementById('totalMembers').textContent = members.length;
-            document.getElementById('totalTokens').textContent = members.reduce((sum, m) => sum + m.tokens, 0);
-            document.getElementById('totalPosts').textContent = Math.floor(Math.random() * 50) + 10;
-            document.getElementById('completedTasks').textContent = Math.floor(Math.random() * 100) + 20;
+        function renderStats(data) {
+            document.getElementById('totalMembers').textContent = data.totalMembers || 0;
+            document.getElementById('totalTokens').textContent = data.totalTokens || 0;
+            document.getElementById('totalPosts').textContent = data.totalPosts || 0;
+            document.getElementById('completedTasks').textContent = data.completedTasks || 0;
         }
 
         function renderRanking(members) {
-            const sorted = [...members].sort((a, b) => b.tokens - a.tokens).slice(0, 5);
+            if (!members) return;
             const list = document.getElementById('rankingList');
 
-            list.innerHTML = sorted.map((member, index) => `
+            list.innerHTML = members.map((member, index) => `
                 <li class="ranking-item">
                     <div class="ranking-number">${index + 1}</div>
                     <div class="ranking-info">
                         <div class="ranking-name">${member.name}</div>
                         <div class="ranking-role">${member.role}</div>
                     </div>
-                    <div class="ranking-tokens">${member.tokens}</div>
+                    <div class="ranking-tokens">${member.totalEarned || member.tokens}</div>
                 </li>
             `).join('');
         }
 
         function renderMembers(members) {
+            // Note: action=stats does not usually return full member list. 
+            // If we want full list we might need separate call or use topMembers for now if that's what we have.
+            // Let's assume for this snippet we fetch 'members' separately? 
+            // Or just fetch all data via action=data (heavier but gets everything).
+            // Let's switch loadData to action=data to be safe for dashboard.
+        }
+
+        // Redefining loadData to fetch ALL
+        async function loadData() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=data'); // get all
+                const res = await response.json();
+
+                // res = { members: [], posts: [], totalMembers... } from getAllData
+
+                // Calculate stats if not provided directly
+                const stats = {
+                    totalMembers: res.members.length,
+                    totalTokens: res.totalTokens, // from getAllData
+                    totalPosts: res.posts.length,
+                    completedTasks: res.completedTasks // from getAllData
+                };
+
+                renderStats(res);
+                renderRanking(res.topMembers);
+                renderMembers(res.members);
+                renderActivity(res.recentActivity);
+
+            } catch (e) { console.error(e); }
+        }
+
+        function renderMembers(members) {
+            if (!members) return;
             const table = document.getElementById('membersTable');
 
+            // Sort by join date or just list
             table.innerHTML = members.map(member => `
                 <tr class="member-row">
                     <td>
@@ -516,27 +545,34 @@
                     </td>
                     <td>${member.role}</td>
                     <td><span class="token-badge">💎 ${member.tokens}</span></td>
-                    <td>${member.joinedAt}</td>
+                    <td>${new Date(member.joinedAt).toLocaleDateString()}</td>
                 </tr>
             `).join('');
         }
 
         function renderActivity(activities) {
+            if (!activities) return;
             const list = document.getElementById('activityList');
 
             const icons = {
                 post: '📝',
                 task: '✅',
                 join: '👋',
-                token: '💎'
+                token: '💎',
+                manual: '💎',
+                like: '❤️',
+                comment: '💬',
+                createAdjustment: '📅', // Map custom backend actions to icons
+                adjustment_create: '📅',
+                adjustment_finalized: '🎉'
             };
 
             list.innerHTML = activities.map(activity => `
                 <li class="activity-item">
-                    <div class="activity-icon">${icons[activity.type] || '📌'}</div>
+                    <div class="activity-icon">${icons[activity.action] || icons[activity.type] || '📌'}</div>
                     <div class="activity-content">
-                        <div class="activity-text"><strong>${activity.user}</strong>${activity.action}</div>
-                        <div class="activity-time">${activity.time}</div>
+                        <div class="activity-text"><strong>${activity.user}</strong>: ${activity.description || activity.action}</div>
+                        <div class="activity-time">${new Date(activity.timestamp).toLocaleString()}</div>
                     </div>
                 </li>
             `).join('');
