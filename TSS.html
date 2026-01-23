@@ -1320,8 +1320,10 @@
         <!-- 設定 -->
         <div class="card">
             <div class="card-title">⚙️ 設定</div>
+            <div style="font-size:10px; color:var(--text-gray); margin-bottom:10px;">Ver. v5.1</div>
+            <button class="btn-secondary" onclick="forceUpdate()">🔄 最新データに更新 (キャッシュクリア)</button>
             <button class="btn-secondary" onclick="logout()"
-                style="margin-top: 0; color: var(--danger); border-color: var(--danger);">ログアウト</button>
+                style="margin-top: 10px; color: var(--danger); border-color: var(--danger);">ログアウト</button>
         </div>
         </div>
     </main>
@@ -1356,7 +1358,8 @@
 
     <script>
         // ========== Configuration ==========
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec'; // GASのデプロイURLを設定
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
+        const APP_VERSION = 'v5.1';
 
         // ========== State ==========
         let currentUser = null;
@@ -1396,7 +1399,35 @@
             }
 
             renderTodos();
+            renderTodos();
             renderBoardPosts();
+
+            // Check for updates
+            checkAppVersion();
+        }
+
+        // ========== Version & Cache Control ==========
+        function checkAppVersion() {
+            // Version check
+            fetch(SCRIPT_URL + '?action=version&_t=' + Date.now())
+                .then(r => r.json())
+                .then(res => {
+                    console.log('Backend Version:', res.version, 'Local:', APP_VERSION);
+                    if (res.version && res.version !== APP_VERSION) {
+                        // Different version detected
+                        if (confirm(`新しいバージョン (${res.version}) が利用可能です。\n更新しますか？`)) {
+                            forceUpdate();
+                        }
+                    }
+                })
+                .catch(e => console.log('Version check failed', e));
+        }
+
+        function forceUpdate() {
+            // Force reload with unique hash to bypass cache
+            const url = new URL(window.location.href);
+            url.searchParams.set('v', Date.now());
+            window.location.href = url.toString();
         }
 
         // ========== Auth ==========
@@ -1815,7 +1846,8 @@
             // Checking 'doPost' logic... standard fetch?
             // Let's implement a simple fetch wrapper since I don't see one in the snippets I read.
 
-            const url = SCRIPT_URL + '?action=getAdjustments&user=' + encodeURIComponent(currentUser.name);
+            // Ensure NO CACHE on fetch
+            const url = SCRIPT_URL + '?action=getAdjustments&user=' + encodeURIComponent(currentUser?.name || '') + '&_t=' + Date.now();
             fetch(url)
                 .then(r => r.json())
                 .then(res => {
@@ -1946,7 +1978,8 @@
 
         // Helper API Call
         function callApi(data, callback) {
-            fetch(SCRIPT_URL, {
+            const targetUrl = SCRIPT_URL + '?_t=' + Date.now();
+            fetch(targetUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify(data)
