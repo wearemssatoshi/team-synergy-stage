@@ -2129,6 +2129,7 @@
                 loadPosts();
                 loadYouTubeSettings();
                 refreshAttendanceUI();
+                fetchLatestProfile(); // Sync Live Data
 
                 // Fetch Version
                 checkAppVersion();
@@ -2162,6 +2163,30 @@
             const url = new URL(window.location.href);
             url.searchParams.set('v', Date.now());
             window.location.href = url.toString();
+        }
+
+
+
+        function fetchLatestProfile() {
+            const profile = getProfile();
+            if (!profile || !profile.name) return;
+
+            // Fetch clean data from backend
+            fetch(SCRIPT_URL + '?action=sync&name=' + encodeURIComponent(profile.name))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.user) {
+                        // Update Local Storage with Source of Truth
+                        const p = getProfile();
+                        p.tokens = data.user.tokens;
+                        if (data.user.role) p.role = data.user.role;
+                        // p.rank = data.user.rank; // If rank exists
+                        localStorage.setItem('tss_profile', JSON.stringify(p));
+
+                        updateTokenDisplay(); // Refresh UI
+                    }
+                })
+                .catch(e => console.log('Background sync failed', e));
         }
 
         function viewTokenHistory() {
@@ -3264,7 +3289,9 @@
             try {
                 // Determine if SCRIPT_URL is valid
                 if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-                    await fetch(`${SCRIPT_URL}?action=like&postId=${id}`);
+                    const profile = getProfile();
+                    const userParam = profile ? `&user=${encodeURIComponent(profile.name)}` : '';
+                    await fetch(`${SCRIPT_URL}?action=like&postId=${id}&type=post${userParam}`);
                 }
             } catch (e) {
                 console.error('Like sync failed', e);
@@ -3424,6 +3451,13 @@
             // Award 1 TSST for liking
             addTokens(1);
             showTokenEarned(1, 'Like Bonus! ❤️');
+
+            // Sync with Backend
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                const profile = getProfile();
+                const userParam = profile ? `&user=${encodeURIComponent(profile.name)}` : '';
+                fetch(`${SCRIPT_URL}?action=like&id=${id}&type=announcement${userParam}`);
+            }
         }
 
         function toggleComments(id) {
