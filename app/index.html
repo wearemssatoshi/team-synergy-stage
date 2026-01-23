@@ -1328,43 +1328,44 @@
             style="font-size: 10px; opacity: 0.9; margin-top: 8px; color: #fff; text-align: center; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
             v5.1 Smart Schedule</div>
 
-        <!-- MY VISION Accordion (High Contrast) -->
+        <!-- MY VISION Accordion (Gold Theme Revert) -->
         <div class="vision-accordion" id="visionAccordion" style="display: none; margin-top: 15px;">
             <input type="file" id="visionPhotoUpload" style="display: none;" accept="image/*"
                 onchange="handleVisionPhotoUpload(event)">
 
             <div class="vision-accordion-header" onclick="toggleVisionAccordion()"
-                style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.95); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 12px 16px; border-radius: 12px;">
+                style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 12px 16px; border-radius: 12px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div class="vision-photo" id="visionPhotoContainer" onclick="triggerVisionPhotoUpload(event)"
                         style="cursor: pointer; position: relative;">
                         <img id="visionPhoto" src="" style="display: none;">
-                        <span id="visionPhotoPlaceholder" style="font-size: 20px; color: white;">👤</span>
+                        <span id="visionPhotoPlaceholder" style="font-size: 20px; color: var(--primary);">👤</span>
                     </div>
                     <div>
-                        <div style="font-size: 10px; color: #444; font-weight: 700; letter-spacing: 0.05em;">MY VISION
+                        <div style="font-size: 10px; color: var(--primary); font-weight: 700; letter-spacing: 0.1em;">MY
+                            VISION
                         </div>
                         <div id="futureVisionText"
-                            style="font-size: 12px; font-weight: 700; color: #1a1a1a; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
+                            style="font-size: 12px; font-weight: 700; color: #4A3200; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">
                             ...</div>
                     </div>
                 </div>
-                <div class="vision-arrow" id="visionArrow" style="color: #444;">▼</div>
+                <div class="vision-arrow" id="visionArrow" style="color: var(--primary);">▼</div>
             </div>
 
             <div class="vision-accordion-content" id="visionAccordionContent"
-                style="background: #fff; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                style="background: rgba(255,255,255,0.6); border: 1px solid rgba(212,175,55,0.2);">
                 <div style="padding: 16px;">
                     <div style="font-size: 10px; color: #666; margin-bottom: 4px; font-weight: 600;">3 YEARS LATER</div>
                     <div id="futureVisionDetail"
-                        style="font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 12px; background: #f5f5f5; padding: 10px; border-radius: 8px;">
+                        style="font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 12px; white-space: pre-wrap;">
                         (Set in Profile > Edit)</div>
 
                     <div style="font-size: 10px; color: #666; margin-bottom: 4px; font-weight: 600;">ROLE</div>
                     <div id="roleVisionText" style="font-size: 13px; font-weight: 700; color: var(--primary);">-</div>
 
                     <button class="btn-secondary" onclick="triggerVisionPhotoUpload(event)"
-                        style="width: 100%; margin-top: 15px; font-size: 11px; background: #f0f0f0; border: none;">Change
+                        style="width: 100%; margin-top: 15px; font-size: 11px;">Change
                         Photo 📷</button>
                 </div>
             </div>
@@ -2233,13 +2234,33 @@
                     if (data.future) localStorage.setItem('tss_future', data.future);
                     if (data.role) localStorage.setItem('tss_role', data.role);
 
+                    // Save PIN for future auth checks
+                    if (pin) localStorage.setItem('tss_pin', pin);
+                    sessionStorage.setItem('tss_authenticated', 'true');
+
                     // If migration message exists, show it
                     if (data.message) {
                         alert(data.message);
                     } else {
                         alert('おかえりなさい！ログインしました。');
                     }
-                    location.reload();
+
+                    // Direct transition instead of reload to prevent state loss
+                    showUserBadge(profile);
+                    updateTokenDisplay();
+                    updateVisionDisplay();
+                    document.getElementById('mainNav').style.display = 'block';
+
+                    // Force hide all screens first
+                    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                    document.getElementById('screen-home').classList.add('active');
+
+                    // Update Nav
+                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                    const homeNav = document.querySelector(`.nav-item[onclick="showScreen('screen-home')"]`);
+                    if (homeNav) homeNav.classList.add('active');
+
+                    loadPosts(); // Load content
                 } else {
                     alert('ログイン失敗: ' + (data.error || '不明なエラー'));
                 }
@@ -3299,14 +3320,14 @@
                     <h3 style="font-family: 'Montserrat', sans-serif; color: var(--primary); margin-bottom: 20px;">
                         ${title}</h3>
                     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
-                        <input type="password" maxlength="1" class="pin-input"
-                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
-                        <input type="password" maxlength="1" class="pin-input"
-                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
-                        <input type="password" maxlength="1" class="pin-input"
-                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
-                        <input type="password" maxlength="1" class="pin-input"
-                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
+                        <input type="tel" maxlength="1" class="pin-input" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px; -webkit-text-security: disc;">
+                        <input type="tel" maxlength="1" class="pin-input" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px; -webkit-text-security: disc;">
+                        <input type="tel" maxlength="1" class="pin-input" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px; -webkit-text-security: disc;">
+                        <input type="tel" maxlength="1" class="pin-input" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                            style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px; -webkit-text-security: disc;">
                     </div>
                     <button onclick="handlePin('${mode}')"
                         style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">${btnText}</button>
