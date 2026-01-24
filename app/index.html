@@ -3822,7 +3822,12 @@
             list.innerHTML = comments.map(comment => {
                 const likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
                 const myCount = likedCounts[comment.id] || 0;
-                const canLike = myCount < 10; return ` <div class="comment-item">
+                const canLike = myCount < 10;
+
+                // Safe Date Parsing
+                const timeStr = new Date(comment.time).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                return ` <div class="comment-item">
             <div class="comment-avatar">${comment.author.charAt(0).toUpperCase()}</div>
             <div class="comment-content">
                 <div class="comment-author">${escapeHtml(comment.author)}</div>
@@ -3833,11 +3838,12 @@
                         ❤️ <span style="font-weight: bold;">${comment.likes || 0}</span> <span
                             style="font-size:10px;">(You: ${myCount}/10)</span>
                     </span>
-                    <span style="font-size: 10px; color: #ccc;">${formatDate(comment.time)}</span>
+                    <span style="font-size: 10px; color: #ccc;">${timeStr}</span>
                 </div>
             </div>
             </div>
-            `}).join('');
+            `;
+            }).join('');
         }
 
         // Load and render announcements
