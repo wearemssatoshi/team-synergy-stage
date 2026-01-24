@@ -1326,7 +1326,8 @@
         </div>
         <div
             style="font-size: 10px; opacity: 0.9; margin-top: 8px; color: #fff; text-align: center; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
-            v5.1 Smart Schedule</div>
+            <script>document.write(APP_VERSION || 'v6.0');</script> Global Edition
+        </div>
 
         <!-- MY VISION Accordion (High Contrast) -->
         <div class="vision-accordion" id="visionAccordion" style="display: none; margin-top: 15px;">
@@ -1709,217 +1710,9 @@
     <script>
         // ========== CONFIGURATION ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v5.1';
+        const APP_VERSION = 'v6.0';
 
-        // ========== Smart Schedule Functions ==========
-        let currentAdjustments = [];
-        let newAdjDates = [];
 
-        function openNewAdjustmentForm() {
-            document.getElementById('new-adjustment-form').style.display = 'block';
-            newAdjDates = [];
-            renderAdjDatesList();
-        }
-
-        function closeNewAdjustmentForm() {
-            document.getElementById('new-adjustment-form').style.display = 'none';
-        }
-
-        function addAdjDate() {
-            const val = document.getElementById('adjDateInput').value;
-            if (!val) return;
-            const start = new Date(val);
-            const end = new Date(start.getTime() + 60 * 60 * 1000);
-            newAdjDates.push({ start: start.toISOString(), end: end.toISOString() });
-            renderAdjDatesList();
-            document.getElementById('adjDateInput').value = '';
-        }
-
-        function renderAdjDatesList() {
-            const container = document.getElementById('adjDatesList');
-            container.innerHTML = newAdjDates.map((d, i) => `
-    <div
-        style="font-size: 11px; background: var(--light-gray); padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 2px;">
-        ${new Date(d.start).toLocaleString()}
-        <span onclick="newAdjDates.splice(${i},1);renderAdjDatesList()"
-            style="cursor:pointer; color:red; margin-left:4px;">×</span>
-    </div>
-    `).join('');
-        }
-
-        function createAdjustment() {
-            const title = document.getElementById('adjTitle').value;
-            const contextMembers = document.getElementById('adjMemberInput').value;
-            const profile = getProfile();
-
-            if (!title) return alert('Title required');
-            if (newAdjDates.length === 0) return alert('Dates required');
-
-            let participants = [profile.name];
-            if (contextMembers && contextMembers.toLowerCase() !== 'all') {
-                const others = contextMembers.split(',').map(s => s.trim());
-                participants = [...participants, ...others];
-            }
-
-            const payload = {
-                action: 'createAdjustment',
-                title: title,
-                author: profile.name,
-                candidates: newAdjDates,
-                participants: participants
-            };
-
-            // Use fetch directly
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(payload)
-            }).then(r => r.json()).then(res => {
-                if (res.success) {
-                    alert('Created!');
-                    closeNewAdjustmentForm();
-                    fetchAdjustments();
-                } else alert('Error: ' + res.error);
-            });
-        }
-
-        function fetchAdjustments() {
-            const profile = getProfile();
-            if (!profile) return;
-            const url = SCRIPT_URL + '?action=getAdjustments&user=' + encodeURIComponent(profile.name) + '&_t=' + Date.now();
-
-            const container = document.getElementById('adjustmentsList');
-            container.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
-
-            fetch(url)
-                .then(r => r.json())
-                .then(res => {
-                    if (res.adjustments) {
-                        currentAdjustments = res.adjustments;
-                        renderAdjustments();
-                    } else {
-                        container.innerHTML = 'No data';
-                    }
-                })
-                .catch(e => container.innerHTML = 'Error loading schedule');
-        }
-
-        function renderAdjustments() {
-            const container = document.getElementById('adjustmentsList');
-            if (currentAdjustments.length === 0) {
-                container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No active adjustments</div>';
-                return;
-            }
-
-            const profile = getProfile();
-
-            container.innerHTML = currentAdjustments.map(adj => {
-                const isAuthor = adj.author === profile.name;
-                const isFinalized = adj.status === 'finalized';
-
-                return `
-    <div class="card" style="padding:15px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-            <div>
-                <div style="font-weight:bold;color:var(--primary);">${adj.title}</div>
-                <div style="font-size:10px;color:#666;">By ${adj.author}</div>
-            </div>
-            <div
-                style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized ? 'green' : 'orange'}; color:${isFinalized ? 'green' : 'orange'};">
-                ${isFinalized ? 'FINALIZED' : 'ACTIVE'}
-            </div>
-        </div>
-
-        ${isFinalized ? `<div
-            style="background:#e6fffa;color:green;padding:5px;font-size:11px;border-radius:4px;margin-bottom:10px;">🎉
-            Fixed: ${new Date(adj.finalDate.start).toLocaleString()}</div>` : ''}
-
-        <div style="display:grid;gap:5px;">
-            ${adj.candidates.map((date, idx) => {
-                    const dateStr = date.start;
-                    const myVote = adj.responses[profile.name]?.[dateStr] || '-';
-                    // Count votes
-                    let o = 0, x = 0, d = 0;
-                    Object.values(adj.responses).forEach(r => {
-                        if (r[dateStr] === 'O') o++;
-                        else if (r[dateStr] === 'X') x++;
-                        else if (r[dateStr] === '△') d++;
-                    });
-
-                    return `
-            <div
-                style="display:flex;align-items:center;justify-content:space-between;background:#f9f9f9;padding:5px;border-radius:4px;">
-                <div style="font-size:11px;">
-                    ${new Date(date.start).toLocaleString()}
-                    <div style="font-size:9px;color:#aaa;">O:${o} △:${d} X:${x}</div>
-                </div>
-
-                ${!isFinalized ? `
-                <div style="display:flex;gap:2px;">
-                    <button onclick="submitVote('${adj.id}','${dateStr}','O')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote === 'O' ? '#ddd' : ''}">O</button>
-                    <button onclick="submitVote('${adj.id}','${dateStr}','△')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote === '△' ? '#ddd' : ''}">△</button>
-                    <button onclick="submitVote('${adj.id}','${dateStr}','X')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote === 'X' ? '#ddd' : ''}">X</button>
-                </div>` : ''}
-
-                ${!isFinalized && isAuthor && idx === 0 ? `
-                <!-- Finalize logic tricky in loop, simplified: user sees button on specific row if designed so. 
-                                             For now, let's just make the date clickable or add button if author. -->
-                <button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
-                    style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">DECIDE</button>
-                ` : ''}
-                ${!isFinalized && isAuthor && idx !== 0 ? `<button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
-                    style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">DECIDE</button>`
-                            : ''}
-            </div>
-            `;
-                }).join('')}
-        </div>
-    </div>`;
-            }).join('');
-        }
-
-        function submitVote(adjId, dateStr, vote) {
-            const profile = getProfile();
-            const adj = currentAdjustments.find(a => a.id === adjId);
-            if (!adj.responses[profile.name]) adj.responses[profile.name] = {};
-            adj.responses[profile.name][dateStr] = vote;
-            renderAdjustments(); // Optimistic
-
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({
-                    action: 'submitVote',
-                    adjustmentId: adjId,
-                    user: profile.name,
-                    votes: adj.responses[profile.name]
-                })
-            });
-        }
-
-        function finalizeAdjustment(adjId, dateIdx) {
-            if (!confirm('Fix schedule to this date?')) return;
-            const adj = currentAdjustments.find(a => a.id === adjId);
-            const finalDate = adj.candidates[dateIdx];
-
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({
-                    action: 'finalizeAdjustment',
-                    adjustmentId: adjId,
-                    finalDate: finalDate
-                })
-            }).then(r => r.json()).then(res => {
-                if (res.success) {
-                    alert('Schedule Finalized & Invites Sent!');
-                    fetchAdjustments();
-                } else alert('Error: ' + res.error);
-            });
-        }
 
         // Config handled globally
         // const SCRIPT_URL duplicate removed
@@ -3792,6 +3585,452 @@
         }
 
         document.addEventListener('DOMContentLoaded', init);
+    </script>
+    <style>
+        /* ADJUSTMENT HEATMAP */
+        .adj-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .adj-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .adj-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .adj-title {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .adj-status {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: #eee;
+        }
+
+        .adj-status.active {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .adj-heatmap-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid transparent;
+        }
+
+        .adj-heatmap-row:hover {
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .adj-heatmap-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            background: var(--primary);
+            opacity: 0;
+            z-index: 0;
+            transition: width 0.5s;
+            pointer-events: none;
+        }
+
+        .adj-date {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 1;
+            position: relative;
+        }
+
+        .adj-votes {
+            display: flex;
+            gap: 5px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .vote-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+            transition: 0.2s;
+        }
+
+        .vote-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .vote-btn.selected {
+            color: white;
+            border-color: transparent;
+        }
+
+        .vote-btn.selected.o {
+            background: #D4AF37;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .vote-btn.selected.x {
+            background: #ccc;
+        }
+
+        .vote-btn.selected.t {
+            background: #F59E0B;
+        }
+
+        /* Triangle */
+
+        .adj-final-badge {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: var(--gradient-dark);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 10;
+        }
+    </style>
+    <script>
+        // ============ SMART ADJUSTMENT LOGIC ============
+        let currentAdjustments = [];
+        let newAdjDates = [];
+
+        async function fetchAdjustments() {
+            const container = document.getElementById('adjustmentsList');
+            if (!container) return;
+
+            // Try cache first
+            const cached = localStorage.getItem('tss_adjustments_cache');
+            if (cached) {
+                renderAdjustmentsList(JSON.parse(cached));
+            } else {
+                container.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loading-spinner"></div></div>';
+            }
+
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                try {
+                    const profile = getProfile();
+                    const res = await fetch(`${SCRIPT_URL}?action=getAdjustments&user=${encodeURIComponent(profile.name)}`);
+                    const data = await res.json();
+                    if (data.adjustments) {
+                        currentAdjustments = data.adjustments;
+                        localStorage.setItem('tss_adjustments_cache', JSON.stringify(currentAdjustments));
+                        renderAdjustmentsList(currentAdjustments);
+                    }
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        function renderAdjustmentsList(list) {
+            const container = document.getElementById('adjustmentsList');
+            if (!container) return;
+
+            if (list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-gray); font-size:11px; padding:20px;">現在、調整中の予定はありません</div>';
+                return;
+            }
+
+            container.innerHTML = list.map(adj => {
+                const isFinalized = adj.status === 'finalized';
+                const statusLabel = isFinalized ? '決定済' : '調整中';
+                const statusClass = isFinalized ? '' : 'active';
+                const dateSummary = adj.finalDate ?
+                    `📅 ${formatDateShort(adj.finalDate.start)}` :
+                    `${adj.candidates.length} 候補日程`;
+
+                return `
+                <div class="adj-card" onclick="openAdjDetail('${adj.id}')" style="position:relative; opacity: ${isFinalized ? 0.7 : 1}">
+                    ${isFinalized ? '<div class="adj-final-badge">DECIDED</div>' : ''}
+                    <div class="adj-header">
+                        <div class="adj-title">${escapeHtml(adj.title)}</div>
+                        <div class="adj-status ${statusClass}">${statusLabel}</div>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-gray); display:flex; justify-content:space-between;">
+                        <span>👤 ${escapeHtml(adj.author)}</span>
+                        <span>${dateSummary}</span>
+                    </div>
+                    <!-- Activity Bar -->
+                    <div style="height:3px; background:#f0f0f0; margin-top:10px; border-radius:2px; overflow:hidden;">
+                         <div style="height:100%; width:${Math.min(100, (Object.keys(adj.responses).length / (adj.participants.length || 1)) * 100)}%; background:var(--primary);"></div>
+                    </div>
+                    <div style="font-size:9px; color:#ccc; text-align:right; margin-top:2px;">
+                        ${Object.keys(adj.responses).length} / ${adj.participants.length || '?'} Voted
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // --- NEW ADJUSTMENT FORM ---
+        function openNewAdjustmentForm() {
+            document.getElementById('new-adjustment-form').style.display = 'block';
+            newAdjDates = [];
+            renderAdjDates();
+        }
+        function closeNewAdjustmentForm() {
+            document.getElementById('new-adjustment-form').style.display = 'none';
+        }
+        function addAdjDate() {
+            const input = document.getElementById('adjDateInput');
+            if (!input.value) return;
+            const d = new Date(input.value);
+            // Default 1 hour duration
+            const end = new Date(d.getTime() + 60 * 60 * 1000);
+
+            newAdjDates.push({ start: d.toISOString(), end: end.toISOString() });
+            renderAdjDates();
+            input.value = ''; // Clear
+        }
+        function renderAdjDates() {
+            const div = document.getElementById('adjDatesList');
+            div.innerHTML = newAdjDates.map((d, i) => `
+                <div style="font-size:11px; background:var(--light-gray); padding:5px; margin-bottom:2px; border-radius:4px; display:flex; justify-content:space-between;">
+                    ${formatDateShort(d.start)} - ${formatTime(d.end)}
+                    <span onclick="newAdjDates.splice(${i},1);renderAdjDates()" style="color:red; cursor:pointer;">×</span>
+                </div>
+            `).join('');
+        }
+        async function createAdjustment() {
+            const title = document.getElementById('adjTitle').value;
+            const membersStr = document.getElementById('adjMemberInput').value;
+            const profile = getProfile();
+
+            if (!title || newAdjDates.length === 0) {
+                alert('タイトルと日程候補を入力してください');
+                return;
+            }
+
+            const members = membersStr.split(',').map(s => s.trim()).filter(s => s);
+            // Ensure self is in
+            if (!members.includes(profile.name)) members.push(profile.name);
+
+            // API Call
+            const btn = document.querySelector('#new-adjustment-form .btn-main');
+            const originalText = btn.innerText;
+            btn.disabled = true; btn.innerText = "作成中..."; // Japanese Loading
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'createAdjustment',
+                        title: title,
+                        candidates: newAdjDates,
+                        participants: members,
+                        author: profile.name
+                    })
+                });
+
+                addTokens(2);
+                showTokenEarned(2, 'Adjustment Created! ✨');
+                closeNewAdjustmentForm();
+                fetchAdjustments(); // Reload
+            } catch (e) {
+                alert('作成エラーが発生しました');
+            }
+            btn.disabled = false; btn.innerText = originalText;
+        }
+
+        // --- DETAIL & VOTING MODAL (HEATMAP) ---
+        function openAdjDetail(id) {
+            const adj = currentAdjustments.find(a => a.id === id);
+            if (!adj) return;
+
+            const profile = getProfile();
+            const isAuthor = adj.author === profile.name;
+            const myVote = adj.responses[profile.name] || {};
+            const isFinalized = adj.status === 'finalized';
+
+            // Create Modal
+            const modalId = 'adjDetailModal';
+            document.getElementById(modalId)?.remove();
+
+            const modalHtml = `
+            <div id="${modalId}" class="modal-overlay" style="display:flex;">
+                <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
+                    <div class="modal-header">SCHEDULE ADJUSTMENT</div>
+                    <h3 style="margin-bottom:5px; font-family:'Montserrat',sans-serif;">${escapeHtml(adj.title)}</h3>
+                    <div style="font-size:11px; color:var(--text-gray); margin-bottom:20px;">Created by ${escapeHtml(adj.author)}</div>
+
+                    <div style="margin-bottom:20px;">
+                        ${adj.candidates.map(date => {
+                // HEATMAP LOGIC
+                let scoreSum = 0;
+                let voterCount = 0;
+                const key = date.start;
+
+                let countO = 0;
+                let countT = 0;
+                let countX = 0;
+
+                Object.values(adj.responses).forEach(r => {
+                    const vote = r[key];
+                    if (vote === 'O') { scoreSum += 1; countO++; }
+                    if (vote === 'T') { scoreSum += 0.5; countT++; }
+                    if (vote === 'X') { countX++; }
+                    voterCount++;
+                });
+
+                const totalPossible = adj.participants.length || 1;
+                const ratio = scoreSum / totalPossible;
+                const bgOpacity = ratio * 0.5;
+
+                // My Vote Status
+                const myVal = myVote[key];
+
+                return `
+                            <div class="adj-heatmap-row">
+                                <div class="adj-heatmap-bg" style="width:100%; opacity:${Math.max(0.05, bgOpacity)}; background:${ratio > 0.7 ? '#D4AF37' : '#ccc'};"></div>
+                                <div class="adj-date">
+                                    <div>${formatDateShort(date.start)}</div>
+                                    <div style="font-size:10px; color:#666;">${formatTime(date.start)} - ${formatTime(date.end)}</div>
+                                    <div style="font-size:9px; color:#444; margin-top:2px;">
+                                        ⭕${countO} &nbsp; 🔺${countT} &nbsp; ❌${countX}
+                                    </div>
+                                </div>
+                                <div class="adj-votes">
+                                    ${!isFinalized ? `
+                                    <div class="vote-btn ${myVal === 'O' ? 'selected o' : ''}" onclick="voteAdj('${id}', '${key}', 'O')">○</div>
+                                    <div class="vote-btn ${myVal === 'T' ? 'selected t' : ''}" onclick="voteAdj('${id}', '${key}', 'T')">△</div>
+                                    <div class="vote-btn ${myVal === 'X' ? 'selected x' : ''}" onclick="voteAdj('${id}', '${key}', 'X')">×</div>
+                                    ` : `
+                                    <div style="font-weight:bold; color:var(--text-dark);">${myVal || '-'}</div>
+                                    `}
+                                </div>
+                                ${isAuthor && !isFinalized ? `
+                                <button onclick="finalizeAdj('${id}', '${date.start}', '${date.end}')" 
+                                    style="margin-left:10px; padding:5px 10px; border:none; background:var(--text-dark); color:white; border-radius:20px; font-size:10px; cursor:pointer; width:80px;">
+                                    この日時で<br>確定
+                                </button>
+                                ` : ''}
+                                ${isFinalized && adj.finalDate && adj.finalDate.start === date.start ? `
+                                <div style="margin-left:10px; color:var(--primary); font-weight:bold; font-size:12px;">★ 確定</div>
+                                ` : ''}
+                            </div>
+                            `;
+            }).join('')}
+                    </div>
+
+                    ${isFinalized ? `
+                    <div style="background:var(--light-gray); padding:15px; border-radius:8px; text-align:center; margin-bottom:15px;">
+                        <div style="font-weight:bold; color:var(--primary);">DETERMINED DATE</div>
+                        <div style="font-size:18px;">${formatDateShort(adj.finalDate.start)}</div>
+                        <div style="font-size:14px;">${formatTime(adj.finalDate.start)} - ${formatTime(adj.finalDate.end)}</div>
+                    </div>
+                    ` : ''}
+
+                    <button class="btn-secondary" onclick="document.getElementById('${modalId}').remove()">閉じる</button>
+                </div>
+            </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        async function voteAdj(id, dateStr, val) {
+            const profile = getProfile();
+            const adj = currentAdjustments.find(a => a.id === id);
+
+            // Optimistic Update
+            if (!adj.responses[profile.name]) adj.responses[profile.name] = {};
+            adj.responses[profile.name][dateStr] = val;
+
+            // Re-render
+            document.getElementById('adjDetailModal').remove();
+            openAdjDetail(id);
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'submitVote',
+                    adjustmentId: id,
+                    user: profile.name,
+                    votes: adj.responses[profile.name]
+                })
+            });
+        }
+
+        async function finalizeAdj(id, start, end) {
+            if (!confirm('この日時で決定しますか？\n参加者全員に招待カレンダーが送信されます。')) return;
+
+            // Show Loading
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "処理中...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'finalizeAdjustment',
+                        adjustmentId: id,
+                        finalDate: { start: start, end: end }
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('日程が確定しました！\nGoogleカレンダーとアプリ内カレンダーに登録完了！📅');
+                    document.getElementById('adjDetailModal').remove();
+                    fetchAdjustments(); // Reload
+                } else {
+                    alert('エラー: ' + data.error);
+                    btn.innerText = originalText;
+                }
+            } catch (e) {
+                alert('通信エラー');
+                btn.innerText = originalText;
+            }
+        }
+
+        // Helper Formatters
+        function formatDateShort(iso) {
+            const d = new Date(iso);
+            return `${d.getMonth() + 1}/${d.getDate()} (${['日', '月', '火', '水', '木', '金', '土'][d.getDay()]})`;
+        }
+        function formatTime(iso) {
+            const d = new Date(iso);
+            return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // Auto-load adjustments
+        document.addEventListener('DOMContentLoaded', () => {
+            // ... existing inits
+            if (typeof fetchAdjustments === 'function') fetchAdjustments();
+        });
+
     </script>
 </body>
 

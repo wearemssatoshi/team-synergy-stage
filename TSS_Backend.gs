@@ -11,6 +11,8 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
+const APP_VERSION = 'v6.0'; // Global Version
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
@@ -18,7 +20,7 @@ function doPost(e) {
     
     switch (data.action) {
       case 'register':
-        return handleRegister(ss, data);
+        return registerUser(data);
       case 'post':
         return handlePost(ss, data);
       case 'addToken':
@@ -80,7 +82,7 @@ function doGet(e) {
       // ============ VERSION ============
       case 'version':
         return createResponse({
-          version: 'v5.1',
+          version: APP_VERSION,
           name: 'TSS Backend Group Suite',
           features: ['Smart Schedule (GCal Sync)', 'Token History', 'PIN Auth', 'JINSEI AI'],
           deployedAt: new Date().toISOString()
@@ -332,75 +334,185 @@ function handleAddToken(ss, data) {
   return createResponse(result);
 }
 
+/**
+ * Wrapper for backward compatibility.
+ * Delegates to the new Log-First architecture.
+ */
 function addTokensToUser(ss, name, amount, action = 'manual', description = '') {
-  const sheet = ss.getSheetByName('TSS_Members');
-  if (!sheet) return { success: false, error: 'Members sheet not found' };
-  
-  // 1. Update Balance (Current Snapshot)
-  let userFound = false;
-  let newBalance = 0;
-  
-  // Legacy Sheet Update
-  const allData = sheet.getDataRange().getValues();
-  for (let i = 1; i < allData.length; i++) {
-    if (allData[i][1] === name) {
-      const currentTokens = allData[i][4] || 0;
-      newBalance = currentTokens + amount;
-      sheet.getRange(i + 1, 5).setValue(newBalance);
-      userFound = true;
-      break;
-    }
-  }
-  
-  // Update V2 Sheet (TSS_Users) with Total Earned Logic
-  const v2Sheet = ss.getSheetByName('TSS_Users');
-  if (v2Sheet) {
-      // Ensure header exists for Total_Earned (Col 12 / Index 11)
-      const header = v2Sheet.getRange(1, 12).getValue();
-      if (header !== 'Total_Earned') {
-          v2Sheet.getRange(1, 12).setValue('Total_Earned').setFontWeight('bold');
-      }
-
-      const v2Data = v2Sheet.getDataRange().getValues();
-      for (let i = 1; i < v2Data.length; i++) {
-          if (v2Data[i][0] === name) {
-              const currentBalance = Number(v2Data[i][5] || 0); // Token_Balance (Col 6)
-              const currentTotalEarned = Number(v2Data[i][11] || currentBalance); // Total_Earned (Col 12) - Fallback to balance if empty
-              
-              // Update Balance
-              const updatedBalance = currentBalance + amount;
-              v2Sheet.getRange(i + 1, 6).setValue(updatedBalance);
-              newBalance = updatedBalance; // Prioritize V2 balance
-              
-              // Update Total Earned (Only if amount is positive)
-              if (amount > 0) {
-                  v2Sheet.getRange(i + 1, 12).setValue(currentTotalEarned + amount);
-              }
-              
-              userFound = true;
-              break;
-          }
-      }
-  }
-  
-  if (!userFound) return { success: false, error: 'User not found' };
-
-  // 2. Log Transaction (History)
-  logTokenTransaction(ss, name, amount, action, description);
-  
-  return { success: true, newBalance: newBalance };
+  return processTokenTransaction(ss, name, amount, action, description, '');
 }
 
-function logTokenTransaction(ss, user, amount, action, description) {
+/**
+ * Core Token Logic: Log-First Architecture (Event Sourcing)
+ * 1. Append to TSS_TokenLogs (Immutable Fact)
+ * 2. Update TSS_Users (Derived State)
+ */
+function processTokenTransaction(ss, userId, amount, actionType, description, relatedId = "") {
+  try {
+    const logSheet = getOrInitLogSheet(ss);
+    const userSheet = ss.getSheetByName('TSS_Users');
+    
+    // 1. PREPARE LOG ENTRY
+    const timestamp = new Date().toISOString();
+    const transactionId = Utilities.getUuid();
+    
+    // Columns: [Timestamp, TransactionId, User_Id, Action_Type, Amount, Related_Id, Description]
+    const logRow = [
+      timestamp,
+      transactionId,
+      userId,
+      actionType,
+      amount,
+      relatedId,
+      description
+    ];
+    
+    // 2. WRITE TO LOG (The Source of Truth)
+    logSheet.appendRow(logRow);
+    
+    // 3. UPDATE STATE (View)
+    if (!userSheet) {
+      // Fallback for legacy if V2 sheet missing
+      updateLegacyMemberSheet(ss, userId, amount);
+      return { success: true, newBalance: 0, message: "Logged, but State sheet not found." };
+    }
+
+    let newBalance = 0;
+    const userRowIndex = findUserRowIndex(userSheet, userId);
+    
+    if (userRowIndex > 0) {
+      const balanceRange = userSheet.getRange(userRowIndex, 6); // Col F (Token_Balance)
+      const totalEarnedRange = userSheet.getRange(userRowIndex, 12); // Col L (Total_Earned)
+      
+      let currentBalance = Number(balanceRange.getValue()) || 0;
+      let currentTotal = Number(totalEarnedRange.getValue()) || 0;
+      
+      newBalance = currentBalance + amount;
+      
+      // Update Balance
+      balanceRange.setValue(newBalance);
+      
+      // Update Total Earned (Only if positive - Lifetime Accumulation)
+      // We never subtract from "Lifetime Earnings" even if they spend tokens
+      if (amount > 0) {
+        totalEarnedRange.setValue(currentTotal + amount);
+      }
+      
+      // Update Last Activity
+      userSheet.getRange(userRowIndex, 13).setValue(timestamp); // Col M
+      
+    } else {
+      console.error("User not found in TSS_Users: " + userId);
+      // Fallback to legacy
+      updateLegacyMemberSheet(ss, userId, amount);
+      return { success: true, newBalance: amount, warning: "User not in State sheet" };
+    }
+    
+    return { success: true, newBalance: newBalance };
+    
+  } catch (err) {
+    console.error("Token Transaction Error: " + err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+function getOrInitLogSheet(ss) {
   let sheet = ss.getSheetByName('TSS_TokenLogs');
   if (!sheet) {
     sheet = ss.insertSheet('TSS_TokenLogs');
-    sheet.getRange(1, 1, 1, 5).setValues([['Timestamp', 'User', 'Amount', 'Action', 'Description']]);
-    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+    // New Schema v2
+    sheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'TransactionId', 'User_Id', 'Action_Type', 'Amount', 'Related_Id', 'Description']]);
+    sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function findUserRowIndex(sheet, userId) {
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] == userId) {
+      return i + 1;
+    }
+  }
+  return -1;
+}
+
+function updateLegacyMemberSheet(ss, name, amount) {
+  const sheet = ss.getSheetByName('TSS_Members');
+  if (!sheet) return;
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1] === name) {
+      const current = Number(data[i][4] || 0);
+      sheet.getRange(i + 1, 5).setValue(current + amount);
+      break;
+    }
+  }
+}
+
+/**
+ * Self-Healing: Rebuilds State from Logs
+ * Re-calculates balances based on the immutable log history.
+ * Supports both log schemas (Legacy 5-col and New 7-col).
+ */
+function recalibrateAllUserBalances() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const logSheet = ss.getSheetByName('TSS_TokenLogs');
+  const userSheet = ss.getSheetByName('TSS_Users');
+  
+  if (!logSheet || !userSheet) return "Sheets not found";
+  
+  // 1. Aggregate from Logs
+  const logData = logSheet.getDataRange().getValues().slice(1);
+  let stats = {}; // { userId: { balance: 0, total: 0 } }
+  
+  logData.forEach(row => {
+    let uid, amt;
+    
+    // Heuristic for Schema Version
+    // Old: [Time, User, Amount, Action, Desc] - Amount is at index 2 (and is Number)
+    // New: [Time, TxId, User, Action, Amount, ...] - User is at index 2 (String)
+    
+    const valAtIndex2 = row[2];
+    
+    if (typeof valAtIndex2 === 'number' || (!isNaN(Number(valAtIndex2)) && valAtIndex2 !== '')) {
+       // OLD Schema detected
+       uid = row[1];
+       amt = Number(row[2]);
+    } else {
+       // NEW Schema assumed
+       uid = row[2];
+       amt = Number(row[4]);
+    }
+    
+    if (!uid) return;
+    if (isNaN(amt)) amt = 0;
+    
+    if (!stats[uid]) stats[uid] = { balance: 0, total: 0 };
+    
+    stats[uid].balance += amt;
+    if (amt > 0) stats[uid].total += amt;
+  });
+  
+  // 2. Update User Sheet
+  const userData = userSheet.getDataRange().getValues();
+  let updateCount = 0;
+  
+  for (let i = 1; i < userData.length; i++) {
+    const uid = userData[i][0];
+    if (stats[uid]) {
+      // Update Balance (Col F / 6)
+      userSheet.getRange(i + 1, 6).setValue(stats[uid].balance);
+      
+      // Update Total (Col L / 12) - Note: Recalculated total might differ if manual edits happened to sheet
+      // We trust the LOG as truth.
+      userSheet.getRange(i + 1, 12).setValue(stats[uid].total);
+      updateCount++;
+    }
   }
   
-  const now = new Date().toISOString();
-  sheet.appendRow([now, user, amount, action, description]);
+  return `Recalibration Complete. Updated ${updateCount} users.`;
 }
 
 // ============ GETTERS ============
@@ -529,6 +641,7 @@ function getStats(ss) {
           userNames.add(row[0]);
           const balance = row[5] || 0;
           const earned = row[11] || balance; // Col 12
+          const image = row[6] || ''; // Col 7 (Profile Image)
           
           totalTokens += balance; // Current Balance Sum
           
@@ -536,7 +649,8 @@ function getStats(ss) {
               name: row[0], 
               role: row[2] || 'メンバー', 
               tokens: balance,
-              totalEarned: earned
+              totalEarned: earned,
+              image: image
           });
       });
   }
@@ -556,7 +670,8 @@ function getStats(ss) {
                   name: name, 
                   role: row[2] || 'メンバー', 
                   tokens: balance,
-                  totalEarned: balance // Legacy fallback
+                  totalEarned: balance, // Legacy fallback
+                  image: ''
               });
           }
       });
@@ -645,9 +760,14 @@ function handleLike(ss, data) {
       // Update likes
       sheet.getRange(i + 1, likesColIndex + 1).setValue(currentLikes + 1);
       
-      // Award token to author (Approval Bonus!) if it's a post (Announcements are usually admin)
+      // Award token to author
       if (type === 'post') {
         addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${targetId})`);
+      }
+
+      // Award token to Liker (Sender) - NEW
+      if (data.user) {
+        addTokensToUser(ss, data.user, 1, 'like_bonus', `Like Bonus (ID: ${targetId})`);
       }
       
       return createResponse({ success: true, likes: currentLikes + 1 });
@@ -1057,6 +1177,8 @@ function getEvents(ss, params) {
   
   // Skip header
   for (let i = 1; i < data.length; i++) {
+    const APP_VERSION = 'v6.0'; // Updated to match Frontend
+    const SHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace if needed, otherwise uses Active
     const row = data[i];
     const type = row[6] || 'shared'; // Default to shared
     const author = row[4];
@@ -1599,30 +1721,44 @@ function handleCreateAdjustment(ss, data) {
 }
 
 function handleSubmitVote(ss, data) {
-  const sheet = getAdjustmentsSheet(ss);
-  const allData = sheet.getDataRange().getValues();
-  const targetId = String(data.adjustmentId);
-  const user = data.user;
-  // Votes: { "2024-01-01T10:00": "O", "2024-01-01T12:00": "X" }
-  const votes = data.votes || {}; 
-  
-  for (let i = 1; i < allData.length; i++) {
-    if (String(allData[i][0]) === targetId) { // AdjustmentId is Col 1
-      let responses = {};
-      try {
-        responses = JSON.parse(allData[i][5]); // Responses is Col 6 (index 5)
-      } catch (e) {}
-      
-      // Update user's vote
-      responses[user] = votes;
-      
-      // Save back
-      sheet.getRange(i + 1, 6).setValue(JSON.stringify(responses));
-      
-      return createResponse({ success: true, message: 'Vote submitted' });
-    }
+  // Concurrency Lock: Prevent overwrite if multiple users vote simultaneously
+  const lock = LockService.getScriptLock();
+  try {
+      lock.waitLock(10000); // Wait up to 10 seconds
+  } catch (e) {
+      return createResponse({ error: 'Server busy, please try again.' });
   }
-  return createResponse({ error: 'Adjustment not found' });
+
+  try {
+      const sheet = getAdjustmentsSheet(ss);
+      // Force fresh data fetch after lock
+      SpreadsheetApp.flush(); 
+      const allData = sheet.getDataRange().getValues();
+      const targetId = String(data.adjustmentId);
+      const user = data.user;
+      // Votes: { "2024-01-01T10:00": "O", "2024-01-01T12:00": "X" }
+      const votes = data.votes || {}; 
+      
+      for (let i = 1; i < allData.length; i++) {
+        if (String(allData[i][0]) === targetId) { // AdjustmentId is Col 1
+          let responses = {};
+          try {
+            responses = JSON.parse(allData[i][5]); // Responses is Col 6 (index 5)
+          } catch (e) {}
+          
+          // Update user's vote
+          responses[user] = votes;
+          
+          // Save back
+          sheet.getRange(i + 1, 6).setValue(JSON.stringify(responses));
+          
+          return createResponse({ success: true, message: 'Vote submitted' });
+        }
+      }
+      return createResponse({ error: 'Adjustment not found' });
+  } finally {
+      lock.releaseLock();
+  }
 }
 
 function handleFinalizeAdjustment(ss, data) {
@@ -1631,20 +1767,22 @@ function handleFinalizeAdjustment(ss, data) {
   const targetId = String(data.adjustmentId);
   const finalDate = data.finalDate; // { start: ISO, end: ISO }
   
-  // Find event
+  // Find event in sheet
   let eventRowIndex = -1;
   let eventTitle = '';
   let participants = [];
+  let author = '';
   
   for (let i = 1; i < allData.length; i++) {
     if (String(allData[i][0]) === targetId) {
       eventRowIndex = i;
       eventTitle = allData[i][1];
+      author = allData[i][2];
       try {
         participants = JSON.parse(allData[i][4]);
       } catch(e) { participants = []; }
+      
       // Add author to participants if not included
-      const author = allData[i][2];
       if (!participants.includes(author)) participants.push(author);
       break;
     }
@@ -1652,7 +1790,7 @@ function handleFinalizeAdjustment(ss, data) {
   
   if (eventRowIndex === -1) return createResponse({ error: 'Adjustment not found' });
   
-  // 1. Get Emails
+  // 1. Get Emails for Guests
   const emailMap = getUserEmails(ss, participants);
   const guestEmails = participants.map(p => emailMap[p]).filter(e => e && e.includes('@'));
   const guestList = guestEmails.join(',');
@@ -1663,17 +1801,31 @@ function handleFinalizeAdjustment(ss, data) {
     const startTime = new Date(finalDate.start);
     const endTime = new Date(finalDate.end);
     
-    // Advanced options to send invites
+    // Create rich description
+    let description = `【TSS日程調整 確定】\n\n`;
+    description += `タイトル: ${eventTitle}\n`;
+    description += `決定日時: ${Utilities.formatDate(startTime, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm')} - ${Utilities.formatDate(endTime, 'Asia/Tokyo', 'HH:mm')}\n`;
+    description += `参加者: ${participants.join(', ')}\n`;
+    description += `作成者: ${author}\n\n`;
+    description += `--------------------------------\n`;
+    description += `Team Synergy Stage Appにより自動作成\n`;
+    
+    if (guestEmails.length === 0) {
+        description += `\n⚠️ 【注意】参加者のメールアドレスが登録されていないため、カレンダー招待は送信されませんでした。\n各自でカレンダーに登録してください。`;
+    }
+
+    // Advanced options
     const options = {
-      description: `TSSで調整された予定です。\n参加者: ${participants.join(', ')}\n\n(Created by Team Synergy Stage App)`,
+      description: description,
       guests: guestList,
-      sendInvites: true
+      sendInvites: (guestEmails.length > 0) // Send emails if emails exist
     };
     
     const calEvent = CalendarApp.getDefaultCalendar().createEvent(eventTitle, startTime, endTime, options);
     calendarEventId = calEvent.getId();
     
   } catch (e) {
+    console.error('Calendar Error: ' + e.message);
     return createResponse({ error: 'Calendar Error: ' + e.message });
   }
   
@@ -1681,15 +1833,32 @@ function handleFinalizeAdjustment(ss, data) {
   sheet.getRange(eventRowIndex + 1, 7).setValue('finalized'); // Status
   sheet.getRange(eventRowIndex + 1, 8).setValue(JSON.stringify(finalDate)); // FinalDate
   
-  // 4. Reward Participants
+  // --- SYNC TO APP CALENDAR (TSS_Schedule) ---
+  const scheduleSheet = ss.getSheetByName('TSS_Schedule');
+  if (scheduleSheet) {
+      // Columns: Timestamp, Title, Start, AllDay, Author, EventId, Type
+      scheduleSheet.appendRow([
+          new Date().toISOString(),
+          eventTitle,
+          finalDate.start,
+          false, // AllDay (Adjustments are usually timed)
+          author,
+          calendarEventId || ('adj-' + targetId),
+          'shared' // Adjustments are by default shared
+      ]);
+  }
+
+  // 4. Reward Participants (Big Synergy Bonus)
   participants.forEach(p => {
-    addTokensToUser(ss, p, 5, 'adjustment_finalized', 'Schedule finalized');
+    // Using new Token Architecture
+    processTokenTransaction(ss, p, 5, 'adjustment_finalized', `Schedule Finalized: ${eventTitle}`, targetId);
   });
   
   return createResponse({ 
     success: true, 
-    message: 'Event finalized and invites sent', 
-    count: guestEmails.length 
+    message: 'Event finalized, synced to Calendar & App', 
+    count: guestEmails.length,
+    calendarEventId: calendarEventId
   });
 }
 

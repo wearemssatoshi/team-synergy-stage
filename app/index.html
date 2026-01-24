@@ -1547,7 +1547,8 @@
 
         <div
             style="font-size: 10px; opacity: 0.9; margin-top: 8px; color: #fff; text-align: center; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
-            v5.1 Smart Schedule</div>
+            <script>document.write(APP_VERSION || 'v6.0');</script> Global Edition
+        </div>
 
         <!-- MY VISION CONTENT (Cream Background) -->
         <div class="vision-accordion" id="visionAccordion" style="display: none; margin-top: 5px;">
@@ -3250,40 +3251,48 @@
 
             let html = '<div class="top-three">';
 
+            // Helper: Avatar HTML
+            const getAvatarHtml = (m) => {
+                if (m.image) {
+                    return `<img src="${m.image}" style="width:100%;height:100%;object-fit:cover;">`;
+                }
+                return m.name.charAt(0);
+            };
+
             // Rank 2 (Left)
             if (top3[1]) {
                 html += `
-                <div class="rank-card rank-2">
-                    <div class="rank-crown">🥈</div>
-                    <div class="rank-avatar">${top3[1].name.charAt(0)}</div>
-                    <div class="rank-name">${top3[1].name}</div>
-                    <div class="rank-score">${top3[1].totalEarned || 0}</div>
-                    <div class="rank-label">EARNED</div>
-                </div>`;
+        <div class="rank-card rank-2">
+            <div class="rank-crown">🥈</div>
+            <div class="rank-avatar" style="overflow:hidden;">${getAvatarHtml(top3[1])}</div>
+            <div class="rank-name">${top3[1].name}</div>
+            <div class="rank-score">${top3[1].totalEarned || 0}</div>
+            <div class="rank-label">EARNED</div>
+        </div>`;
             }
 
             // Rank 1 (Center)
             if (top3[0]) {
                 html += `
-                <div class="rank-card rank-1">
-                    <div class="rank-crown">👑</div>
-                    <div class="rank-avatar">${top3[0].name.charAt(0)}</div>
-                    <div class="rank-name">${top3[0].name}</div>
-                    <div class="rank-score">${top3[0].totalEarned || 0}</div>
-                    <div class="rank-label">EARNED</div>
-                </div>`;
+        <div class="rank-card rank-1">
+            <div class="rank-crown">👑</div>
+            <div class="rank-avatar" style="overflow:hidden;">${getAvatarHtml(top3[0])}</div>
+            <div class="rank-name">${top3[0].name}</div>
+            <div class="rank-score">${top3[0].totalEarned || 0}</div>
+            <div class="rank-label">EARNED</div>
+        </div>`;
             }
 
             // Rank 3 (Right)
             if (top3[2]) {
                 html += `
-                <div class="rank-card rank-3">
-                    <div class="rank-crown">🥉</div>
-                    <div class="rank-avatar">${top3[2].name.charAt(0)}</div>
-                    <div class="rank-name">${top3[2].name}</div>
-                    <div class="rank-score">${top3[2].totalEarned || 0}</div>
-                    <div class="rank-label">EARNED</div>
-                </div>`;
+        <div class="rank-card rank-3">
+            <div class="rank-crown">🥉</div>
+            <div class="rank-avatar" style="overflow:hidden;">${getAvatarHtml(top3[2])}</div>
+            <div class="rank-name">${top3[2].name}</div>
+            <div class="rank-score">${top3[2].totalEarned || 0}</div>
+            <div class="rank-label">EARNED</div>
+        </div>`;
             }
             html += '</div>';
 
@@ -3292,11 +3301,16 @@
                 html += '<div class="rank-list">';
                 others.forEach((m, idx) => {
                     html += `
-                    <div class="rank-item">
-                        <div class="rank-num">${idx + 4}</div>
-                        <div class="rank-item-name">${m.name}</div>
-                        <div class="rank-item-score">${m.totalEarned || 0} TSST</div>
-                    </div>`;
+            <div class="rank-item">
+                <div class="rank-num">${idx + 4}</div>
+                <div class="rank-item-name" style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:20px;height:20px;border-radius:50%;background:#eee;overflow:hidden;font-size:10px;display:flex;align-items:center;justify-content:center;">
+                        ${getAvatarHtml(m)}
+                    </div>
+                    ${m.name}
+                </div>
+                <div class="rank-item-score">${m.totalEarned || 0} TSST</div>
+            </div>`;
                 });
                 html += '</div>';
             }
@@ -4029,31 +4043,19 @@
             }
         }
 
-        // ============ SERVICE WORKER ============
+        // ============ SERVICE WORKER (DISABLED FOR V6.0 TO FIX CACHE) ============
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New update available
-                                    if (confirm('新しいバージョンがあります！更新しますか？')) {
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                    console.log('SW Unregistered to force update');
+                }
             });
         }
+
+        // ========== CONFIGURATION (Managed Globally at Top) ==========
+        // const SCRIPT_URL = ...;
+        // const APP_VERSION = ...;
 
         // ============ CALENDAR ============
         let calendar;
@@ -4093,18 +4095,16 @@
                     const profile = getProfile();
                     if (!profile) { successCallback([]); return; }
 
-                    const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
-
-                    // Construct URL with user param for privacy filtering
-                    const url = `${SCRIPT_URL}?action = getEvents & user=${encodeURIComponent(profile.name)} `;
+                    // Construct URL with user param for privacy filtering + timestamp to bypass cache
+                    const url = `${SCRIPT_URL}?action=getEvents&user=${encodeURIComponent(profile.name)}&_t=${Date.now()}`;
 
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
-                            let eventsList = data.events || cached;
-                            if (data.events) {
-                                localStorage.setItem('tss_schedule_cache', JSON.stringify(data.events));
-                            }
+                            const eventsList = data.events || [];
+
+                            // FORCE UPDATE LOCAL STORAGE
+                            localStorage.setItem('tss_schedule_cache', JSON.stringify(eventsList));
 
                             // CLIENT-SIDE FILTERING
                             const filtered = eventsList.filter(e => {
@@ -4115,7 +4115,7 @@
                                 return true;
                             });
 
-                            // Update Monthly List View
+                            // CRITICAL: Update Monthly List View explicitly here
                             renderMonthlyEventsList(filtered);
 
                             // MAP TO FULLCALENDAR FORMAT
@@ -4124,11 +4124,12 @@
                                 if (e.type === 'personal') className = 'type-personal';
                                 if (e.type === 'official' || e.type === 'management') className = 'type-official';
 
+                                // Ensure Start Date is ISO
                                 return {
                                     id: e.id,
                                     title: (e.type === 'personal' ? '🔒 ' : '') + e.title,
                                     start: e.start,
-                                    allDay: e.allDay,
+                                    allDay: e.allDay || true, // Default to All Day if missing
                                     classNames: [className],
                                     extendedProps: {
                                         author: e.author,
@@ -4139,8 +4140,20 @@
                             successCallback(mapped);
                         })
                         .catch(e => {
-                            console.log('Calendar Sync Error', e);
-                            successCallback([]); // Fallback
+                            console.error('Calendar Sync Error', e);
+                            // Fallback to cache ONLY on error
+                            const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
+                            renderMonthlyEventsList(cached); // Show cached list
+
+                            // Map cached events for Calendar
+                            const mappedCached = cached.map(e => ({
+                                id: e.id,
+                                title: e.title,
+                                start: e.start,
+                                allDay: e.allDay || true,
+                                extendedProps: { author: e.author, type: e.type }
+                            }));
+                            successCallback(mappedCached);
                         });
                 },
                 dateClick: function (info) {
