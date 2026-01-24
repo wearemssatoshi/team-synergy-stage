@@ -2217,7 +2217,7 @@
                 <!-- Finalize logic tricky in loop, simplified: user sees button on specific row if designed so. 
                                              For now, let's just make the date clickable or add button if author. -->
                 <button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
-                    style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">DECIDE</button>
+                    style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">この日時で確定</button>
                 ` : ''}
                 ${!isFinalized && isAuthor && idx !== 0 ? `<button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
                     style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">DECIDE</button>`
