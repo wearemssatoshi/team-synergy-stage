@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tss-cache-v3.2';
+const CACHE_NAME = 'tss-cache-v6.0';
 const urlsToCache = [
     './',
     './index.html',
