@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v6.7'; // Global Version
+const APP_VERSION = 'v6.8'; // Global Version
 
 function doPost(e) {
   try {
@@ -1831,6 +1831,8 @@ function handleFinalizeAdjustment(ss, data) {
     const guestEmails = participants.map(p => emailMap[p]).filter(e => e && e.includes('@'));
     const guestList = guestEmails.join(',');
 
+    let calendarEventId = ''; // Declare here to avoid ReferenceError
+
   // 2. Update Sheet Status (Adjustment Status)
   sheet.getRange(eventRowIndex + 1, 7).setValue('finalized'); // Status is Col 7
   sheet.getRange(eventRowIndex + 1, 8).setValue(JSON.stringify(finalDate)); // FinalDate is Col 8
@@ -1859,7 +1861,6 @@ function handleFinalizeAdjustment(ss, data) {
   SpreadsheetApp.flush(); // Commit data to spreadsheet immediately
 
   // 3. Create Google Calendar Event (Optional / Failure should NOT block app sync)
-  let calendarEventId = '';
   try {
     const startTime = new Date(finalDate.start);
     const endTime = new Date(finalDate.end);
