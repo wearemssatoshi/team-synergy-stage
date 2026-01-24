@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v6.5';
+        const APP_VERSION = 'v6.6';
     </script>
     </script>
     <link
@@ -3523,8 +3523,8 @@
 
             // 2. Background Sync with Backend
             if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-                // Fetch all data (default action)
-                fetch(SCRIPT_URL)
+                // Fetch all data (default action) with cache busting
+                fetch(SCRIPT_URL + '?_t=' + Date.now())
                     .then(res => res.json())
                     .then(data => {
                         if (data.posts && Array.isArray(data.posts)) {
@@ -3764,20 +3764,24 @@
                 // console.log('Like sent (No token)');
             }
 
-            // 2. BACKEND SYNC (Background)
+            // 2. BACKEND SYNC (Background POST)
             try {
                 if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
                     const profile = getProfile();
-                    const userParam = profile ? `&user=${encodeURIComponent(profile.name)}` : '';
 
-                    // Fire and forget - we trust the UI update first. 
-                    // Silent fetch to update server state.
-                    await fetch(`${SCRIPT_URL}?action=like&postId=${id}&type=post${userParam}`);
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'like',
+                            postId: id,
+                            type: 'post',
+                            user: profile ? profile.name : 'Anonymous'
+                        })
+                    });
                 }
             } catch (e) {
-                console.error('Like sync failed (Backend might be down, but local update persists):', e);
-                // We keep optimistic update because it's better UX. 
-                // Next time we fetch full posts, it will sync up if backend actually failed.
+                console.error('Like sync failed:', e);
             }
         }
 

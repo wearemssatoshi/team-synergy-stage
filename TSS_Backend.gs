@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v6.5'; // Global Version
+const APP_VERSION = 'v6.6'; // Global Version
 
 function doPost(e) {
   try {
@@ -47,8 +47,6 @@ function doPost(e) {
       // ============ SCHEDULE ============
       case 'addEvent':
         return handleAddEvent(ss, data);
-      case 'deleteEvent':
-        return handleDeleteEvent(ss, data);
       case 'deleteEvent':
         return handleDeleteEvent(ss, data);
       // ============ SMART SCHEDULE (v3.2) ============
@@ -761,48 +759,55 @@ function getAllData(ss) {
 // ============ POST INTERACTIONS ============
 
 function handleLike(ss, data) {
-  const type = data.type || 'post'; // 'post' or 'announcement'
-  const sheetName = type === 'announcement' ? 'TSS_Announcements' : 'TSS_Posts';
-  const idColIndex = type === 'announcement' ? 3 : 4; // AnnouncementId: Col 4 (idx 3), PostId: Col 5 (idx 4)
-  const likesColIndex = type === 'announcement' ? 5 : 3; // Likes: Col 6 (idx 5), Likes: Col 4 (idx 3)
-  
-  const sheet = ss.getSheetByName(sheetName);
-  if (!sheet) return createResponse({ error: 'Sheet not found' });
-  
-  const targetId = String(data.postId || data.id); // 'postId' for posts, 'id' for announcements
-  const allData = sheet.getDataRange().getValues();
-  
-  for (let i = 1; i < allData.length; i++) {
-    const rowId = String(allData[i][idColIndex]);
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000); // 10s wait
+
+    const type = data.type || 'post'; 
+    const sheetName = type === 'announcement' ? 'TSS_Announcements' : 'TSS_Posts';
+    const idColIndex = type === 'announcement' ? 3 : 4; 
+    const likesColIndex = type === 'announcement' ? 5 : 3; 
     
-    if (rowId === targetId) {
-      const currentLikes = Number(allData[i][likesColIndex] || 0);
-      const author = allData[i][type === 'announcement' ? 4 : 1]; // Author col index
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) return createResponse({ error: 'Sheet not found' });
+    
+    // Ensure ID is treated as string for comparison
+    const targetId = String(data.postId || data.id || ''); 
+    if (!targetId) return createResponse({ error: 'No ID provided' });
+
+    const allData = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < allData.length; i++) {
+      // Force string comparison for column 5 (PostId)
+      const rowId = String(allData[i][idColIndex]);
       
-      // 1. Update total likes (Always, regardless of limit)
-      sheet.getRange(i + 1, likesColIndex + 1).setValue(currentLikes + 1);
-      
-      // 2. Award tokens (With Capping)
-      if (type === 'post') {
-        const liker = data.user || 'Anonymous';
+      if (rowId === targetId) {
+        const currentLikes = Number(allData[i][likesColIndex] || 0);
+        const author = allData[i][type === 'announcement' ? 4 : 1];
         
-        // Count how many times this Liker has rewarded this Post
-        // (Ensures Infinite visual likes but limited tokens)
-        const existingRewards = countRewardInstances(ss, liker, 'like_bonus', targetId);
+        // 1. Update total likes
+        sheet.getRange(i + 1, likesColIndex + 1).setValue(currentLikes + 1);
+        SpreadsheetApp.flush(); // Ensure commit
         
-        if (existingRewards < 10) {
-          // Reward Liker (Sender)
-          addTokensToUser(ss, liker, 1, 'like_bonus', `Like Bonus (ID: ${targetId})`, targetId);
-          
-          // Reward Author (Receiver) - Also only if reward was valid (optional protection)
-          addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${targetId})`, targetId);
+        // 2. Award tokens
+        if (type === 'post') {
+          const liker = data.user || 'Anonymous';
+          const existingRewards = countRewardInstances(ss, liker, 'like_bonus', targetId);
+          if (existingRewards < 10) {
+            addTokensToUser(ss, liker, 1, 'like_bonus', `Like Bonus (ID: ${targetId})`, targetId);
+            addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${targetId})`, targetId);
+          }
         }
+        
+        return createResponse({ success: true, likes: currentLikes + 1 });
       }
-      
-      return createResponse({ success: true, likes: currentLikes + 1 });
     }
+    return createResponse({ error: 'Target ID not found: ' + targetId });
+  } catch(e) {
+    return createResponse({ error: 'Like failed: ' + e.message });
+  } finally {
+    lock.releaseLock();
   }
-  return createResponse({ error: 'Target not found' });
 }
 
 function handleComment(ss, data) {
@@ -1811,12 +1816,16 @@ function handleFinalizeAdjustment(ss, data) {
     }
   }
   
-  if (eventRowIndex === -1) return createResponse({ error: 'Adjustment not found' });
+  if (eventRowIndex === -1) return createResponse({ error: 'Adjustment not found (ID: ' + targetId + ')' });
   
-  // 1. Get Emails for Guests
-  const emailMap = getUserEmails(ss, participants);
-  const guestEmails = participants.map(p => emailMap[p]).filter(e => e && e.includes('@'));
-  const guestList = guestEmails.join(',');
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    
+    // 1. Get Emails for Guests
+    const emailMap = getUserEmails(ss, participants);
+    const guestEmails = participants.map(p => emailMap[p]).filter(e => e && e.includes('@'));
+    const guestList = guestEmails.join(',');
 
   // 2. Update Sheet Status (Adjustment Status)
   sheet.getRange(eventRowIndex + 1, 7).setValue('finalized'); // Status is Col 7
@@ -1896,6 +1905,12 @@ function handleFinalizeAdjustment(ss, data) {
     count: guestEmails.length,
     calendarEventId: calendarEventId
   });
+} catch(e) {
+  console.error('Finalize Adjustment failed: ' + e.message);
+  return createResponse({ error: 'Finalize failed: ' + e.message });
+} finally {
+  lock.releaseLock();
+}
 }
 
 function handleGetMyStats(ss, params) {
