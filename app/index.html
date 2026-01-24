@@ -3792,8 +3792,7 @@
                 const myCount = likedCounts[commentId] || 0;
 
                 if (myCount >= 10) {
-                    alert('このコメントへのいいねは10回までです！たくさんの承認ありがとう！👏');
-                    return;
+                    // Just stop earning tokens, but allow more likes!
                 }
 
                 comment.likes = (comment.likes || 0) + 1;
@@ -3804,9 +3803,11 @@
 
                 renderComments(annId);
 
-                // Award 1 Token for Liking Comment
-                addTokens(1);
-                showTokenEarned(1, `Nice! Comment Like (${myCount + 1}/10) ❤️`);
+                // Award 1 Token for Liking Comment (Max 10)
+                if (myCount < 10) {
+                    addTokens(1);
+                    showTokenEarned(1, `Nice! Comment Like (${myCount + 1}/10) ❤️`);
+                }
             }
         }
 
@@ -3822,7 +3823,7 @@
             list.innerHTML = comments.map(comment => {
                 const likedCounts = JSON.parse(localStorage.getItem('tss_liked_comment_counts') || '{}');
                 const myCount = likedCounts[comment.id] || 0;
-                const canLike = myCount < 10;
+                const canLike = true; // Always allow likes!
 
                 // Safe Date Parsing
                 const timeStr = new Date(comment.time).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
