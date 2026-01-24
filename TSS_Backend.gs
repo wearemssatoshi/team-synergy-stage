@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v6.4'; // Global Version
+const APP_VERSION = 'v6.5'; // Global Version
 
 function doPost(e) {
   try {

@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v6.4';
+        const APP_VERSION = 'v6.5';
     </script>
     </script>
     <link
@@ -1686,7 +1686,13 @@
 
                 <div class="input-group">
                     <label class="input-label">ROLE / 役割</label>
-                    <input type="text" class="text-input" id="inputRole" placeholder="例: リーダー、メンバーなど">
+                    <select class="text-input" id="inputRole"
+                        style="appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5H5z%22%20fill%3D%22%23D4AF37%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
+                        <option value="メンバー">メンバー (Member)</option>
+                        <option value="ゲスト">ゲスト (Guest)</option>
+                        <option value="事務局">事務局 (Office)</option>
+                        <option value="ファウンダー">ファウンダー (Founder)</option>
+                    </select>
                 </div>
 
                 <div class="input-group">
@@ -2601,7 +2607,12 @@
 
         <div class="input-group">
             <label class="input-label">ROLE / 役割</label>
-            <input type="text" class="text-input" id="editRole" value="${escapeHtml(profile.role)}">
+            <select class="text-input" id="editRole" style="appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5H5z%22%20fill%3D%22%23D4AF37%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;">
+                <option value="メンバー" ${profile.role === 'メンバー' ? 'selected' : ''}>メンバー (Member)</option>
+                <option value="ゲスト" ${profile.role === 'ゲスト' ? 'selected' : ''}>ゲスト (Guest)</option>
+                <option value="事務局" ${profile.role === '事務局' ? 'selected' : ''}>事務局 (Office)</option>
+                <option value="ファウンダー" ${profile.role === 'ファウンダー' ? 'selected' : ''}>ファウンダー (Founder)</option>
+            </select>
         </div>
 
         <div class="input-group">
