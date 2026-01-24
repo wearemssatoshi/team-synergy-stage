@@ -1347,46 +1347,133 @@
             margin: 4px;
         }
 
-        /* Events */
+        /* Events - DOT VIEW */
         .fc-event {
-            cursor: pointer;
+            background: transparent !important;
             border: none !important;
-            border-radius: 6px !important;
-            padding: 2px 4px !important;
+            box-shadow: none !important;
+            cursor: pointer;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
             margin-bottom: 2px !important;
-            font-size: 0.75rem !important;
-            font-weight: 500 !important;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            transition: transform 0.1s;
+            padding: 2px 0 !important;
         }
 
-        .fc-event:hover {
-            transform: scale(1.02);
-            z-index: 5;
+        /* Hide text */
+        .fc-event-main,
+        .fc-event-title,
+        .fc-event-time {
+            display: none !important;
         }
 
-        .fc-event-main {
-            padding: 1px 4px;
+        /* The Dot */
+        .fc-event::after {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .fc-event:hover::after {
+            transform: scale(1.5);
+        }
+
+        /* Event Colors (Dot) */
+        .fc-event.type-shared::after {
+            background-color: #D4AF37 !important;
+            /* Gold */
+        }
+
+        .fc-event.type-personal::after {
+            background-color: #A0C4FF !important;
+            /* Pale Blue */
+        }
+
+        .fc-event.type-official::after {
+            background-color: #333 !important;
+            /* Dark */
+        }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+        }
+
+        .modal-content {
+            background: var(--white);
+            width: 85%;
+            max-width: 320px;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 15px;
+            letter-spacing: 0.05em;
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .type-option {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
+            transition: all 0.2s;
         }
 
-        /* Event Colors */
-        .fc-event.type-shared {
-            background: linear-gradient(135deg, #D4AF37, #E5C158) !important;
-            color: white !important;
+        .type-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
         }
 
-        .fc-event.type-personal {
-            background: linear-gradient(135deg, #4A90E2, #6AA9F6) !important;
-            color: #fff !important;
-        }
-
-        .fc-event.type-official {
-            background: var(--text-dark) !important;
-            border: 1px solid var(--primary) !important;
-            color: var(--primary) !important;
+        .type-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
         }
 
         /* FILTERS */
@@ -2344,6 +2431,13 @@
                 if (res.success) {
                     alert('Schedule Finalized & Invites Sent!');
                     fetchAdjustments();
+                    // FORCE SYNC CALENDAR
+                    if (typeof calendar !== 'undefined' && calendar) {
+                        calendar.refetchEvents();
+                        // Also trigger manual refresh of list just in case
+                        // (calendar refetch usually handles this via its callback)
+                        console.log('Calendar refetched after finalization');
+                    }
                 } else alert('Error: ' + res.error);
             });
         }
@@ -3595,7 +3689,7 @@
             style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #eee;">
             <div id="post-comments-list-${post.id}">
                 ${(post.comments || []).map(c => `
-                <div class="comment-item" style="margin-bottom:8px; display:flex; gap:8px;">
+                <div class="comment-item" style="margin-bottom:8px; display:flex; align-items:flex-start; gap:8px;">
                     <div
                         style="width:24px;height:24px;border-radius:50%;background:#eee;overflow:hidden;flex-shrink:0;">
                         ${c.authorImage ? `<img src="${c.authorImage}"
@@ -3606,7 +3700,7 @@
                     <div style="flex:1; background:#f9f9f9; padding:8px; border-radius:8px;">
                         <div style="font-size:11px; font-weight:bold; color:#555;">${escapeHtml(c.author)} <span
                                 style="font-size:9px;color:#aaa;">${formatDate(c.createdAt)}</span></div>
-                        <div style="font-size:12px; color:#333;">${escapeHtml(c.content)}</div>
+                        <div style="font-size:12px; color:#333; line-height:1.4; word-break:break-word;">${escapeHtml(c.content)}</div>
                     </div>
                 </div>
                 `).join('')}
@@ -3624,49 +3718,78 @@
 
         async function likePost(id) {
             const post = posts.find(p => p.id === id);
-            if (!post) return;
+            if (!post) {
+                console.error("Post not found:", id);
+                return;
+            }
 
-            // Check 10 likes limit
+            // Check 10 likes limit (Per User Session/Device)
             let likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
             const myCount = likedCounts[id] || 0;
 
             if (myCount >= 10) {
-                alert('この投稿へのいいねは10回までです！たくさんの承認ありがとう！👏');
-                return;
+                // Remove alert blocker -> Allow social like but no token
+                // alert('この投稿へのいいねは10回までです！たくさんの承認ありがとう！👏');
+                // return;
             }
 
-            // Update LOCAL state
-            post.likes++;
+            // 1. OPTIMISTIC UPDATE (Instant UI Feedback)
+            post.likes = (parseInt(post.likes) || 0) + 1;
             likedCounts[id] = myCount + 1;
 
+            // Save to LocalStorage immediately
             localStorage.setItem('tss_posts', JSON.stringify(posts));
             localStorage.setItem('tss_liked_post_counts', JSON.stringify(likedCounts));
 
+            // Re-render UI to show new count
             renderPosts();
 
-            // Reward ME (Sender) +1 Token for Approval Action
-            addTokens(1);
-            showTokenEarned(1, `Nice! Like (${myCount + 1}/10) ❤️`);
+            // Reward ME (Sender) +1 Token for Approval Action (ONLY IF < 10)
+            if (myCount < 10) {
+                addTokens(1);
+                showTokenEarned(1, `Nice! Like (${myCount + 1}/10) ❤️`);
+            } else {
+                // Just visual feedback
+                // console.log('Like sent (No token)');
+            }
 
-            // Sync with Backend (Also rewards Author in GAS)
+            // 2. BACKEND SYNC (Background)
             try {
-                // Determine if SCRIPT_URL is valid
                 if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
                     const profile = getProfile();
                     const userParam = profile ? `&user=${encodeURIComponent(profile.name)}` : '';
+
+                    // Fire and forget - we trust the UI update first. 
+                    // Silent fetch to update server state.
                     await fetch(`${SCRIPT_URL}?action=like&postId=${id}&type=post${userParam}`);
                 }
             } catch (e) {
-                console.error('Like sync failed', e);
+                console.error('Like sync failed (Backend might be down, but local update persists):', e);
+                // We keep optimistic update because it's better UX. 
+                // Next time we fetch full posts, it will sync up if backend actually failed.
             }
         }
 
         function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            return `${y}.${m}.${d}`;
+            if (!dateStr) return '';
+            try {
+                // Parse correctly
+                const date = new Date(dateStr);
+
+                // Check invalid
+                if (isNaN(date.getTime())) return dateStr;
+
+                // Format: YYYY.MM.DD HH:mm (JST)
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                const h = String(date.getHours()).padStart(2, '0');
+                const min = String(date.getMinutes()).padStart(2, '0');
+
+                return `${y}.${m}.${d} ${h}:${min}`;
+            } catch (e) {
+                return dateStr;
+            }
         }
 
         // ============ AI CHAT ============
@@ -4218,7 +4341,8 @@
                                     classNames: [className],
                                     extendedProps: {
                                         author: e.author,
-                                        type: e.type || 'shared'
+                                        type: e.type || 'shared',
+                                        description: e.description || '' // Ensure description passes through
                                     }
                                 };
                             });
@@ -4226,11 +4350,9 @@
                         })
                         .catch(e => {
                             console.error('Calendar Sync Error', e);
-                            // Fallback to cache ONLY on error
                             const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
-                            renderMonthlyEventsList(cached); // Show cached list
+                            renderMonthlyEventsList(cached);
 
-                            // Map cached events for Calendar
                             const mappedCached = cached.map(e => ({
                                 id: e.id,
                                 title: e.title,
@@ -4245,33 +4367,8 @@
                     openAddEventModal(info.dateStr);
                 },
                 eventClick: function (info) {
-                    const profile = getProfile();
-                    const props = info.event.extendedProps;
-                    const isMyEvent = props.author === (profile ? profile.name : '');
-
-                    let msg = `📅 ${info.event.title} \n`;
-                    msg += `作成者: ${props.author} \n`;
-                    msg += `タイプ: ${props.type === 'personal' ? '個人' : props.type === 'open' ? '共有' : '運営'} `;
-
-                    if (isMyEvent) {
-                        if (confirm(msg + '\n\n削除しますか？')) {
-                            const eventId = info.event.id;
-                            info.event.remove();
-
-                            // Also remove from list view (optimistic)
-                            document.getElementById(`event - list - item - ${eventId} `)?.remove();
-
-                            fetch(SCRIPT_URL, {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    action: 'deleteEvent',
-                                    eventId: eventId
-                                })
-                            });
-                        }
-                    } else {
-                        alert(msg);
-                    }
+                    // Refined Interaction: Detail Modal
+                    showEventDetailModal(info.event);
                 }
             });
 
@@ -4284,12 +4381,6 @@
 
             // Sort by date
             const sorted = [...events].sort((a, b) => new Date(a.start) - new Date(b.start));
-
-            // Filter for current view if possible (FullCalendar keeps track, but simple list of all fetched is
-            // okay for now)
-            // Or strictly speaking, we might want only this month's events.
-            // For simplicity, let's show upcoming events from today onwards, or all in the fetched range.
-            // Let's filter for "This Month & Future" to keep it relevant.
 
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -4310,9 +4401,17 @@
                 if (e.type === 'personal') typeColor = '#4A90E2';
                 if (e.type === 'official') typeColor = '#1a1a1a';
 
+                // Added onclick to open detail modal (simulating event object)
+                const eventObj = JSON.stringify({
+                    id: e.id,
+                    title: e.title,
+                    start: e.start,
+                    extendedProps: { author: e.author, type: e.type }
+                }).replace(/"/g, '&quot;');
+
                 return `
-                    <div id="event-list-item-${e.id}" class="event-list-item"
-                        style="display:flex; align-items:center; background:var(--white); padding:12px 16px; margin-bottom:10px; border-radius:12px; border-left:4px solid ${typeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                    <div id="event-list-item-${e.id}" class="event-list-item" onclick="openDetailFromList(this)" data-event="${eventObj}"
+                        style="display:flex; align-items:center; background:var(--white); padding:12px 16px; margin-bottom:10px; border-radius:12px; border-left:4px solid ${typeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.03); cursor:pointer;">
                         <div style="text-align:center; margin-right:16px; min-width:40px;">
                             <div style="font-size:10px; font-weight:700; color:var(--text-gray);">${dayStr}</div>
                             <div style="font-size:18px; font-weight:800; color:var(--text-dark); line-height:1;">
@@ -4332,17 +4431,104 @@
             }).join('');
         }
 
-        // --- CALENDAR MODAL LOGIC ---
+        // --- EVENT DETAIL MODAL ---
+        function openDetailFromList(el) {
+            const data = JSON.parse(el.getAttribute('data-event'));
+            // Construct pseudo-event object compatible with showEventDetailModal
+            const event = {
+                id: data.id,
+                title: data.title,
+                start: new Date(data.start),
+                extendedProps: data.extendedProps,
+                remove: () => {
+                    // Pseudo remove: just hide list item
+                    el.style.display = 'none';
+                    if (calendar) calendar.getEventById(data.id)?.remove();
+                }
+            };
+            showEventDetailModal(event);
+        }
+
+        function showEventDetailModal(event) {
+            const props = event.extendedProps;
+            const profile = getProfile();
+            const isMyEvent = props.author === (profile ? profile.name : '');
+
+            const dateStr = event.start.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+
+            const modalHtml = `
+                <div id="eventDetailModal" class="modal-overlay" style="display:flex;">
+                    <div class="modal-content">
+                        <div class="modal-header">EVENT DETAILS</div>
+                        
+                        <div style="margin-bottom:20px;">
+                             <div style="font-size:12px; color:var(--primary); font-weight:700; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:10px;">${dateStr}</div>
+                             <div style="font-size:18px; font-weight:700; color:var(--text-dark); margin-bottom:10px; line-height:1.4;">
+                                ${event.title.replace('🔒 ', '')}
+                             </div>
+                             
+                             <div style="display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-gray);">
+                                <span style="background:var(--light-gray); padding:4px 10px; border-radius:10px;">
+                                    👤 ${props.author || 'Unknown'}
+                                </span>
+                                <span style="background:${props.type === 'personal' ? '#E3F2FD' : 'rgba(212, 175, 55, 0.1)'}; color:${props.type === 'personal' ? '#1565C0' : '#B8960C'}; padding:4px 10px; border-radius:10px; font-weight:600;">
+                                    ${props.type === 'personal' ? 'Private' : 'Shared'}
+                                </span>
+                             </div>
+                        </div>
+
+                        ${isMyEvent ? `
+                        <button class="btn-main" style="background:var(--danger); box-shadow:0 4px 15px rgba(239, 68, 68, 0.3);" onclick="deleteEventConfirmed('${event.id}')">
+                            <span style="font-size:14px;">🗑</span> CANCEL EVENT
+                        </button>
+                        ` : ''}
+
+                        <button class="btn-secondary" onclick="document.getElementById('eventDetailModal').remove()">CLOSE</button>
+                    </div>
+                </div>
+            `;
+
+            // Remove existing modal if any
+            document.getElementById('eventDetailModal')?.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Attach event object to valid scope if needed, or just handle delete by ID
+            // For 'remove()', we need reference. Let's just use ID for now.
+        }
+
+        function deleteEventConfirmed(eventId) {
+            if (!confirm('本当にこの予定を削除しますか？')) return;
+
+            // Optimistic UI updates
+            document.getElementById('eventDetailModal').remove();
+            document.getElementById(`event-list-item-${eventId}`)?.remove();
+
+            const calendarEvent = calendar.getEventById(eventId);
+            if (calendarEvent) calendarEvent.remove();
+
+            // Backend
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'deleteEvent',
+                    eventId: eventId
+                })
+            });
+        }
+
+        // --- ADD EVENT MODAL (Refined) ---
         let selectedDateForEvent = '';
         let selectedEventType = 'shared';
 
         function openAddEventModal(dateStr) {
             selectedDateForEvent = dateStr;
 
-            // Create Modal if not exists
-            if (!document.getElementById('addEventModal')) {
-                const modalHtml = `
-                    <div id="addEventModal" class="modal-overlay">
+            // Remove existing
+            document.getElementById('addEventModal')?.remove();
+
+            const modalHtml = `
+                    <div id="addEventModal" class="modal-overlay" style="display:flex;">
                         <div class="modal-content">
                             <div class="modal-header">ADD SCHEDULE</div>
                             <div style="font-size:12px; color:var(--text-gray); margin-bottom:15px; text-align:center;">
@@ -4353,165 +4539,30 @@
                                 <input type="text" id="eventTitleInput" class="text-input" placeholder="予定のタイトル">
                             </div>
                             
-                            <div class="input-group">
-                                <label class="input-label">TIME (Optional)</label>
-                                <div style="display:flex; gap:5px; align-items:center;">
-                                    <select id="eventTimeStart" class="text-input" style="flex:1;">
-                                        <option value="">All Day</option>
-                                        <option value="09:00">09:00</option>
-                                        <option value="09:15">09:15</option>
-                                        <option value="09:30">09:30</option>
-                                        <option value="09:45">09:45</option>
-                                        <option value="10:00">10:00</option>
-                                        <option value="10:15">10:15</option>
-                                        <option value="10:30">10:30</option>
-                                        <option value="10:45">10:45</option>
-                                        <option value="11:00">11:00</option>
-                                        <option value="11:15">11:15</option>
-                                        <option value="11:30">11:30</option>
-                                        <option value="11:45">11:45</option>
-                                        <option value="12:00">12:00</option>
-                                        <option value="12:15">12:15</option>
-                                        <option value="12:30">12:30</option>
-                                        <option value="12:45">12:45</option>
-                                        <option value="13:00">13:00</option>
-                                        <option value="13:15">13:15</option>
-                                        <option value="13:30">13:30</option>
-                                        <option value="13:45">13:45</option>
-                                        <option value="14:00">14:00</option>
-                                        <option value="14:15">14:15</option>
-                                        <option value="14:30">14:30</option>
-                                        <option value="14:45">14:45</option>
-                                        <option value="15:00">15:00</option>
-                                        <option value="15:15">15:15</option>
-                                        <option value="15:30">15:30</option>
-                                        <option value="15:45">15:45</option>
-                                        <option value="16:00">16:00</option>
-                                        <option value="16:15">16:15</option>
-                                        <option value="16:30">16:30</option>
-                                        <option value="16:45">16:45</option>
-                                        <option value="17:00">17:00</option>
-                                        <option value="17:15">17:15</option>
-                                        <option value="17:30">17:30</option>
-                                        <option value="17:45">17:45</option>
-                                        <option value="18:00">18:00</option>
-                                        <option value="18:15">18:15</option>
-                                        <option value="18:30">18:30</option>
-                                        <option value="18:45">18:45</option>
-                                        <option value="19:00">19:00</option>
-                                        <option value="19:15">19:15</option>
-                                        <option value="19:30">19:30</option>
-                                        <option value="19:45">19:45</option>
-                                        <option value="20:00">20:00</option>
-                                        <option value="20:15">20:15</option>
-                                        <option value="20:30">20:30</option>
-                                        <option value="20:45">20:45</option>
-                                        <option value="21:00">21:00</option>
-                                        <option value="21:15">21:15</option>
-                                        <option value="21:30">21:30</option>
-                                        <option value="21:45">21:45</option>
-                                        <option value="22:00">22:00</option>
-                                        <option value="22:15">22:15</option>
-                                        <option value="22:30">22:30</option>
-                                        <option value="22:45">22:45</option>
-                                        <option value="23:00">23:00</option>
-                                    </select>
-                                    <span>~</span>
-                                    <select id="eventTimeEnd" class="text-input" style="flex:1;">
-                                        <option value="">Auto (1h)</option>
-                                        <option value="09:00">09:00</option>
-                                        <option value="09:15">09:15</option>
-                                        <option value="09:30">09:30</option>
-                                        <option value="09:45">09:45</option>
-                                        <option value="10:00">10:00</option>
-                                        <option value="10:15">10:15</option>
-                                        <option value="10:30">10:30</option>
-                                        <option value="10:45">10:45</option>
-                                        <option value="11:00">11:00</option>
-                                        <option value="11:15">11:15</option>
-                                        <option value="11:30">11:30</option>
-                                        <option value="11:45">11:45</option>
-                                        <option value="12:00">12:00</option>
-                                        <option value="12:15">12:15</option>
-                                        <option value="12:30">12:30</option>
-                                        <option value="12:45">12:45</option>
-                                        <option value="13:00">13:00</option>
-                                        <option value="13:15">13:15</option>
-                                        <option value="13:30">13:30</option>
-                                        <option value="13:45">13:45</option>
-                                        <option value="14:00">14:00</option>
-                                        <option value="14:15">14:15</option>
-                                        <option value="14:30">14:30</option>
-                                        <option value="14:45">14:45</option>
-                                        <option value="15:00">15:00</option>
-                                        <option value="15:15">15:15</option>
-                                        <option value="15:30">15:30</option>
-                                        <option value="15:45">15:45</option>
-                                        <option value="16:00">16:00</option>
-                                        <option value="16:15">16:15</option>
-                                        <option value="16:30">16:30</option>
-                                        <option value="16:45">16:45</option>
-                                        <option value="17:00">17:00</option>
-                                        <option value="17:15">17:15</option>
-                                        <option value="17:30">17:30</option>
-                                        <option value="17:45">17:45</option>
-                                        <option value="18:00">18:00</option>
-                                        <option value="18:15">18:15</option>
-                                        <option value="18:30">18:30</option>
-                                        <option value="18:45">18:45</option>
-                                        <option value="19:00">19:00</option>
-                                        <option value="19:15">19:15</option>
-                                        <option value="19:30">19:30</option>
-                                        <option value="19:45">19:45</option>
-                                        <option value="20:00">20:00</option>
-                                        <option value="20:15">20:15</option>
-                                        <option value="20:30">20:30</option>
-                                        <option value="20:45">20:45</option>
-                                        <option value="21:00">21:00</option>
-                                        <option value="21:15">21:15</option>
-                                        <option value="21:30">21:30</option>
-                                        <option value="21:45">21:45</option>
-                                        <option value="22:00">22:00</option>
-                                        <option value="22:15">22:15</option>
-                                        <option value="22:30">22:30</option>
-                                        <option value="22:45">22:45</option>
-                                        <option value="23:00">23:00</option>
-                                    </select>
-                                </div>
-                            </div>
-
                             <div class="type-selector">
                                 <div class="type-option selected" onclick="selectEventType(this, 'shared')">
                                     <div class="type-indicator" style="background:var(--primary);"></div>
                                     <div style="flex:1;">
                                         <div style="font-size:12px; font-weight:bold;">みんなに共有</div>
-                                        <div style="font-size:9px; color:var(--text-gray);">全員のカレンダーに表示</div>
                                     </div>
                                 </div>
                                 <div class="type-option" onclick="selectEventType(this, 'personal')">
                                     <div class="type-indicator" style="background:#4A90E2;"></div>
                                     <div style="flex:1;">
                                         <div style="font-size:12px; font-weight:bold;">自分だけの予定</div>
-                                        <div style="font-size:9px; color:var(--text-gray);">自分だけに表示 (非公開)</div>
                                     </div>
                                 </div>
-                                <!-- Management option hidden for normal users usually, but available for simplicity here -->
                             </div>
-
+                            
                             <button class="btn-main" onclick="submitEvent()">ADD EVENT</button>
                             <button class="btn-secondary"
-                                onclick="document.getElementById('addEventModal').style.display='none'">CANCEL</button>
+                                onclick="document.getElementById('addEventModal').remove()">CANCEL</button>
                         </div>
                     </div>
-                    `;
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-            }
+                `;
 
-            // Reset
-            document.getElementById('eventTitleInput').value = '';
-            selectEventType(document.querySelector('.type-option'), 'shared'); // Default shared
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-            document.getElementById('addEventModal').style.display = 'flex';
             setTimeout(() => document.getElementById('eventTitleInput').focus(), 100);
         }
 
@@ -4528,13 +4579,10 @@
             const profile = getProfile();
             const authorName = profile ? profile.name : 'Unknown';
 
-            // Optimistic UI Update (Refetch will happen but adds snappy feel if we manually add?)
-            // Actually simpler to just send and refetch.
-            // Let's optimistic add for instant feedback
-
             let className = 'type-shared';
             if (selectedEventType === 'personal') className = 'type-personal';
 
+            // Optimistic Add
             calendar.addEvent({
                 id: 'temp-' + Date.now(),
                 title: (selectedEventType === 'personal' ? '🔒 ' : '') + title,
@@ -4544,7 +4592,7 @@
                 extendedProps: { author: authorName, type: selectedEventType }
             });
 
-            document.getElementById('addEventModal').style.display = 'none';
+            document.getElementById('addEventModal').remove();
 
             // Backend
             fetch(SCRIPT_URL, {
@@ -4562,25 +4610,27 @@
                     if (data.success) {
                         addTokens(1);
                         showTokenEarned(1, 'Schedule Added! 📅');
-                        calendar.refetchEvents(); // Get real ID
+                        setTimeout(() => {
+                            if (calendar) {
+                                calendar.refetchEvents(); // Get real ID and update Sync
+                            }
+                            // Also refresh list view
+                            const evs = calendar.getEvents().map(e => ({
+                                id: e.id,
+                                title: e.title,
+                                start: e.start,
+                                allDay: e.allDay,
+                                author: e.extendedProps.author,
+                                type: e.extendedProps.type
+                            }));
+                            renderMonthlyEventsList(evs);
+                        }, 1000);
                     }
                 });
         }
 
         function saveCalendarEvents() {
-            if (!calendar) return;
-            const events = calendar.getEvents().map(e => ({
-                id: e.id,
-                title: e.title,
-                start: e.start,
-                allDay: e.allDay
-            }));
-            localStorage.setItem('tss_schedule_events', JSON.stringify(events));
-
-            // Background Sync (Optional, future proofing)
-            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-                // Future sync implementation
-            }
+            // ... legacy ...
         }
 
         // Hook into tab switching to resize calendar if needed causes of display:none
@@ -4665,10 +4715,11 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'ok' && data.items.length > 0) {
+                        // Filter out non-article items if needed
                         const items = data.items.slice(0, 3); // Top 3 articles
                         container.innerHTML = items.map(item => `
                     <div class="note-item" onclick="window.open('${item.link}', '_blank')"
-                        style="cursor: pointer; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px;">
+                        style="cursor: pointer; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-start;">
                         <div style="flex: 1;">
                             <div
                                 style="font-family: 'Montserrat', sans-serif; font-size: 10px; color: var(--text-gray); margin-bottom: 4px;">
@@ -4677,16 +4728,16 @@
                                 style="font-weight: 600; font-size: 13px; line-height: 1.4; color: var(--text-dark); margin-bottom: 6px;">
                                 ${item.title}</div>
                             <div
-                                style="font-size: 11px; color: var(--text-gray); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                ${item.description.replace(/<[^>]*>?/gm, '')}</div>
+                                style="font-size: 11px; color: var(--text-gray); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height:1.4;">
+                                ${item.description.replace(/<[^>]*>?/gm, '').substring(0, 60)}...</div>
                         </div>
-                        ${item.thumbnail ? `<div
-                            style="width: 60px; height: 60px; border-radius: 8px; background-image: url('${item.thumbnail}'); background-size: cover; background-position: center; flex-shrink: 0;">
-                        </div>` : ''}
+                        <div
+                            style="width: 60px; height: 60px; border-radius: 8px; background-image: url('${item.thumbnail || 'https://assets.st-note.com/production/uploads/images/82958066/rectangle_large_type_2_a523275727936a2b89697960309995be.jpeg?fit=bounds&quality=85&width=1280'}'); background-size: cover; background-position: center; flex-shrink: 0; background-color:#eee;">
+                        </div>
                     </div>
                     `).join('');
                     } else {
-                        container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px;">記事の読み込みに失敗しました</div>';
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-gray); font-size: 12px; padding:20px;">最新記事の読み込み失敗 (Feed Unavailable)</div>';
                     }
                 })
                 .catch(error => {

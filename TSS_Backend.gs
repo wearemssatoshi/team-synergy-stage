@@ -338,8 +338,30 @@ function handleAddToken(ss, data) {
  * Wrapper for backward compatibility.
  * Delegates to the new Log-First architecture.
  */
-function addTokensToUser(ss, name, amount, action = 'manual', description = '') {
-  return processTokenTransaction(ss, name, amount, action, description, '');
+function addTokensToUser(ss, name, amount, action = 'manual', description = '', relatedId = '') {
+  return processTokenTransaction(ss, name, amount, action, description, relatedId);
+}
+
+/**
+ * Counts how many times a user has received tokens for a specific action and related object.
+ * Used for capping rewards (e.g., 10 rewards per post).
+ */
+function countRewardInstances(ss, userId, actionType, relatedId) {
+  const logSheet = ss.getSheetByName('TSS_TokenLogs');
+  if (!logSheet) return 0;
+  
+  const data = logSheet.getDataRange().getValues();
+  let count = 0;
+  const RIDString = String(relatedId);
+  
+  // Columns: [Timestamp, TransactionId, User_Id, Action_Type, Amount, Related_Id, Description]
+  // idx: 0, 1, 2 (User_Id), 3 (Action_Type), 4, 5 (Related_Id), 6
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][2] == userId && data[i][3] == actionType && String(data[i][5]) == RIDString) {
+      count++;
+    }
+  }
+  return count;
 }
 
 /**
@@ -757,17 +779,24 @@ function handleLike(ss, data) {
       const currentLikes = Number(allData[i][likesColIndex] || 0);
       const author = allData[i][type === 'announcement' ? 4 : 1]; // Author col index
       
-      // Update likes
+      // 1. Update total likes (Always, regardless of limit)
       sheet.getRange(i + 1, likesColIndex + 1).setValue(currentLikes + 1);
       
-      // Award token to author
+      // 2. Award tokens (With Capping)
       if (type === 'post') {
-        addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${targetId})`);
-      }
-
-      // Award token to Liker (Sender) - NEW
-      if (data.user) {
-        addTokensToUser(ss, data.user, 1, 'like_bonus', `Like Bonus (ID: ${targetId})`);
+        const liker = data.user || 'Anonymous';
+        
+        // Count how many times this Liker has rewarded this Post
+        // (Ensures Infinite visual likes but limited tokens)
+        const existingRewards = countRewardInstances(ss, liker, 'like_bonus', targetId);
+        
+        if (existingRewards < 10) {
+          // Reward Liker (Sender)
+          addTokensToUser(ss, liker, 1, 'like_bonus', `Like Bonus (ID: ${targetId})`, targetId);
+          
+          // Reward Author (Receiver) - Also only if reward was valid (optional protection)
+          addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${targetId})`, targetId);
+        }
       }
       
       return createResponse({ success: true, likes: currentLikes + 1 });
