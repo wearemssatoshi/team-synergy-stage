@@ -1200,32 +1200,26 @@ function getEvents(ss, params) {
   
   const requestingUser = params?.user || '';
   const data = sheet.getDataRange().getValues();
-  
-  // Columns: Timestamp[0], Title[1], Start[2], AllDay[3], Author[4], EventId[5], Type[6]
   const events = [];
   
-  // Skip header
   for (let i = 1; i < data.length; i++) {
-    const APP_VERSION = 'v6.0'; // Updated to match Frontend
-    const SHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace if needed, otherwise uses Active
     const row = data[i];
-    const type = row[6] || 'shared'; // Default to shared
+    const type = row[6] || 'shared';
     const author = row[4];
+    const allDayInput = row[3];
     
-    // Privacy Filter
-    // 1. Official/Management -> Always Show
-    // 2. Shared -> Always Show
-    // 3. Personal -> Show ONLY if author matches requestingUser
+    // Explicitly handle boolean or string boolean
+    const isAllDay = (allDayInput === true || allDayInput === 'true' || allDayInput === 'TRUE');
     
     if (type === 'personal' && author !== requestingUser) {
-        continue; // Skip other's personal events
+        continue;
     }
     
     events.push({
       id: row[5],
       title: row[1],
       start: row[2],
-      allDay: row[3],
+      allDay: isAllDay,
       author: author,
       type: type,
       createdAt: row[0]
@@ -1863,19 +1857,25 @@ function handleFinalizeAdjustment(ss, data) {
   sheet.getRange(eventRowIndex + 1, 8).setValue(JSON.stringify(finalDate)); // FinalDate
   
   // --- SYNC TO APP CALENDAR (TSS_Schedule) ---
-  const scheduleSheet = ss.getSheetByName('TSS_Schedule');
-  if (scheduleSheet) {
-      // Columns: Timestamp, Title, Start, AllDay, Author, EventId, Type
-      scheduleSheet.appendRow([
-          new Date().toISOString(),
-          eventTitle,
-          finalDate.start,
-          false, // AllDay (Adjustments are usually timed)
-          author,
-          calendarEventId || ('adj-' + targetId),
-          'shared' // Adjustments are by default shared
-      ]);
+  let scheduleSheet = ss.getSheetByName('TSS_Schedule');
+  if (!scheduleSheet) {
+    scheduleSheet = ss.insertSheet('TSS_Schedule');
+    scheduleSheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId', 'Type']]);
+    scheduleSheet.getRange(1, 1, 1, 7).setFontWeight('bold');
   }
+
+  // Columns: Timestamp, Title, Start, AllDay, Author, EventId, Type
+  scheduleSheet.appendRow([
+      new Date().toISOString(),
+      eventTitle,
+      finalDate.start,
+      false, // Adjustments are timed events
+      author,
+      calendarEventId || ('adj-' + targetId),
+      'shared'
+  ]);
+  
+  SpreadsheetApp.flush(); // Ensure data is committed before returning
 
   // 4. Reward Participants (Big Synergy Bonus)
   participants.forEach(p => {

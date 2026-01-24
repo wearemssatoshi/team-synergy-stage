@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v6.0';
+        const APP_VERSION = 'v6.3';
     </script>
     </script>
     <link
@@ -4337,7 +4337,7 @@
                                     id: e.id,
                                     title: (e.type === 'personal' ? '🔒 ' : '') + e.title,
                                     start: e.start,
-                                    allDay: e.allDay || true, // Default to All Day if missing
+                                    allDay: (e.allDay === true), // Strict boolean check
                                     classNames: [className],
                                     extendedProps: {
                                         author: e.author,
