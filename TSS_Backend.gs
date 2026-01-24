@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v6.6'; // Global Version
+const APP_VERSION = 'v6.7'; // Global Version
 
 function doPost(e) {
   try {
@@ -634,11 +634,15 @@ function getPosts(ss) {
     const obj = {};
     headers.forEach((h, i) => obj[h.toLowerCase().replace(/\s/g, '')] = row[i]);
     
+    // Unified ID key for frontend
+    obj['id'] = String(obj['postid'] || ''); 
+    obj['likes'] = Number(obj['likes'] || 0);
+
     // Add user info
     const info = userInfo[obj['author']] || {};
     obj['authorImage'] = info.image || '';
     obj['authorRole'] = info.role || '';
-    obj['comments'] = commentsMap[String(obj['postid'])] || [];
+    obj['comments'] = commentsMap[String(obj['id'])] || [];
 
     return obj;
   }).reverse(); // Latest first
