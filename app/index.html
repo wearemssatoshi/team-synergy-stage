@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v6.3';
+        const APP_VERSION = 'v6.4';
     </script>
     </script>
     <link
@@ -2318,7 +2318,7 @@
                 const isFinalized = adj.status === 'finalized';
 
                 return `
-    <div class="card" style="padding:15px;">
+    <div class="card" style="padding:15px; background: ${isFinalized ? 'linear-gradient(135deg, #FFF9C4 0%, #FFFDE7 100%)' : '#fff'}; border: ${isFinalized ? '2px solid #FBC02D' : '1px solid #eee'};">
         <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
             <div>
                 <div style="font-weight:bold;color:var(--primary);">${adj.title}</div>
@@ -2327,8 +2327,8 @@
             <div style="display:flex; gap:5px; align-items:center;">
                 ${isAuthor ? `<button onclick="deleteAdjustment('${adj.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;opacity:0.6;" title="Delete">🗑️</button>` : ''}
                 <div
-                    style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized ? 'green' : 'orange'}; color:${isFinalized ? 'green' : 'orange'};">
-                    ${isFinalized ? 'FINALIZED' : 'ACTIVE'}
+                    style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized ? '#F57F17' : 'orange'}; background: ${isFinalized ? '#FBC02D' : 'transparent'}; color:${isFinalized ? '#fff' : 'orange'}; font-weight: 800;">
+                    ${isFinalized ? '決定！(DECIDED)' : 'ACTIVE'}
                 </div>
             </div>
         </div>

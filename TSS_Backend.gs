@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v6.3'; // Global Version
+const APP_VERSION = 'v6.4'; // Global Version
 
 function doPost(e) {
   try {
@@ -1818,13 +1818,39 @@ function handleFinalizeAdjustment(ss, data) {
   const guestEmails = participants.map(p => emailMap[p]).filter(e => e && e.includes('@'));
   const guestList = guestEmails.join(',');
 
-  // 2. Create Google Calendar Event
+  // 2. Update Sheet Status (Adjustment Status)
+  sheet.getRange(eventRowIndex + 1, 7).setValue('finalized'); // Status is Col 7
+  sheet.getRange(eventRowIndex + 1, 8).setValue(JSON.stringify(finalDate)); // FinalDate is Col 8
+  
+  // --- SYNC TO APP CALENDAR (TSS_Schedule) --- 
+  // DO THIS FIRST OR AT LEAST BEFORE CALENDAR API TO ENSURE APP SYNC
+  let scheduleSheet = ss.getSheetByName('TSS_Schedule');
+  if (!scheduleSheet) {
+    scheduleSheet = ss.insertSheet('TSS_Schedule');
+    scheduleSheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId', 'Type']]);
+    scheduleSheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+  }
+
+  // Columns: Timestamp[0], Title[1], Start[2], AllDay[3], Author[4], EventId[5], Type[6]
+  const eventId = calendarEventId || ('adj-' + targetId);
+  scheduleSheet.appendRow([
+      new Date().toISOString(),
+      eventTitle,
+      finalDate.start,
+      false, // Adjustments are usually timed
+      author,
+      eventId,
+      'shared' 
+  ]);
+  
+  SpreadsheetApp.flush(); // Commit data to spreadsheet immediately
+
+  // 3. Create Google Calendar Event (Optional / Failure should NOT block app sync)
   let calendarEventId = '';
   try {
     const startTime = new Date(finalDate.start);
     const endTime = new Date(finalDate.end);
     
-    // Create rich description
     let description = `【TSS日程調整 確定】\n\n`;
     description += `タイトル: ${eventTitle}\n`;
     description += `決定日時: ${Utilities.formatDate(startTime, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm')} - ${Utilities.formatDate(endTime, 'Asia/Tokyo', 'HH:mm')}\n`;
@@ -1837,45 +1863,26 @@ function handleFinalizeAdjustment(ss, data) {
         description += `\n⚠️ 【注意】参加者のメールアドレスが登録されていないため、カレンダー招待は送信されませんでした。\n各自でカレンダーに登録してください。`;
     }
 
-    // Advanced options
     const options = {
       description: description,
       guests: guestList,
-      sendInvites: (guestEmails.length > 0) // Send emails if emails exist
+      sendInvites: (guestEmails.length > 0)
     };
     
     const calEvent = CalendarApp.getDefaultCalendar().createEvent(eventTitle, startTime, endTime, options);
     calendarEventId = calEvent.getId();
     
+    // Update the eventId in schedule sheet if it was empty
+    if (calendarEventId) {
+        const lastRow = scheduleSheet.getLastRow();
+        scheduleSheet.getRange(lastRow, 6).setValue(calendarEventId);
+    }
+    
   } catch (e) {
-    console.error('Calendar Error: ' + e.message);
-    return createResponse({ error: 'Calendar Error: ' + e.message });
-  }
-  
-  // 3. Update Sheet Status
-  sheet.getRange(eventRowIndex + 1, 7).setValue('finalized'); // Status
-  sheet.getRange(eventRowIndex + 1, 8).setValue(JSON.stringify(finalDate)); // FinalDate
-  
-  // --- SYNC TO APP CALENDAR (TSS_Schedule) ---
-  let scheduleSheet = ss.getSheetByName('TSS_Schedule');
-  if (!scheduleSheet) {
-    scheduleSheet = ss.insertSheet('TSS_Schedule');
-    scheduleSheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId', 'Type']]);
-    scheduleSheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+    console.error('Calendar Error (Non-Fatal for App Sync): ' + e.message);
+    // Continue even after calendar error
   }
 
-  // Columns: Timestamp, Title, Start, AllDay, Author, EventId, Type
-  scheduleSheet.appendRow([
-      new Date().toISOString(),
-      eventTitle,
-      finalDate.start,
-      false, // Adjustments are timed events
-      author,
-      calendarEventId || ('adj-' + targetId),
-      'shared'
-  ]);
-  
-  SpreadsheetApp.flush(); // Ensure data is committed before returning
 
   // 4. Reward Participants (Big Synergy Bonus)
   participants.forEach(p => {
