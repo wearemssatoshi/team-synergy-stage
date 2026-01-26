@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.16'; // Fix: Check-in Localization & Stability
+const APP_VERSION = 'v7.17'; // Fix: Calendar Safe Sort & UTC Fix
 
 function doPost(e) {
   try {
@@ -1268,8 +1268,14 @@ function getEvents(ss, params) {
     });
   }
   
-  // Sort by Date (Guarantee Stability)
-  events.sort((a, b) => new Date(a.start) - new Date(b.start));
+  // Safe Sort by Date (Handle Invalid Dates)
+  events.sort((a, b) => {
+    const dateA = new Date(a.start);
+    const dateB = new Date(b.start);
+    if (isNaN(dateA.getTime())) return 1; // Push invalid to end
+    if (isNaN(dateB.getTime())) return -1;
+    return dateA - dateB;
+  });
   
   return createResponse({ events });
 }
