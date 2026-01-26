@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.17'; // Fix: Calendar Safe Sort & UTC Fix
+const APP_VERSION = 'v7.18'; // UI: Update Button in Header
 
 function doPost(e) {
   try {
