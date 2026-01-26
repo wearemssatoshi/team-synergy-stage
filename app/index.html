@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.4'; // UX Polish: Compact & Clean Schedule
+        const APP_VERSION = 'v7.5'; // UX Restoration: Compact List View
     </script>
     </script>
     <link
@@ -2369,24 +2369,20 @@
 
                             return `
             <div
-                style="display:block;background:#f9f9f9;padding:8px;border-radius:6px;margin-bottom:5px;">
-                <div style="display:flex;align-items:center;justify-content:space-between; margin-bottom:5px;">
+                style="display:flex;align-items:center;justify-content:space-between;background:#f9f9f9;padding:8px;border-radius:4px;margin-bottom:5px;">
+                <div>
                     <div style="font-size:12px; font-weight:bold;">
                         ${new Date(date.start).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </div>
-                </div>
-
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; border-top:1px dashed #eee; padding-top:5px;">
-                    <button onclick='showVoteDetailsModal("${dateStr}", ${JSON.stringify(oNames)}, ${JSON.stringify(dNames)}, ${JSON.stringify(xNames)})' 
-                        style="background:none; border:none; color:var(--primary); font-size:11px; cursor:pointer; padding:0; text-decoration:underline;">
-                        ▼ 詳細 (Details)
-                    </button>
-                    <div style="font-size:10px; color:#aaa;">
-                        <span style="color:#2E7D32;">O ${o}</span> / <span style="color:#F9A825;">△ ${d}</span> / <span style="color:#C62828;">X ${x}</span>
+                    <div onclick='showVoteDetailsModal("${dateStr}", ${JSON.stringify(oNames)}, ${JSON.stringify(dNames)}, ${JSON.stringify(xNames)})' 
+                         style="font-size:10px; color:#666; cursor:pointer; text-decoration:underline;">
+                        O:${o} △:${d} X:${x}
                     </div>
                 </div>
 
-                <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:5px;">
+
+
+                <div style="display:flex; align-items:center; gap:5px;">
 
                 ${!isFinalized ? `
                 <div style="display:flex;gap:2px;">
@@ -2398,15 +2394,10 @@
                         style="width:25px;padding:2px;font-size:10px;background:${myVote === 'X' ? '#ddd' : ''}">X</button>
                 </div>` : ''}
 
-                ${!isFinalized && isAuthor && idx === 0 ? `
-                <!-- Finalize logic tricky in loop, simplified: user sees button on specific row if designed so. 
-                                             For now, let's just make the date clickable or add button if author. -->
-                <button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
-                    style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">この日時で確定</button>
-                ` : ''}
-                ${!isFinalized && isAuthor && idx !== 0 ? `<button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
-                    style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">この日時で確定</button>`
-                                    : ''}
+                    ${!isFinalized && isAuthor ? `
+                    <button onclick="finalizeAdjustment('${adj.id}', ${idx})" 
+                        style="font-size:9px;padding:2px 6px;background:var(--primary);color:white;border:none;border-radius:4px;">確定</button>
+                    ` : ''}
             </div>
             `;
                         }).join('')}
