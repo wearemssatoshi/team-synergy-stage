@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.3'; // UX Polish: Vote Modal & Sync Scroll
+        const APP_VERSION = 'v7.4'; // UX Polish: Compact & Clean Schedule
     </script>
     </script>
     <link
@@ -2344,21 +2344,30 @@
             Fixed: ${new Date(adj.finalDate.start).toLocaleString()}</div>` : ''}
 
         <div style="display:grid;gap:5px;">
-            ${adj.candidates.map((date, idx) => {
-                    const dateStr = date.start;
-                    const myVote = adj.responses[profile.name]?.[dateStr] || '-';
-                    // Breakdown for Accordion
-                    let oNames = [], dNames = [], xNames = [];
-                    Object.entries(adj.responses).forEach(([name, votes]) => {
-                        if (votes[dateStr] === 'O') oNames.push(name);
-                        else if (votes[dateStr] === '△') dNames.push(name);
-                        else if (votes[dateStr] === 'X') xNames.push(name);
-                    });
-                    const o = oNames.length;
-                    const d = dNames.length;
-                    const x = xNames.length;
+            ${adj.candidates
+                        .filter(date => {
+                            // UX Improvement: Strict Filtering
+                            if (isFinalized) {
+                                return date.start === adj.finalDate.start;
+                            }
+                            // Filter out past dates (Keep only Future dates)
+                            return new Date(date.start) >= new Date();
+                        })
+                        .map((date, idx) => {
+                            const dateStr = date.start;
+                            const myVote = adj.responses[profile.name]?.[dateStr] || '-';
+                            // Breakdown for Accordion
+                            let oNames = [], dNames = [], xNames = [];
+                            Object.entries(adj.responses).forEach(([name, votes]) => {
+                                if (votes[dateStr] === 'O') oNames.push(name);
+                                else if (votes[dateStr] === '△') dNames.push(name);
+                                else if (votes[dateStr] === 'X') xNames.push(name);
+                            });
+                            const o = oNames.length;
+                            const d = dNames.length;
+                            const x = xNames.length;
 
-                    return `
+                            return `
             <div
                 style="display:block;background:#f9f9f9;padding:8px;border-radius:6px;margin-bottom:5px;">
                 <div style="display:flex;align-items:center;justify-content:space-between; margin-bottom:5px;">
@@ -2397,10 +2406,10 @@
                 ` : ''}
                 ${!isFinalized && isAuthor && idx !== 0 ? `<button onclick="finalizeAdjustment('${adj.id}', '${idx}')"
                     style="font-size:9px;padding:2px 5px;background:var(--primary);color:white;border:none;border-radius:4px;">この日時で確定</button>`
-                            : ''}
+                                    : ''}
             </div>
             `;
-                }).join('')}
+                        }).join('')}
         </div>
     </div>`;
             }).join('');
