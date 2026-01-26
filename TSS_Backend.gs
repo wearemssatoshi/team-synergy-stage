@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.13'; // Upgrade: Schedule UI & Gamification
+const APP_VERSION = 'v7.14'; // Fix: Schedule Render Error
 
 function doPost(e) {
   try {

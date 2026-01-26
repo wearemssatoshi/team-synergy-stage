@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.13'; // Upgrade: Schedule UI & Gamification
+        const APP_VERSION = 'v7.14'; // Fix: Schedule Render Error
     </script>
     </script>
     <link
@@ -2363,7 +2363,7 @@
         </div>
 
         <!-- Result Banner (If Finalized) -->
-        ${isFinalized ? `
+        ${isFinalized && adj.finalDate ? `
         <div style="background:#FFF9C4; color:#F57F17; padding:8px 15px; font-size:13px; font-weight:bold; display:flex; align-items:center; gap:8px;">
             🎉 確定日時: ${formatDateSimple(adj.finalDate.start)}
         </div>` : ''}
@@ -2372,7 +2372,7 @@
         <div style="padding:15px;">
             ${adj.candidates
                         .filter(date => {
-                            if (isFinalized) return date.start === adj.finalDate.start;
+                            if (isFinalized) return adj.finalDate && date.start === adj.finalDate.start;
                             return new Date(date.start) >= new Date(new Date().setHours(0, 0, 0, 0)); // Show today/future
                         })
                         .map((date, idx) => {
