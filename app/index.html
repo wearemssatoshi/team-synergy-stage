@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.11'; // Feature: Server-Side Like Persistence
+        const APP_VERSION = 'v7.12'; // Fix: Stop Infinite Tokens
     </script>
     </script>
     <link
@@ -3810,10 +3810,11 @@
             if (!post.likedBy) post.likedBy = [];
 
             // Avoid duplicates
+            // Avoid duplicates
             if (post.likedBy.includes(myName)) {
                 // Already liked locally
-                // alert('すでにいいね済みです');
-                // return;
+                alert('すでにいいね済みです (Already Liked)');
+                return;
             } else {
                 post.likedBy.push(myName);
                 post.likes = (parseInt(post.likes) || 0) + 1;

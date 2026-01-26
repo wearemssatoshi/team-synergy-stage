@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.11'; // Feature: Server-Side Like Persistence
+const APP_VERSION = 'v7.12'; // Fix: Stop Infinite Tokens
 
 function doPost(e) {
   try {
