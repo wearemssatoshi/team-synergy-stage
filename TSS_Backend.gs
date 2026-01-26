@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.7'; // UX Improvement: Day View & Strict Versioning
+const APP_VERSION = 'v7.8'; // UX Improvement: Japanese Localization
 
 function doPost(e) {
   try {

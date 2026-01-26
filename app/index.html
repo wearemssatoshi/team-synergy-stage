@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.7'; // UX Improvement: Day View & Strict Versioning
+        const APP_VERSION = 'v7.8'; // UX Improvement: Japanese Localization
     </script>
     </script>
     <link
@@ -2328,20 +2328,20 @@
         <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
             <div>
                 <div style="font-weight:bold;color:var(--primary);">${adj.title}</div>
-                <div style="font-size:10px;color:#666;">By ${adj.author}</div>
+                <div style="font-size:10px;color:#666;">作成者: ${adj.author}</div>
             </div>
             <div style="display:flex; gap:5px; align-items:center;">
                 ${isAuthor ? `<button onclick="deleteAdjustment('${adj.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;opacity:0.6;" title="Delete">🗑️</button>` : ''}
                 <div
                     style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized ? '#F57F17' : 'orange'}; background: ${isFinalized ? '#FBC02D' : 'transparent'}; color:${isFinalized ? '#fff' : 'orange'}; font-weight: 800;">
-                    ${isFinalized ? '決定！(DECIDED)' : 'ACTIVE'}
+                    ${isFinalized ? '決定済み' : '調整中'}
                 </div>
             </div>
         </div>
 
         ${isFinalized ? `<div
             style="background:#e6fffa;color:green;padding:5px;font-size:11px;border-radius:4px;margin-bottom:10px;">🎉
-            Fixed: ${new Date(adj.finalDate.start).toLocaleString()}</div>` : ''}
+            確定日時: ${new Date(adj.finalDate.start).toLocaleString()}</div>` : ''}
 
         <div style="display:grid;gap:5px;">
             ${adj.candidates
@@ -2437,7 +2437,7 @@
         }
 
         function finalizeAdjustment(adjId, dateIdx) {
-            if (!confirm('Fix schedule to this date?')) return;
+            if (!confirm('この日時で確定しますか？')) return;
             const adj = currentAdjustments.find(a => a.id === adjId);
             const finalDate = adj.candidates[dateIdx];
 
@@ -2451,7 +2451,7 @@
                 })
             }).then(r => r.json()).then(res => {
                 if (res.success) {
-                    alert('Schedule Finalized! (Calendar updated)');
+                    alert('日程が確定しました！(カレンダーに反映されました)');
                     fetchAdjustments();
 
                     // Scroll to Calendar for immediate feedback
@@ -2485,7 +2485,7 @@
         }
 
         function deleteAdjustment(adjId) {
-            if (!confirm('本当に削除しますか？ (Are you sure you want to delete this adjustment?)')) return;
+            if (!confirm('本当に削除しますか？')) return;
             const profile = getProfile();
 
             fetch(SCRIPT_URL, {
@@ -2498,7 +2498,7 @@
                 })
             }).then(r => r.json()).then(res => {
                 if (res.success) {
-                    alert('Deleted!');
+                    alert('削除しました');
                     fetchAdjustments();
                 } else alert('Error: ' + res.error);
             });
@@ -4537,7 +4537,7 @@
             const modalHtml = `
                 <div id="eventDetailModal" class="modal-overlay" style="display:flex;">
                     <div class="modal-content">
-                        <div class="modal-header">EVENT DETAILS</div>
+                        <div class="modal-header">イベント詳細</div>
                         
                         <div style="margin-bottom:20px;">
                              <div style="font-size:12px; color:var(--primary); font-weight:700; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:10px;">${dateStr}</div>
@@ -4547,26 +4547,26 @@
                              
                              <div style="display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-gray);">
                                 <span style="background:var(--light-gray); padding:4px 10px; border-radius:10px;">
-                                    👤 ${props.author || 'Unknown'}
+                                    👤 ${props.author || '不明'}
                                 </span>
                                 <span style="background:${props.type === 'personal' ? '#E3F2FD' : 'rgba(212, 175, 55, 0.1)'}; color:${props.type === 'personal' ? '#1565C0' : '#B8960C'}; padding:4px 10px; border-radius:10px; font-weight:600;">
-                                    ${props.type === 'personal' ? 'Private' : 'Shared'}
+                                    ${props.type === 'personal' ? 'プライベート' : '共有'}
                                 </span>
                              </div>
                         </div>
 
                         ${isMyEvent ? `
                         <button class="btn-main" style="background:var(--danger); box-shadow:0 4px 15px rgba(239, 68, 68, 0.3);" onclick="deleteEventConfirmed('${event.id}')">
-                            <span style="font-size:14px;">🗑</span> CANCEL EVENT
+                            <span style="font-size:14px;">🗑</span> イベントを削除
                         </button>
                         ` : ''}
 
                         <!-- Google Calendar Button -->
                         <a href="${createGCalLink(event)}" target="_blank" class="btn-main" style="background:#4285F4; box-shadow:0 4px 15px rgba(66, 133, 244, 0.3); margin-top:10px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
-                            <span style="font-size:16px;">🗓</span> Add to Google Calendar
+                            <span style="font-size:16px;">🗓</span> Googleカレンダーに追加
                         </a>
 
-                        <button class="btn-secondary" onclick="document.getElementById('eventDetailModal').remove()">CLOSE</button>
+                        <button class="btn-secondary" onclick="document.getElementById('eventDetailModal').remove()">閉じる</button>
                     </div>
                 </div>
             `;
@@ -4580,20 +4580,20 @@
             const modalHtml = `
                 <div id="voteDetailModal" class="modal-overlay" style="display:flex;">
                     <div class="modal-content">
-                        <div class="modal-header">VOTE DETAILS</div>
+                        <div class="modal-header">回答詳細</div>
                         <div style="text-align:center; font-weight:bold; margin-bottom:15px;">${dateStr}</div>
                         
                         <div style="display:grid; gap:10px;">
                             <div style="background:#f0fff4; padding:10px; border-radius:8px;">
-                                <div style="color:#2E7D32; font-weight:bold; border-bottom:1px solid #c6f6d5; margin-bottom:5px;">O (Participating)</div>
+                                <div style="color:#2E7D32; font-weight:bold; border-bottom:1px solid #c6f6d5; margin-bottom:5px;">O (参加)</div>
                                 <div style="font-size:12px;">${oNames.length ? oNames.join(', ') : 'None'}</div>
                             </div>
                             <div style="background:#fffaf0; padding:10px; border-radius:8px;">
-                                <div style="color:#F9A825; font-weight:bold; border-bottom:1px solid #feebc8; margin-bottom:5px;">△ (Maybe)</div>
+                                <div style="color:#F9A825; font-weight:bold; border-bottom:1px solid #feebc8; margin-bottom:5px;">△ (未定)</div>
                                 <div style="font-size:12px;">${dNames.length ? dNames.join(', ') : 'None'}</div>
                             </div>
                             <div style="background:#fff5f5; padding:10px; border-radius:8px;">
-                                <div style="color:#C62828; font-weight:bold; border-bottom:1px solid #fed7d7; margin-bottom:5px;">X (Not Available)</div>
+                                <div style="color:#C62828; font-weight:bold; border-bottom:1px solid #fed7d7; margin-bottom:5px;">X (不参加)</div>
                                 <div style="font-size:12px;">${xNames.length ? xNames.join(', ') : 'None'}</div>
                             </div>
                         </div>
