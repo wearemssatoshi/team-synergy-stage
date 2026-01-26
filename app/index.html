@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v6.8';
+        const APP_VERSION = 'v7.0'; // Final Commercial Release
     </script>
     </script>
     <link
@@ -2347,21 +2347,41 @@
             ${adj.candidates.map((date, idx) => {
                     const dateStr = date.start;
                     const myVote = adj.responses[profile.name]?.[dateStr] || '-';
-                    // Count votes
-                    let o = 0, x = 0, d = 0;
-                    Object.values(adj.responses).forEach(r => {
-                        if (r[dateStr] === 'O') o++;
-                        else if (r[dateStr] === 'X') x++;
-                        else if (r[dateStr] === '△') d++;
+                    // Breakdown for Accordion
+                    let oNames = [], dNames = [], xNames = [];
+                    Object.entries(adj.responses).forEach(([name, votes]) => {
+                        if (votes[dateStr] === 'O') oNames.push(name);
+                        else if (votes[dateStr] === '△') dNames.push(name);
+                        else if (votes[dateStr] === 'X') xNames.push(name);
                     });
+                    const o = oNames.length;
+                    const d = dNames.length;
+                    const x = xNames.length;
 
                     return `
             <div
-                style="display:flex;align-items:center;justify-content:space-between;background:#f9f9f9;padding:5px;border-radius:4px;">
-                <div style="font-size:11px;">
-                    ${new Date(date.start).toLocaleString()}
-                    <div style="font-size:9px;color:#aaa;">O:${o} △:${d} X:${x}</div>
+                style="display:block;background:#f9f9f9;padding:8px;border-radius:6px;margin-bottom:5px;">
+                <div style="display:flex;align-items:center;justify-content:space-between; margin-bottom:5px;">
+                    <div style="font-size:12px; font-weight:bold;">
+                        ${new Date(date.start).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </div>
                 </div>
+
+                <details style="font-size:11px; color:#555; cursor:pointer;">
+                    <summary style="outline:none; list-style:none; display:flex; gap:10px; align-items:center;">
+                        <span style="color:#2E7D32;">O ${o}</span>
+                        <span style="color:#F9A825;">△ ${d}</span>
+                        <span style="color:#C62828;">X ${x}</span>
+                        <span style="margin-left:auto; font-size:10px; color:#aaa;">▼詳細</span>
+                    </summary>
+                    <div style="padding-top:8px; border-top:1px dashed #ddd; margin-top:5px; line-height:1.6;">
+                        ${o > 0 ? `<div style="display:flex;"><span style="color:#2E7D32;width:15px;font-weight:bold;">O</span> ${oNames.join(', ')}</div>` : ''}
+                        ${d > 0 ? `<div style="display:flex;"><span style="color:#F9A825;width:15px;font-weight:bold;">△</span> ${dNames.join(', ')}</div>` : ''}
+                        ${x > 0 ? `<div style="display:flex;"><span style="color:#C62828;width:15px;font-weight:bold;">X</span> ${xNames.join(', ')}</div>` : ''}
+                    </div>
+                </details>
+
+                <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:5px;">
 
                 ${!isFinalized ? `
                 <div style="display:flex;gap:2px;">
@@ -2437,12 +2457,12 @@
                 if (res.success) {
                     alert('Schedule Finalized & Invites Sent!');
                     fetchAdjustments();
-                    // FORCE SYNC CALENDAR
+                    // FORCE SYNC CALENDAR with Delay to allow backend sync
                     if (typeof calendar !== 'undefined' && calendar) {
-                        calendar.refetchEvents();
-                        // Also trigger manual refresh of list just in case
-                        // (calendar refetch usually handles this via its callback)
-                        console.log('Calendar refetched after finalization');
+                        setTimeout(() => {
+                            calendar.refetchEvents();
+                            console.log('Calendar refetched after finalization delay');
+                        }, 1500); // 1.5s delay
                     }
                 } else alert('Error: ' + res.error);
             });
@@ -2533,6 +2553,11 @@
         }
 
         function forceUpdate() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (let registration of registrations) { registration.unregister(); }
+                });
+            }
             const url = new URL(window.location.href);
             url.searchParams.set('v', Date.now());
             window.location.href = url.toString();
@@ -3686,9 +3711,9 @@
         </div>
         <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
         <div class="post-actions">
-            <div class="post-action ${canLike ? '' : 'disabled'}" onclick="likePost(${post.id})"
-                style="${canLike ? '' : 'opacity:0.5;cursor:default;'}">
-                ❤️ ${post.likes} <span style="font-size:10px;margin-left:4px;">(You: ${myCount}/10)</span>
+            <div class="post-action" onclick="likePost(${post.id})">
+                <span style="${myCount > 0 ? 'color:var(--danger);' : ''}">❤️</span> ${post.likes} 
+                <span style="font-size:10px;margin-left:4px;color:#aaa;">(You: ${myCount})</span>
             </div>
             <div class="post-action" onclick="togglePostComments(${post.id})">
                 💬 <span style="font-size:12px;">${(post.comments || []).length}</span>

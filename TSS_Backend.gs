@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v6.8'; // Global Version
+const APP_VERSION = 'v7.0'; // Final Commercial Release
 
 function doPost(e) {
   try {
@@ -2125,15 +2125,15 @@ function handleAttendance(ss, data) {
     dateStr
   ]);
   
-  // Award Tokens (0 Tokens - User Request: "No Incentive")
-  const bonus = 0; 
-  // const result = addTokensToUser(ss, data.user, bonus, 'attendance', description); // Skipped
+  // Award Tokens (5 Tokens - User Request: Incentivize Check-In)
+  const bonus = 5; 
+  const result = addTokensToUser(ss, data.user, bonus, 'attendance', `${type === 'check_in' ? 'Check-In' : 'Check-Out'} Bonus`);
   
   return createResponse({
     success: true,
     message: `${type === 'check_in' ? 'Check-In' : 'Check-Out'} Complete!`,
-    tokensEarned: 0,
-    newBalance: 0 // No change
+    tokensEarned: bonus,
+    newBalance: result // New balance
   });
 }
 
