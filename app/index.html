@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.5'; // UX Restoration: Compact List View
+        const APP_VERSION = 'v7.7'; // UX Improvement: Day View & Strict Versioning
     </script>
     </script>
     <link
@@ -4423,7 +4423,7 @@
                         });
                 },
                 dateClick: function (info) {
-                    openAddEventModal(info.dateStr);
+                    openDayView(info.dateStr);
                 },
                 eventClick: function (info) {
                     // Refined Interaction: Detail Modal
@@ -4738,6 +4738,82 @@
                         }, 1000);
                     }
                 });
+        }
+
+        // ============ DAY VIEW MODAL (v7.7) ============
+        function openDayView(dateStr) {
+            // Get events for this day
+            const startOfDay = new Date(dateStr);
+            const endOfDay = new Date(dateStr);
+            endOfDay.setDate(endOfDay.getDate() + 1);
+
+            const allEvents = calendar.getEvents();
+            const dayEvents = allEvents.filter(e => {
+                // Simple date overlap check (assuming all-day events mostly)
+                const eStart = e.start;
+                // If it's all day, e.end might be next day 00:00
+                return eStart >= startOfDay && eStart < endOfDay;
+            });
+
+            // Sort by creation or title (FullCalendar default sort might be enough)
+            // dayEvents.sort(...)
+
+            const dateDisplay = new Date(dateStr).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+
+            let eventsHtml = '';
+            if (dayEvents.length === 0) {
+                eventsHtml = '<div style="text-align:center; color:#999; padding:20px; font-size:12px;">No events for this day.</div>';
+            } else {
+                eventsHtml = dayEvents.map(e => {
+                    const props = e.extendedProps;
+                    let typeColor = 'var(--primary)';
+                    if (props.type === 'personal') typeColor = '#4A90E2';
+                    if (props.type === 'official') typeColor = '#1a1a1a';
+
+                    // Reconstruct event for handlers
+                    const eventObj = JSON.stringify({
+                        id: e.id,
+                        title: e.title,
+                        start: e.start,
+                        extendedProps: { author: props.author, type: props.type }
+                    }).replace(/"/g, '&quot;');
+
+                    return `
+                    <div onclick="openDetailFromList(this)" data-event="${eventObj}"
+                        style="display:flex; align-items:center; background:#f9f9f9; padding:10px; margin-bottom:8px; border-radius:8px; border-left:4px solid ${typeColor}; cursor:pointer;">
+                        <div style="flex:1;">
+                            <div style="font-size:13px; font-weight:600; color:#333;">${escapeHtml(e.title)}</div>
+                            <div style="font-size:10px; color:#666;">👤 ${escapeHtml(props.author || '')}</div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+
+            const modalHtml = `
+                <div id="dayViewModal" class="modal-overlay" style="display:flex; justify-content:center; align-items:flex-end;">
+                  <div class="modal-content" style="width:100%; max-width:100%; border-radius:16px 16px 0 0; animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1); padding-bottom:30px;">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div style="font-size:16px; font-weight:bold; color:var(--text-dark);">${dateDisplay}</div>
+                        <button onclick="document.getElementById('dayViewModal').remove()" style="background:none; border:none; font-size:20px; color:#999;">&times;</button>
+                    </div>
+
+                    <div style="max-height:50vh; overflow-y:auto; margin-bottom:15px;">
+                        ${eventsHtml}
+                    </div>
+
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-main" onclick="document.getElementById('dayViewModal').remove(); openAddEventModal('${dateStr}');">
+                            + ADD EVENT
+                        </button>
+                    </div>
+                  </div>
+                </div>
+            `;
+
+            document.getElementById('dayViewModal')?.remove();
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
         function saveCalendarEvents() {
