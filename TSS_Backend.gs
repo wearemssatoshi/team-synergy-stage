@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.15'; // Fix: Calendar Stability (Sort & Clean)
+const APP_VERSION = 'v7.16'; // Fix: Check-in Localization & Stability
 
 function doPost(e) {
   try {
@@ -2150,35 +2150,42 @@ function getUserEmails(ss, names) {
 // ============ ATTENDANCE HANDLERS ============
 
 function handleAttendance(ss, data) {
-  let sheet = ss.getSheetByName('TSS_Attendance');
-  if (!sheet) {
-    sheet = ss.insertSheet('TSS_Attendance');
-    sheet.getRange(1, 1, 1, 4).setValues([['Timestamp', 'User', 'Type', 'Date']]); // Date for easier daily processing
-    sheet.getRange(1, 1, 1, 4).setFontWeight('bold');
+  try {
+    let sheet = ss.getSheetByName('TSS_Attendance');
+    if (!sheet) {
+      sheet = ss.insertSheet('TSS_Attendance');
+      sheet.getRange(1, 1, 1, 4).setValues([['Timestamp', 'User', 'Type', 'Date']]); // Date for easier daily processing
+      sheet.getRange(1, 1, 1, 4).setFontWeight('bold');
+    }
+    
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ja-JP'); // YYYY/MM/DD
+    const type = data.type || 'check_in'; // check_in or check_out
+    
+    // Log Attendance
+    sheet.appendRow([
+      now.toISOString(),
+      data.user,
+      type,
+      dateStr
+    ]);
+    
+    // Award Tokens (5 Tokens - User Request: Incentivize Check-In)
+    const bonus = 5; 
+    const logDesc = type === 'check_in' ? 'チェックインボーナス' : 'チェックアウト記録'; 
+    const result = addTokensToUser(ss, data.user, bonus, 'attendance', logDesc);
+    
+    const displayMsg = type === 'check_in' ? 'チェックインしました！' : 'チェックアウトしました！';
+
+    return createResponse({
+      success: true,
+      message: displayMsg,
+      tokensEarned: bonus,
+      newBalance: result // New balance
+    });
+  } catch (e) {
+    return createResponse({ error: 'Check-in Error: ' + e.message });
   }
-  
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('ja-JP'); // YYYY/MM/DD
-  const type = data.type || 'check_in'; // check_in or check_out
-  
-  // Log Attendance
-  sheet.appendRow([
-    now.toISOString(),
-    data.user,
-    type,
-    dateStr
-  ]);
-  
-  // Award Tokens (5 Tokens - User Request: Incentivize Check-In)
-  const bonus = 5; 
-  const result = addTokensToUser(ss, data.user, bonus, 'attendance', `${type === 'check_in' ? 'Check-In' : 'Check-Out'} Bonus`);
-  
-  return createResponse({
-    success: true,
-    message: `${type === 'check_in' ? 'Check-In' : 'Check-Out'} Complete!`,
-    tokensEarned: bonus,
-    newBalance: result // New balance
-  });
 }
 
 function handleDeleteAdjustment(ss, data) {
