@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.14'; // Fix: Schedule Render Error
+const APP_VERSION = 'v7.15'; // Fix: Calendar Stability (Sort & Clean)
 
 function doPost(e) {
   try {
@@ -1267,6 +1267,9 @@ function getEvents(ss, params) {
       createdAt: row[0]
     });
   }
+  
+  // Sort by Date (Guarantee Stability)
+  events.sort((a, b) => new Date(a.start) - new Date(b.start));
   
   return createResponse({ events });
 }

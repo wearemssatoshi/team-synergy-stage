@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.14'; // Fix: Schedule Render Error
+        const APP_VERSION = 'v7.15'; // Fix: Calendar Stability (Sort & Clean)
     </script>
     </script>
     <link
@@ -4514,16 +4514,21 @@
                             successCallback(mapped);
                         })
                         .catch(e => {
-                            console.error('Calendar Sync Error', e);
+                            console.warn('Calendar Sync Error - Using Cache', e);
                             const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
+
+                            // UX: Notify user if using cache (Stale Data)
+                            showTokenEarned(0, '⚠️ Offline Mode: Using Cached Schedule');
+
                             renderMonthlyEventsList(cached);
 
                             const mappedCached = cached.map(e => ({
                                 id: e.id,
-                                title: e.title,
+                                title: (e.type === 'personal' ? '🔒 ' : '') + e.title,
                                 start: e.start,
-                                allDay: e.allDay || true,
-                                extendedProps: { author: e.author, type: e.type }
+                                allDay: e.allDay !== false, // Strict
+                                classNames: [e.type === 'personal' ? 'type-personal' : (e.type === 'official' ? 'type-official' : 'type-shared')],
+                                extendedProps: { author: e.author, type: e.type, description: e.description || '' }
                             }));
                             successCallback(mappedCached);
                         });
