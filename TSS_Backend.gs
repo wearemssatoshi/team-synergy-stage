@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.2'; // Calendar Sync Perfection
+const APP_VERSION = 'v7.5'; // UX Restoration: Compact List View
 
 function doPost(e) {
   try {

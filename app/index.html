@@ -2558,7 +2558,10 @@
                     if (res.version) {
                         const el = document.getElementById('versionDisplay');
                         if (el) el.textContent = `v${res.version} (Latest)`;
-                        if (res.version !== APP_VERSION) {
+                        const serverVer = parseFloat(res.version.replace('v', ''));
+                        const localVer = parseFloat(APP_VERSION.replace('v', ''));
+
+                        if (serverVer > localVer) {
                             if (confirm(`New Version (${res.version}) Available. Update?`)) {
                                 forceUpdate();
                             }
