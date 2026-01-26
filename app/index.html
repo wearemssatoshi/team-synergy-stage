@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.2'; // Calendar Sync Perfection
+        const APP_VERSION = 'v7.3'; // UX Polish: Vote Modal & Sync Scroll
     </script>
     </script>
     <link
@@ -2367,19 +2367,15 @@
                     </div>
                 </div>
 
-                <details style="font-size:11px; color:#555; cursor:pointer;">
-                    <summary style="outline:none; list-style:none; display:flex; gap:10px; align-items:center;">
-                        <span style="color:#2E7D32;">O ${o}</span>
-                        <span style="color:#F9A825;">△ ${d}</span>
-                        <span style="color:#C62828;">X ${x}</span>
-                        <span style="margin-left:auto; font-size:10px; color:#aaa;">▼詳細</span>
-                    </summary>
-                    <div style="padding-top:8px; border-top:1px dashed #ddd; margin-top:5px; line-height:1.6;">
-                        ${o > 0 ? `<div style="display:flex;"><span style="color:#2E7D32;width:15px;font-weight:bold;">O</span> ${oNames.join(', ')}</div>` : ''}
-                        ${d > 0 ? `<div style="display:flex;"><span style="color:#F9A825;width:15px;font-weight:bold;">△</span> ${dNames.join(', ')}</div>` : ''}
-                        ${x > 0 ? `<div style="display:flex;"><span style="color:#C62828;width:15px;font-weight:bold;">X</span> ${xNames.join(', ')}</div>` : ''}
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; border-top:1px dashed #eee; padding-top:5px;">
+                    <button onclick='showVoteDetailsModal("${dateStr}", ${JSON.stringify(oNames)}, ${JSON.stringify(dNames)}, ${JSON.stringify(xNames)})' 
+                        style="background:none; border:none; color:var(--primary); font-size:11px; cursor:pointer; padding:0; text-decoration:underline;">
+                        ▼ 詳細 (Details)
+                    </button>
+                    <div style="font-size:10px; color:#aaa;">
+                        <span style="color:#2E7D32;">O ${o}</span> / <span style="color:#F9A825;">△ ${d}</span> / <span style="color:#C62828;">X ${x}</span>
                     </div>
-                </details>
+                </div>
 
                 <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:5px;">
 
@@ -2457,6 +2453,10 @@
                 if (res.success) {
                     alert('Schedule Finalized! (Calendar updated)');
                     fetchAdjustments();
+
+                    // Scroll to Calendar for immediate feedback
+                    const calEl = document.getElementById('calendar-container');
+                    if (calEl) calEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                     // 1. Client-Side Injection (Zero Latency)
                     if (typeof calendar !== 'undefined' && calendar) {
@@ -4570,12 +4570,40 @@
 
             // Remove existing modal if any
             document.getElementById('eventDetailModal')?.remove();
-
             document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-            // Attach event object to valid scope if needed, or just handle delete by ID
-            // For 'remove()', we need reference. Let's just use ID for now.
         }
+
+        function showVoteDetailsModal(dateStr, oNames, dNames, xNames) {
+            const modalHtml = `
+                <div id="voteDetailModal" class="modal-overlay" style="display:flex;">
+                    <div class="modal-content">
+                        <div class="modal-header">VOTE DETAILS</div>
+                        <div style="text-align:center; font-weight:bold; margin-bottom:15px;">${dateStr}</div>
+                        
+                        <div style="display:grid; gap:10px;">
+                            <div style="background:#f0fff4; padding:10px; border-radius:8px;">
+                                <div style="color:#2E7D32; font-weight:bold; border-bottom:1px solid #c6f6d5; margin-bottom:5px;">O (Participating)</div>
+                                <div style="font-size:12px;">${oNames.length ? oNames.join(', ') : 'None'}</div>
+                            </div>
+                            <div style="background:#fffaf0; padding:10px; border-radius:8px;">
+                                <div style="color:#F9A825; font-weight:bold; border-bottom:1px solid #feebc8; margin-bottom:5px;">△ (Maybe)</div>
+                                <div style="font-size:12px;">${dNames.length ? dNames.join(', ') : 'None'}</div>
+                            </div>
+                            <div style="background:#fff5f5; padding:10px; border-radius:8px;">
+                                <div style="color:#C62828; font-weight:bold; border-bottom:1px solid #fed7d7; margin-bottom:5px;">X (Not Available)</div>
+                                <div style="font-size:12px;">${xNames.length ? xNames.join(', ') : 'None'}</div>
+                            </div>
+                        </div>
+
+                        <button class="btn-secondary" style="margin-top:20px;" onclick="document.getElementById('voteDetailModal').remove()">CLOSE</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('voteDetailModal')?.remove();
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+
 
         function deleteEventConfirmed(eventId) {
             if (!confirm('本当にこの予定を削除しますか？')) return;
