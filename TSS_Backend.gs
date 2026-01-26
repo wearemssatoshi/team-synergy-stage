@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.10'; // Fix: Post Like ID Mismatch
+const APP_VERSION = 'v7.11'; // Feature: Server-Side Like Persistence
 
 function doPost(e) {
   try {
@@ -286,8 +286,8 @@ function handlePost(ss, data) {
   let sheet = ss.getSheetByName('TSS_Posts');
   if (!sheet) {
     sheet = ss.insertSheet('TSS_Posts');
-    sheet.getRange(1, 1, 1, 5).setValues([['Timestamp', 'Author', 'Content', 'Likes', 'PostId']]);
-    sheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'Author', 'Content', 'Likes', 'PostId', 'Likers']]);
+    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
   }
   
   const postId = Date.now();
@@ -296,7 +296,8 @@ function handlePost(ss, data) {
     data.author,
     data.content,
     0,
-    postId
+    postId,
+    '[]' // Initial Likers list
   ];
   
   sheet.appendRow(row);
@@ -636,7 +637,15 @@ function getPosts(ss) {
     
     // Unified ID key for frontend
     obj['id'] = String(obj['postid'] || ''); 
-    obj['likes'] = Number(obj['likes'] || 0);
+    
+    // Parse Likers
+    let likers = [];
+    try {
+        likers = JSON.parse(row[5] || '[]'); // Col 6 is Likers
+    } catch(e) {}
+    
+    obj['likedBy'] = likers;
+    obj['likes'] = likers.length > 0 ? likers.length : Number(obj['likes'] || 0); // Trust valid likers list count if available
 
     // Add user info
     const info = userInfo[obj['author']] || {};
@@ -771,31 +780,55 @@ function handleLike(ss, data) {
     const sheetName = type === 'announcement' ? 'TSS_Announcements' : 'TSS_Posts';
     const idColIndex = type === 'announcement' ? 3 : 4; 
     const likesColIndex = type === 'announcement' ? 5 : 3; 
+    const likersColIndex = type === 'announcement' ? -1 : 5; // Post only for now (Col 6)
     
     const sheet = ss.getSheetByName(sheetName);
     if (!sheet) return createResponse({ error: 'Sheet not found' });
     
     // Ensure ID is treated as string for comparison
     const targetId = String(data.postId || data.id || ''); 
+    const liker = data.user || 'Anonymous';
+    
     if (!targetId) return createResponse({ error: 'No ID provided' });
 
     const allData = sheet.getDataRange().getValues();
     
     for (let i = 1; i < allData.length; i++) {
-      // Force string comparison for column 5 (PostId)
+      // Force string comparison for PostId
       const rowId = String(allData[i][idColIndex]);
       
       if (rowId === targetId) {
-        const currentLikes = Number(allData[i][likesColIndex] || 0);
+        let currentLikes = Number(allData[i][likesColIndex] || 0);
         const author = allData[i][type === 'announcement' ? 4 : 1];
         
-        // 1. Update total likes
-        sheet.getRange(i + 1, likesColIndex + 1).setValue(currentLikes + 1);
+        // --- Persistence Logic (Posts only for now) ---
+        if (type === 'post' && likersColIndex > 0) {
+            let likers = [];
+            try {
+                likers = JSON.parse(allData[i][likersColIndex] || '[]');
+            } catch(e) {}
+            
+            // Add if unique
+            if (!likers.includes(liker)) {
+                likers.push(liker);
+                
+                // Update Sheet
+                sheet.getRange(i + 1, likersColIndex + 1).setValue(JSON.stringify(likers));
+                sheet.getRange(i + 1, likesColIndex + 1).setValue(likers.length); // Sync count
+                currentLikes = likers.length;
+            } else {
+                 return createResponse({ success: true, likes: currentLikes, message: 'Already liked' });
+            }
+        } else {
+            // Simple logic for Announcements (Legacy/Simple)
+            sheet.getRange(i + 1, likesColIndex + 1).setValue(currentLikes + 1);
+            currentLikes++;
+        }
+        
         SpreadsheetApp.flush(); // Ensure commit
         
         // 2. Award tokens
         if (type === 'post') {
-          const liker = data.user || 'Anonymous';
           const existingRewards = countRewardInstances(ss, liker, 'like_bonus', targetId);
           if (existingRewards < 10) {
             addTokensToUser(ss, liker, 1, 'like_bonus', `Like Bonus (ID: ${targetId})`, targetId);
@@ -803,7 +836,7 @@ function handleLike(ss, data) {
           }
         }
         
-        return createResponse({ success: true, likes: currentLikes + 1 });
+        return createResponse({ success: true, likes: currentLikes });
       }
     }
     return createResponse({ error: 'Target ID not found: ' + targetId });

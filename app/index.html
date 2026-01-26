@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.10'; // Fix: Post Like ID Mismatch
+        const APP_VERSION = 'v7.11'; // Feature: Server-Side Like Persistence
     </script>
     </script>
     <link
@@ -3718,10 +3718,21 @@
         style="width:100%;height:100%;object-fit:cover;">`;
                 }
 
-                // Check my like count
-                const likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
-                const myCount = likedCounts[post.id] || 0;
-                const canLike = myCount < 10; return ` <div class="post-card">
+                // Check my like count (Server Logic Migration)
+                // Use "likedBy" array from server if available (v7.11)
+                const profile = getProfile();
+                const myName = profile ? profile.name : '';
+
+                let isLiked = false;
+                if (post.likedBy && Array.isArray(post.likedBy)) {
+                    isLiked = post.likedBy.includes(myName);
+                } else {
+                    // Fallback to legacy local storage check
+                    const likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
+                    isLiked = (likedCounts[post.id] || 0) > 0;
+                }
+
+                return ` <div class="post-card">
         <div class="post-header">
             <div class="post-avatar" style="overflow:hidden;">${avatarHtml}</div>
             <div class="post-meta">
@@ -3733,8 +3744,8 @@
         <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
         <div class="post-actions">
             <div class="post-action" onclick="likePost(${post.id})">
-                <span style="${myCount > 0 ? 'color:var(--danger);' : ''}">❤️</span> ${post.likes} 
-                <span style="font-size:10px;margin-left:4px;color:#aaa;">(You: ${myCount})</span>
+                <span style="${isLiked ? 'color:var(--danger);' : ''}">❤️</span> ${post.likes} 
+                <span style="font-size:10px;margin-left:4px;color:#aaa;">${isLiked ? '(Liked)' : ''}</span>
             </div>
             <div class="post-action" onclick="togglePostComments(${post.id})">
                 💬 <span style="font-size:12px;">${(post.comments || []).length}</span>
@@ -3792,24 +3803,31 @@
             }
 
             // 1. OPTIMISTIC UPDATE (Instant UI Feedback)
-            post.likes = (parseInt(post.likes) || 0) + 1;
-            likedCounts[id] = myCount + 1;
+            const profile = getProfile();
+            const myName = profile ? profile.name : 'Anonymous';
+
+            // Init likedBy if missing
+            if (!post.likedBy) post.likedBy = [];
+
+            // Avoid duplicates
+            if (post.likedBy.includes(myName)) {
+                // Already liked locally
+                // alert('すでにいいね済みです');
+                // return;
+            } else {
+                post.likedBy.push(myName);
+                post.likes = (parseInt(post.likes) || 0) + 1;
+            }
 
             // Save to LocalStorage immediately
             localStorage.setItem('tss_posts', JSON.stringify(posts));
-            localStorage.setItem('tss_liked_post_counts', JSON.stringify(likedCounts));
 
             // Re-render UI to show new count
             renderPosts();
 
-            // Reward ME (Sender) +1 Token for Approval Action (ONLY IF < 10)
-            if (myCount < 10) {
-                addTokens(1);
-                showTokenEarned(1, `Nice! Like (${myCount + 1}/10) ❤️`);
-            } else {
-                // Just visual feedback
-                // console.log('Like sent (No token)');
-            }
+            // Visual Token Feedback (Fake Check, backend handles real cap)
+            addTokens(1);
+            showTokenEarned(1, `Like Bonus! ❤️`);
 
             // 2. BACKEND SYNC (Background POST)
             try {
