@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.8'; // UX Improvement: Japanese Localization
+        const APP_VERSION = 'v7.9'; // Stability: Trust Local Sync
     </script>
     </script>
     <link
@@ -2478,7 +2478,8 @@
                         console.log('Event injected locally:', newEvent);
 
                         // 2. Background Sync (Safety Net)
-                        setTimeout(() => calendar.refetchEvents(), 3000);
+                        // Trust Local Strategy: Do NOT refresh immediately.
+                        // setTimeout(() => calendar.refetchEvents(), 3000);
                     }
                 } else alert('Error: ' + res.error);
             });
@@ -4722,10 +4723,11 @@
                         addTokens(1);
                         showTokenEarned(1, 'Schedule Added! 📅');
                         setTimeout(() => {
-                            if (calendar) {
-                                calendar.refetchEvents(); // Get real ID and update Sync
-                            }
-                            // Also refresh list view
+                            // Trust Local: Do NOT force refetch events immediately.
+                            // if (calendar) {
+                            //    calendar.refetchEvents(); 
+                            // }
+                            // Only refresh LIST VIEW since we added to Calendar locally
                             const evs = calendar.getEvents().map(e => ({
                                 id: e.id,
                                 title: e.title,
@@ -4735,7 +4737,7 @@
                                 type: e.extendedProps.type
                             }));
                             renderMonthlyEventsList(evs);
-                        }, 1000);
+                        }, 500);
                     }
                 });
         }
