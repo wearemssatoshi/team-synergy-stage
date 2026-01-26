@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.9'; // Stability: Trust Local Sync
+const APP_VERSION = 'v7.10'; // Fix: Post Like ID Mismatch
 
 function doPost(e) {
   try {

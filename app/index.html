@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.9'; // Stability: Trust Local Sync
+        const APP_VERSION = 'v7.10'; // Fix: Post Like ID Mismatch
     </script>
     </script>
     <link
@@ -3774,7 +3774,8 @@
         }
 
         async function likePost(id) {
-            const post = posts.find(p => p.id === id);
+            const targetId = String(id);
+            const post = posts.find(p => String(p.id) === targetId);
             if (!post) {
                 console.error("Post not found:", id);
                 return;
