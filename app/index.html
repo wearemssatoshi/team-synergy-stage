@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.1'; // Fix Comment JSON Content-Type
+        const APP_VERSION = 'v7.2'; // Calendar Sync Perfection
     </script>
     </script>
     <link
@@ -2455,14 +2455,30 @@
                 })
             }).then(r => r.json()).then(res => {
                 if (res.success) {
-                    alert('Schedule Finalized & Invites Sent!');
+                    alert('Schedule Finalized! (Calendar updated)');
                     fetchAdjustments();
-                    // FORCE SYNC CALENDAR with Delay to allow backend sync
+
+                    // 1. Client-Side Injection (Zero Latency)
                     if (typeof calendar !== 'undefined' && calendar) {
-                        setTimeout(() => {
-                            calendar.refetchEvents();
-                            console.log('Calendar refetched after finalization delay');
-                        }, 1500); // 1.5s delay
+                        // Construct local event immediately
+                        const newEvent = {
+                            id: res.calendarEventId || ('local-' + Date.now()),
+                            title: adj.title, // Use title from adjustment
+                            start: finalDate.start,
+                            end: finalDate.end, // Provided by candidate
+                            allDay: false,
+                            extendedProps: {
+                                author: getProfile().name,
+                                type: 'shared'
+                            },
+                            backgroundColor: '#1a1a1a',
+                            borderColor: '#1a1a1a'
+                        };
+                        calendar.addEvent(newEvent);
+                        console.log('Event injected locally:', newEvent);
+
+                        // 2. Background Sync (Safety Net)
+                        setTimeout(() => calendar.refetchEvents(), 3000);
                     }
                 } else alert('Error: ' + res.error);
             });
@@ -4489,6 +4505,25 @@
             showEventDetailModal(event);
         }
 
+
+        function createGCalLink(event) {
+            // Format dates YYYYMMDDTHHmmSSZ
+            const format = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+            // Assume 1 hour duration if no end date
+            const start = event.start;
+            let end = event.end;
+            if (!end) {
+                end = new Date(start.getTime() + 60 * 60 * 1000);
+            }
+
+            const title = encodeURIComponent(event.title);
+            const details = encodeURIComponent('Created via Team Synergy Stage App');
+            const dates = `${format(start)}/${format(end)}`;
+
+            return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
+        }
+
         function showEventDetailModal(event) {
             const props = event.extendedProps;
             const profile = getProfile();
@@ -4522,6 +4557,11 @@
                             <span style="font-size:14px;">🗑</span> CANCEL EVENT
                         </button>
                         ` : ''}
+
+                        <!-- Google Calendar Button -->
+                        <a href="${createGCalLink(event)}" target="_blank" class="btn-main" style="background:#4285F4; box-shadow:0 4px 15px rgba(66, 133, 244, 0.3); margin-top:10px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <span style="font-size:16px;">🗓</span> Add to Google Calendar
+                        </a>
 
                         <button class="btn-secondary" onclick="document.getElementById('eventDetailModal').remove()">CLOSE</button>
                     </div>
