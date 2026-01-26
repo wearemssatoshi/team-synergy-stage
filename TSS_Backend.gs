@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.12'; // Fix: Stop Infinite Tokens
+const APP_VERSION = 'v7.13'; // Upgrade: Schedule UI & Gamification
 
 function doPost(e) {
   try {
@@ -1817,7 +1817,15 @@ function handleSubmitVote(ss, data) {
           // Save back
           sheet.getRange(i + 1, 6).setValue(JSON.stringify(responses));
           
-          return createResponse({ success: true, message: 'Vote submitted' });
+          // --- Gamification: Participation Bonus (First Vote) ---
+          const existingRewards = countRewardInstances(ss, user, 'vote_bonus', targetId);
+          let tokenMsg = '';
+          if (existingRewards < 1) {
+             addTokensToUser(ss, user, 1, 'vote_bonus', `Vote Participation (ID: ${targetId})`, targetId);
+             tokenMsg = ' (+1 TSST)';
+          }
+
+          return createResponse({ success: true, message: 'Vote submitted' + tokenMsg, tokensEarned: existingRewards < 1 ? 1 : 0 });
         }
       }
       return createResponse({ error: 'Adjustment not found' });

@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.12'; // Fix: Stop Infinite Tokens
+        const APP_VERSION = 'v7.13'; // Upgrade: Schedule UI & Gamification
     </script>
     </script>
     <link
@@ -2313,97 +2313,177 @@
         function renderAdjustments() {
             const container = document.getElementById('adjustmentsList');
             if (currentAdjustments.length === 0) {
-                container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No active adjustments</div>';
+                container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#999;font-size:14px;">現在、調整中のスケジュールはありません。<br>右上の＋ボタンから作成してみましょう！</div>';
                 return;
             }
 
             const profile = getProfile();
 
-            container.innerHTML = currentAdjustments.map(adj => {
+            // === Smart Sorting ===
+            // 1. Active (Adjusting) & My Vote Needed
+            // 2. Active (Adjusting) & Voted
+            // 3. Finalized (Bottom)
+            const sortedAdjustments = [...currentAdjustments].sort((a, b) => {
+                if (a.status !== b.status) {
+                    return a.status === 'adjusting' ? -1 : 1; // Active first
+                }
+                const aVoted = a.responses[profile.name] && Object.keys(a.responses[profile.name]).length > 0;
+                const bVoted = b.responses[profile.name] && Object.keys(b.responses[profile.name]).length > 0;
+                if (aVoted !== bVoted) return aVoted ? 1 : -1; // Unvoted first
+                return new Date(b.timestamp) - new Date(a.timestamp); // Newer first
+            });
+
+            container.innerHTML = sortedAdjustments.map(adj => {
                 const isAuthor = adj.author === profile.name;
                 const isFinalized = adj.status === 'finalized';
 
+                // Card Style
+                const bgStyle = isFinalized
+                    ? 'background: linear-gradient(135deg, #FFFDE7 0%, #FFFFFF 100%); border: 1px solid #FBC02D; opacity: 0.9;'
+                    : 'background: #fff; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.03);';
+
                 return `
-    <div class="card" style="padding:15px; background: ${isFinalized ? 'linear-gradient(135deg, #FFF9C4 0%, #FFFDE7 100%)' : '#fff'}; border: ${isFinalized ? '2px solid #FBC02D' : '1px solid #eee'};">
-        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-            <div>
-                <div style="font-weight:bold;color:var(--primary);">${adj.title}</div>
-                <div style="font-size:10px;color:#666;">作成者: ${adj.author}</div>
-            </div>
-            <div style="display:flex; gap:5px; align-items:center;">
-                ${isAuthor ? `<button onclick="deleteAdjustment('${adj.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;opacity:0.6;" title="Delete">🗑️</button>` : ''}
-                <div
-                    style="font-size:10px;padding:2px 8px;border-radius:10px;height:fit-content; border:1px solid ${isFinalized ? '#F57F17' : 'orange'}; background: ${isFinalized ? '#FBC02D' : 'transparent'}; color:${isFinalized ? '#fff' : 'orange'}; font-weight: 800;">
-                    ${isFinalized ? '決定済み' : '調整中'}
+    <div class="card" style="padding:0; overflow:hidden; border-radius:12px; margin-bottom:16px; ${bgStyle} transition: transform 0.2s;">
+        <!-- Header -->
+        <div style="padding:15px 15px 10px; border-bottom:1px solid ${isFinalized ? '#FFF9C4' : '#f5f5f5'}; display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="flex:1;">
+                <div style="font-size:16px; font-weight:bold; color:var(--text-dark); margin-bottom:4px; line-height:1.4;">${escapeHtml(adj.title)}</div>
+                <div style="font-size:11px; color:#888; display:flex; align-items:center; gap:6px;">
+                    <span style="background:#f0f0f0; padding:2px 6px; border-radius:4px;">作成: ${escapeHtml(adj.author)}</span>
+                    ${isFinalized ? '<span style="color:#F57F17; font-weight:bold;">● 決定済み</span>' : '<span style="color:var(--success); font-weight:bold;">● 調整中</span>'}
                 </div>
             </div>
+            
+             ${isAuthor ? `
+            <div style="margin-left:10px;">
+                <button onclick="deleteAdjustment('${adj.id}')" style="background:#fee; color:#c00; border:none; border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    🗑
+                </button>
+            </div>` : ''}
         </div>
 
-        ${isFinalized ? `<div
-            style="background:#e6fffa;color:green;padding:5px;font-size:11px;border-radius:4px;margin-bottom:10px;">🎉
-            確定日時: ${new Date(adj.finalDate.start).toLocaleString()}</div>` : ''}
+        <!-- Result Banner (If Finalized) -->
+        ${isFinalized ? `
+        <div style="background:#FFF9C4; color:#F57F17; padding:8px 15px; font-size:13px; font-weight:bold; display:flex; align-items:center; gap:8px;">
+            🎉 確定日時: ${formatDateSimple(adj.finalDate.start)}
+        </div>` : ''}
 
-        <div style="display:grid;gap:5px;">
+        <!-- Candidates List -->
+        <div style="padding:15px;">
             ${adj.candidates
                         .filter(date => {
-                            // UX Improvement: Strict Filtering
-                            if (isFinalized) {
-                                return date.start === adj.finalDate.start;
-                            }
-                            // Filter out past dates (Keep only Future dates)
-                            return new Date(date.start) >= new Date();
+                            if (isFinalized) return date.start === adj.finalDate.start;
+                            return new Date(date.start) >= new Date(new Date().setHours(0, 0, 0, 0)); // Show today/future
                         })
                         .map((date, idx) => {
+                            const dateObj = new Date(date.start);
+                            const month = dateObj.getMonth() + 1;
+                            const day = dateObj.getDate();
+                            const weekDay = ['日', '月', '火', '水', '木', '金', '土'][dateObj.getDay()];
+                            const time = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
                             const dateStr = date.start;
+
+                            // My Vote
                             const myVote = adj.responses[profile.name]?.[dateStr] || '-';
-                            // Breakdown for Accordion
+
+                            // Group Votes
+                            let oCount = 0, dCount = 0, xCount = 0;
                             let oNames = [], dNames = [], xNames = [];
+
                             Object.entries(adj.responses).forEach(([name, votes]) => {
-                                if (votes[dateStr] === 'O') oNames.push(name);
-                                else if (votes[dateStr] === '△') dNames.push(name);
-                                else if (votes[dateStr] === 'X') xNames.push(name);
+                                if (votes[dateStr] === 'O') { oCount++; oNames.push(name); }
+                                else if (votes[dateStr] === '△') { dCount++; dNames.push(name); }
+                                else if (votes[dateStr] === 'X') { xCount++; xNames.push(name); }
                             });
-                            const o = oNames.length;
-                            const d = dNames.length;
-                            const x = xNames.length;
+
+                            const total = oCount + dCount + xCount;
+                            const max = total > 0 ? total : 1; // avoid divide by zero for simplified bar
+
+                            // Vote Bar HTML
+                            const barHtml = `
+                    <div style="display:flex; height:6px; width:100%; background:#f0f0f0; border-radius:3px; overflow:hidden; margin-top:6px;">
+                        <div style="width:${(oCount / max) * 100}%; background:var(--success);"></div>
+                        <div style="width:${(dCount / max) * 100}%; background:#FBC02D;"></div>
+                        <div style="width:${(xCount / max) * 100}%; background:#ef4444;"></div>
+                    </div>`;
 
                             return `
-            <div
-                style="display:flex;align-items:center;justify-content:space-between;background:#f9f9f9;padding:8px;border-radius:4px;margin-bottom:5px;">
-                <div>
-                    <div style="font-size:12px; font-weight:bold;">
-                        ${new Date(date.start).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            <div style="margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed #eee;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <!-- Calendar Icon -->
+                    <div style="background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px; width:44px; height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0;">
+                        <div style="font-size:10px; color:#666; font-weight:bold;">${month}/${day}</div>
+                        <div style="font-size:14px; font-weight:900; color:var(--text-dark);">(${weekDay})</div>
                     </div>
-                    <div onclick='showVoteDetailsModal("${dateStr}", ${JSON.stringify(oNames)}, ${JSON.stringify(dNames)}, ${JSON.stringify(xNames)})' 
-                         style="font-size:10px; color:#666; cursor:pointer; text-decoration:underline;">
-                        O:${o} △:${d} X:${x}
+                    
+                    <!-- Time & Status -->
+                    <div style="flex:1;">
+                        <div style="font-size:15px; font-weight:bold; color:#333; display:flex; align-items:center; gap:8px;">
+                             ${time} ～ 
+                             <span onclick='showVoteDetailsModal("${dateStr}", ${JSON.stringify(oNames)}, ${JSON.stringify(dNames)}, ${JSON.stringify(xNames)})' 
+                                   style="font-size:11px; background:#fff; border:1px solid #ddd; padding:2px 8px; border-radius:10px; cursor:pointer; font-weight:normal; color:#666;">
+                                   詳細 ▾
+                             </span>
+                        </div>
+                        ${barHtml}
+                        <div style="font-size:10px; color:#888; margin-top:3px; display:flex; gap:8px;">
+                            <span style="color:var(--success);">O ${oCount}</span>
+                            <span style="color:#FBC02D;">△ ${dCount}</span>
+                            <span style="color:#ef4444;">X ${xCount}</span>
+                        </div>
                     </div>
                 </div>
 
-
-
-                <div style="display:flex; align-items:center; gap:5px;">
-
+                <!-- My Action Buttons (Large) -->
                 ${!isFinalized ? `
-                <div style="display:flex;gap:2px;">
-                    <button onclick="submitVote('${adj.id}','${dateStr}','O')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote === 'O' ? '#ddd' : ''}">O</button>
-                    <button onclick="submitVote('${adj.id}','${dateStr}','△')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote === '△' ? '#ddd' : ''}">△</button>
-                    <button onclick="submitVote('${adj.id}','${dateStr}','X')" class="btn-secondary"
-                        style="width:25px;padding:2px;font-size:10px;background:${myVote === 'X' ? '#ddd' : ''}">X</button>
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    ${renderVoteBtn(adj.id, dateStr, 'O', '参加', myVote)}
+                    ${renderVoteBtn(adj.id, dateStr, '△', '未定', myVote)}
+                    ${renderVoteBtn(adj.id, dateStr, 'X', '不参加', myVote)}
                 </div>` : ''}
-
-                    ${!isFinalized && isAuthor ? `
-                    <button onclick="finalizeAdjustment('${adj.id}', ${idx})" 
-                        style="font-size:9px;padding:2px 6px;background:var(--primary);color:white;border:none;border-radius:4px;">確定</button>
-                    ` : ''}
+                
+                <!-- Author Finalize Action -->
+                ${!isFinalized && isAuthor ? `
+                <div style="margin-top:8px; text-align:right;">
+                     <button onclick="finalizeAdjustment('${adj.id}', ${idx})" 
+                        style="background:var(--primary); color:white; border:none; padding:6px 16px; font-size:11px; border-radius:20px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                        この日時で確定する
+                     </button>
                 </div>
+                ` : ''}
+
             </div>`;
                         }).join('')}
         </div>
     </div>`;
             }).join('');
+        }
+
+        // Helper for Vote Buttons
+        function renderVoteBtn(adjId, dateStr, type, label, currentVote) {
+            const isSelected = currentVote === type;
+            let color = '#666';
+            let bg = '#fff';
+            let border = '1px solid #ddd';
+
+            if (isSelected) {
+                if (type === 'O') { color = 'white'; bg = 'var(--success)'; border = 'none'; }
+                if (type === '△') { color = 'white'; bg = '#FBC02D'; border = 'none'; }
+                if (type === 'X') { color = 'white'; bg = '#ef4444'; border = 'none'; }
+            }
+
+            return `
+             <button onclick="submitVote('${adj.id}','${dateStr}','${type}')" 
+                style="flex:1; padding:8px 0; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer; transition:all 0.1s;
+                       color:${color}; background:${bg}; border:${border};">
+                ${type} ${label}
+             </button>
+             `;
+        }
+
+        function formatDateSimple(isoStr) {
+            const d = new Date(isoStr);
+            return `${d.getMonth() + 1}/${d.getDate()} (${['日', '月', '火', '水', '木', '金', '土'][d.getDay()]}) ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
         }
 
         function submitVote(adjId, dateStr, vote) {
@@ -2433,6 +2513,11 @@
                     user: profile.name,
                     votes: adj.responses[profile.name]
                 })
+            }).then(r => r.json()).then(res => {
+                if (res.tokensEarned && res.tokensEarned > 0) {
+                    addTokens(res.tokensEarned);
+                    showTokenEarned(res.tokensEarned, 'Participation Bonus! 🙌');
+                }
             });
         }
 
