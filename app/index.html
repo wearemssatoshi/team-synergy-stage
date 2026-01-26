@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.0'; // Final Commercial Release
+        const APP_VERSION = 'v7.1'; // Fix Comment JSON Content-Type
     </script>
     </script>
     <link
@@ -3642,8 +3642,9 @@
             // Send to Backend
             fetch(SCRIPT_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
+                // Removed headers to let browser detect (or use text/plain for GAS simple requests)
+                // but usually text/plain is safest for simple CORS
+                body: JSON.stringify({
                     action: 'comment',
                     postId: postId,
                     author: profile.name,
@@ -3796,7 +3797,6 @@
 
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify({
                             action: 'like',
                             postId: id,
