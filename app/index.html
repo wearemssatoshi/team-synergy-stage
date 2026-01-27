@@ -1385,16 +1385,56 @@
             /* Red for Sunday */
         }
 
-        /* Saturday column header */
+        /* Saturday column header - v9.2 Enhanced */
         .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
-            color: #93C5FD !important;
-            /* Light blue */
+            color: #3B82F6 !important;
+            font-weight: 700 !important;
         }
 
-        /* Sunday column header */
+        /* Sunday column header - v9.2 Enhanced */
         .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
-            color: #FCA5A5 !important;
-            /* Light red */
+            color: #EF4444 !important;
+            font-weight: 700 !important;
+        }
+
+        /* Saturday background highlight */
+        .fc-day-sat {
+            background: rgba(59, 130, 246, 0.03) !important;
+        }
+
+        /* Sunday background highlight */
+        .fc-day-sun {
+            background: rgba(239, 68, 68, 0.03) !important;
+        }
+
+        /* v9.2 Event Badge Style */
+        .fc-event {
+            font-size: 9px !important;
+            padding: 2px 6px !important;
+            border-radius: 10px !important;
+            margin: 1px 2px !important;
+            cursor: pointer !important;
+            transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+        }
+
+        .fc-event:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Event count badge for days with multiple events */
+        .fc-event-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #D4AF37, #B8960C);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 9px;
+            padding: 0 5px;
         }
 
         /* Other month days (faded) */
@@ -2185,7 +2225,7 @@
 
 
                 <div id="versionDisplay" class="version-badge"
-                    style="text-align: center; color: #aaa; font-size: 10px; margin-top: 20px;">TSS v9.1 / Powered by
+                    style="text-align: center; color: #aaa; font-size: 10px; margin-top: 20px;">TSS v9.2 / Powered by
                     WEAREMS for</div>
             </div>
         </div>
@@ -4313,26 +4353,52 @@
                 return;
             }
 
-            // Add like
+            // Optimistic UI update
             announcementLikes[id] = (announcementLikes[id] || 0) + 1;
             likedAnnouncements.push(id);
-
             localStorage.setItem('tss_announcement_likes', JSON.stringify(announcementLikes));
             localStorage.setItem('tss_liked_announcements', JSON.stringify(likedAnnouncements));
-
-            // Update display
             document.getElementById(`announcement-likes-${id}`).textContent = announcementLikes[id];
 
-            // Award 1 TSST for liking
-            addTokens(1);
-            showTokenEarned(1, 'Like Bonus! ❤️');
-
-            // Sync with Backend
+            // v9.2: Sync with Backend via POST
             if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
-                const profile = getProfile();
-                const userParam = profile ? `&user=${encodeURIComponent(profile.name)}` : '';
-                fetch(`${SCRIPT_URL}?action=like&id=${id}&type=announcement${userParam}`)
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'like',
+                        id: id,
+                        type: 'announcement',
+                        user: profile.name
+                    })
+                })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.success) {
+                            // Update with server truth
+                            if (res.likes) {
+                                announcementLikes[id] = res.likes;
+                                document.getElementById(`announcement-likes-${id}`).textContent = res.likes;
+                                localStorage.setItem('tss_announcement_likes', JSON.stringify(announcementLikes));
+                            }
+                            // Token feedback
+                            if (res.tokensAwarded) {
+                                addTokens(1);
+                                showTokenEarned(1, 'Like Bonus! ❤️');
+                            }
+                        } else if (res.message === 'Already liked') {
+                            // Server says already liked - sync state
+                            if (res.likes) {
+                                announcementLikes[id] = res.likes;
+                                document.getElementById(`announcement-likes-${id}`).textContent = res.likes;
+                            }
+                        }
+                    })
                     .catch(e => console.error('Announcement like sync failed:', e));
+            } else {
+                // Fallback for offline
+                addTokens(1);
+                showTokenEarned(1, 'Like Bonus! ❤️');
             }
         }
 
@@ -4446,11 +4512,30 @@
             // Try to fetch from backend
             if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
                 try {
-                    const res = await fetch(`${SCRIPT_URL}?action=announcements`);
+                    const res = await fetch(`${SCRIPT_URL}?action=announcements&_t=${Date.now()}`);
                     const data = await res.json();
                     if (data.announcements && Array.isArray(data.announcements)) {
                         announcements = data.announcements;
                         localStorage.setItem('tss_announcements', JSON.stringify(announcements));
+
+                        // v9.2: Sync likedBy from backend to localStorage
+                        const profile = getProfile();
+                        const myName = profile ? profile.name : null;
+
+                        announcements.forEach(ann => {
+                            // Sync like counts
+                            if (ann.likedBy) {
+                                announcementLikes[ann.id] = ann.likedBy.length;
+                            }
+                            // Mark as liked if my name is in likedBy
+                            if (myName && ann.likedBy && ann.likedBy.includes(myName)) {
+                                if (!likedAnnouncements.includes(ann.id)) {
+                                    likedAnnouncements.push(ann.id);
+                                }
+                            }
+                        });
+                        localStorage.setItem('tss_announcement_likes', JSON.stringify(announcementLikes));
+                        localStorage.setItem('tss_liked_announcements', JSON.stringify(likedAnnouncements));
                     }
                 } catch (e) {
                     console.log('Failed to fetch announcements, using cache');
@@ -4464,7 +4549,8 @@
                     author: 'TSS運営',
                     content: '🎉 TSSへようこそ！\nここにお知らせが表示されます。',
                     date: new Date().toISOString(),
-                    likes: 0
+                    likes: 0,
+                    likedBy: []
                 });
             }
 
@@ -4688,6 +4774,85 @@
                 dayCellContent: function (e) {
                     e.dayNumberText = e.dayNumberText.replace('日', '');
                     return { html: e.dayNumberText };
+                },
+                // v9.2: Event Click - Show details in modal
+                eventClick: function (info) {
+                    const event = info.event;
+                    const props = event.extendedProps || {};
+                    const typeLabel = props.type === 'personal' ? '🔒 プライベート' :
+                        props.type === 'official' ? '📢 運営' : '👥 共有';
+
+                    // Format date
+                    const date = new Date(event.start);
+                    const dateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+
+                    // Create modal
+                    const modal = document.createElement('div');
+                    modal.id = 'event-detail-modal';
+                    modal.style.cssText = `
+                        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                        background: rgba(0,0,0,0.6); display: flex; align-items: center;
+                        justify-content: center; z-index: 99999; backdrop-filter: blur(4px);
+                    `;
+                    modal.innerHTML = `
+                        <div style="background: white; padding: 24px; border-radius: 16px; max-width: 320px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <span style="font-size: 11px; padding: 4px 10px; border-radius: 12px; background: linear-gradient(135deg, #D4AF37, #B8960C); color: white; font-weight: 600;">${typeLabel}</span>
+                                <button onclick="this.closest('#event-detail-modal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">×</button>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #1a1a1a;">${event.title.replace(/^🔒 /, '')}</h3>
+                            <div style="display: flex; align-items: center; gap: 8px; color: #666; font-size: 13px; margin-bottom: 8px;">
+                                <span>📅</span> ${dateStr}
+                            </div>
+                            ${props.description ? `<p style="color: #555; font-size: 13px; line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;">${props.description}</p>` : ''}
+                            ${props.author ? `<div style="margin-top: 12px; font-size: 11px; color: #999;">作成者: ${props.author}</div>` : ''}
+                        </div>
+                    `;
+                    modal.addEventListener('click', (e) => { if (e.target.id === 'event-detail-modal') modal.remove(); });
+                    document.body.appendChild(modal);
+                },
+                // v9.2: Date Click - Show all events for that day
+                dateClick: function (info) {
+                    const clickedDate = info.dateStr;
+                    const events = calendar.getEvents().filter(e => {
+                        const eventDate = e.start.toISOString().split('T')[0];
+                        return eventDate === clickedDate;
+                    });
+
+                    if (events.length === 0) return;
+
+                    const dateObj = new Date(clickedDate);
+                    const dateLabel = `${dateObj.getMonth() + 1}月${dateObj.getDate()}日`;
+
+                    const modal = document.createElement('div');
+                    modal.id = 'day-events-modal';
+                    modal.style.cssText = `
+                        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                        background: rgba(0,0,0,0.6); display: flex; align-items: center;
+                        justify-content: center; z-index: 99999; backdrop-filter: blur(4px);
+                    `;
+                    modal.innerHTML = `
+                        <div style="background: white; padding: 24px; border-radius: 16px; max-width: 340px; width: 90%; max-height: 70vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h3 style="font-size: 16px; font-weight: 700; color: #1a1a1a;">📅 ${dateLabel} のイベント</h3>
+                                <button onclick="this.closest('#day-events-modal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">×</button>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                ${events.map(e => {
+                        const props = e.extendedProps || {};
+                        const typeIcon = props.type === 'personal' ? '🔒' : props.type === 'official' ? '📢' : '👥';
+                        return `
+                                        <div style="padding: 12px; background: #f8f9fa; border-radius: 10px; border-left: 3px solid ${props.type === 'personal' ? '#4A90D9' : props.type === 'official' ? '#1a1a1a' : '#D4AF37'};">
+                                            <div style="font-weight: 600; font-size: 13px; color: #333;">${typeIcon} ${e.title.replace(/^🔒 /, '')}</div>
+                                            ${props.description ? `<div style="font-size: 11px; color: #666; margin-top: 4px;">${props.description}</div>` : ''}
+                                        </div>
+                                    `;
+                    }).join('')}
+                            </div>
+                        </div>
+                    `;
+                    modal.addEventListener('click', (e) => { if (e.target.id === 'day-events-modal') modal.remove(); });
+                    document.body.appendChild(modal);
                 },
                 events: function (info, successCallback, failureCallback) {
                     const profile = getProfile();

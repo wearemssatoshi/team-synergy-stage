@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v9.1'; // v9.1 Profile Persistence Edition
+const APP_VERSION = 'v9.2'; // v9.2 Like Persistence + Calendar UI Edition
 
 function doPost(e) {
   try {
@@ -203,8 +203,8 @@ function handlePostAnnouncement(ss, data) {
   let sheet = ss.getSheetByName('TSS_Announcements');
   if (!sheet) {
     sheet = ss.insertSheet('TSS_Announcements');
-    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'Content', 'Attachments', 'AnnouncementId', 'Author', 'Likes']]);
-    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'Content', 'Attachments', 'AnnouncementId', 'Author', 'Likes', 'Likers']]);
+    sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
   }
   
   const id = Date.now();
@@ -216,7 +216,8 @@ function handlePostAnnouncement(ss, data) {
     attachments,
     id,
     data.author || 'TSS運営',
-    0 // Likes
+    0, // Likes
+    '[]' // Likers - v9.2 Persistence
   ];
   
   sheet.appendRow(row);
@@ -235,13 +236,20 @@ function getAnnouncements(ss) {
       attachments = JSON.parse(row[2]);
     } catch (e) {}
     
+    // Parse Likers for v9.2 persistence
+    let likers = [];
+    try {
+      likers = JSON.parse(row[6] || '[]');
+    } catch (e) {}
+    
     return {
       date: row[0],
       content: row[1],
       attachments: attachments,
       id: row[3],
       author: row[4] || 'TSS運営',
-      likes: row[5] || 0
+      likes: likers.length > 0 ? likers.length : (row[5] || 0),
+      likedBy: likers // v9.2: Return who liked for frontend
     };
   });
   
@@ -800,7 +808,7 @@ function handleLike(ss, data) {
     const sheetName = type === 'announcement' ? 'TSS_Announcements' : 'TSS_Posts';
     const idColIndex = type === 'announcement' ? 3 : 4; 
     const likesColIndex = type === 'announcement' ? 5 : 3; 
-    const likersColIndex = type === 'announcement' ? -1 : 5; // Post only for now (Col 6)
+    const likersColIndex = type === 'announcement' ? 6 : 5; // v9.2: Both have Likers column now
     
     const sheet = ss.getSheetByName(sheetName);
     if (!sheet) return createResponse({ error: 'Sheet not found' });
@@ -821,42 +829,36 @@ function handleLike(ss, data) {
         let currentLikes = Number(allData[i][likesColIndex] || 0);
         const author = allData[i][type === 'announcement' ? 4 : 1];
         
-        // --- Persistence Logic (Posts only for now) ---
-        if (type === 'post' && likersColIndex > 0) {
-            let likers = [];
-            try {
-                likers = JSON.parse(allData[i][likersColIndex] || '[]');
-            } catch(e) {}
+        // --- v9.2 Persistence Logic (Both Posts and Announcements) ---
+        let likers = [];
+        try {
+            likers = JSON.parse(allData[i][likersColIndex] || '[]');
+        } catch(e) {}
+        
+        // Add if unique
+        if (!likers.includes(liker)) {
+            likers.push(liker);
             
-            // Add if unique
-            if (!likers.includes(liker)) {
-                likers.push(liker);
-                
-                // Update Sheet
-                sheet.getRange(i + 1, likersColIndex + 1).setValue(JSON.stringify(likers));
-                sheet.getRange(i + 1, likesColIndex + 1).setValue(likers.length); // Sync count
-                currentLikes = likers.length;
-            } else {
-                 return createResponse({ success: true, likes: currentLikes, message: 'Already liked' });
-            }
+            // Update Sheet
+            sheet.getRange(i + 1, likersColIndex + 1).setValue(JSON.stringify(likers));
+            sheet.getRange(i + 1, likesColIndex + 1).setValue(likers.length); // Sync count
+            currentLikes = likers.length;
         } else {
-            // Simple logic for Announcements (Legacy/Simple)
-            sheet.getRange(i + 1, likesColIndex + 1).setValue(currentLikes + 1);
-            currentLikes++;
+             return createResponse({ success: true, likes: currentLikes, message: 'Already liked', likedBy: likers });
         }
         
         SpreadsheetApp.flush(); // Ensure commit
         
-        // 2. Award tokens
-        if (type === 'post') {
-          const existingRewards = countRewardInstances(ss, liker, 'like_bonus', targetId);
-          if (existingRewards < 10) {
-            addTokensToUser(ss, liker, 1, 'like_bonus', `Like Bonus (ID: ${targetId})`, targetId);
+        // 2. Award tokens (v9.2: Both Post and Announcement)
+        const existingRewards = countRewardInstances(ss, liker, 'like_bonus', targetId);
+        if (existingRewards < 10) {
+          addTokensToUser(ss, liker, 1, 'like_bonus', `Like Bonus (ID: ${targetId})`, targetId);
+          if (type === 'post') {
             addTokensToUser(ss, author, 1, 'like_received', `Post Liked (ID: ${targetId})`, targetId);
           }
         }
         
-        return createResponse({ success: true, likes: currentLikes });
+        return createResponse({ success: true, likes: currentLikes, likedBy: likers, tokensAwarded: existingRewards < 10 });
       }
     }
     return createResponse({ error: 'Target ID not found: ' + targetId });
