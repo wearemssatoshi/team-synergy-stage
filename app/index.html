@@ -1385,18 +1385,24 @@
             font-weight: 700 !important;
         }
 
-        /* Saturday column header - v9.3 VIVID */
-        .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
-            color: #1D4ED8 !important;
-            font-weight: 800 !important;
-            text-shadow: 0 0 1px rgba(29, 78, 216, 0.3);
+        /* Saturday column header - v9.3 VIVID with background */
+        .fc-col-header-cell.fc-day-sat {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
         }
 
-        /* Sunday column header - v9.3 VIVID */
-        .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
-            color: #DC2626 !important;
+        .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
+            color: #FFFFFF !important;
             font-weight: 800 !important;
-            text-shadow: 0 0 1px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Sunday column header - v9.3 VIVID with background */
+        .fc-col-header-cell.fc-day-sun {
+            background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+        }
+
+        .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
+            color: #FFFFFF !important;
+            font-weight: 800 !important;
         }
 
         /* Saturday background highlight - v9.3 VIVID */
