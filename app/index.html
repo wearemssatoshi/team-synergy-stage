@@ -1374,19 +1374,60 @@
             box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
         }
 
-        /* Weekend styling */
-        .fc-day-sat .fc-daygrid-day-number,
+        /* Weekend styling - Japanese Calendar Style */
+        .fc-day-sat .fc-daygrid-day-number {
+            color: #2563EB !important;
+            /* Blue for Saturday */
+        }
+
         .fc-day-sun .fc-daygrid-day-number {
-            color: #B8860B;
+            color: #DC2626 !important;
+            /* Red for Sunday */
+        }
+
+        /* Saturday column header */
+        .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
+            color: #93C5FD !important;
+            /* Light blue */
+        }
+
+        /* Sunday column header */
+        .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
+            color: #FCA5A5 !important;
+            /* Light red */
         }
 
         /* Other month days (faded) */
         .fc-day-other .fc-daygrid-day-number {
-            opacity: 0.3;
+            opacity: 0.25;
         }
 
         .fc-day-other {
-            background: rgba(245, 245, 245, 0.5) !important;
+            background: rgba(248, 248, 248, 0.4) !important;
+        }
+
+        /* Empty cell subtle enhancement - dot pattern background */
+        .fc-daygrid-day-events:empty::after {
+            content: '';
+            display: block;
+            height: 40px;
+        }
+
+        /* Subtle decoration for cells without events */
+        .fc-daygrid-day-frame {
+            position: relative;
+        }
+
+        .fc-daygrid-day:not(.fc-day-other) .fc-daygrid-day-events:empty::before {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: rgba(212, 175, 55, 0.15);
+            border-radius: 50%;
         }
 
         /* Events - COMPACT BADGE VIEW (v8.3) */
