@@ -3419,6 +3419,9 @@
                 const avatarEl = document.getElementById('profileAvatar');
                 avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
 
+                // Immediately update vision accordion photo
+                updateVisionDisplay();
+
                 // Backend Sync
                 syncProfileToBackend(profile);
 
