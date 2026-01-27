@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v8.6'; // v8.6 History Name Fix
+const APP_VERSION = 'v9.1'; // v9.1 Profile Persistence Edition
 
 function doPost(e) {
   try {
