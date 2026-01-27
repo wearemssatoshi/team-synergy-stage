@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v8.2'; // v8.2 Maintenance Edition
+const APP_VERSION = 'v8.6'; // v8.6 History Name Fix
 
 function doPost(e) {
   try {
@@ -733,17 +733,37 @@ function getStats(ss) {
   let recentActivity = [];
 
   if (logSheet) {
+      // Build userId -> userName mapping from TSS_Users
+      let userIdToName = {};
+      if (usersSheet) {
+          const userData = usersSheet.getDataRange().getValues().slice(1);
+          userData.forEach(row => {
+              const name = row[0];
+              const hashedId = row[1]; // Column B contains hashed userId
+              if (name && hashedId) {
+                  userIdToName[hashedId] = name;
+                  userIdToName[name] = name; // Also map name to itself
+              }
+          });
+      }
+      
       const logData = logSheet.getDataRange().getValues();
       const logs = logData.slice(1);
       const last20 = logs.slice(-20).reverse();
       
-      recentActivity = last20.map(row => ({
-          timestamp: row[0],
-          user: row[1],
-          amount: row[2],
-          action: row[3],
-          description: row[4] || ''
-      }));
+      recentActivity = last20.map(row => {
+          const rawUser = row[1];
+          // Resolve hashed ID to actual name, fallback to raw value
+          const userName = userIdToName[rawUser] || rawUser;
+          
+          return {
+              timestamp: row[0],
+              user: userName,
+              amount: row[2],
+              action: row[3],
+              description: row[4] || ''
+          };
+      });
   }
   
   return createResponse({
