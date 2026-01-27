@@ -2523,20 +2523,42 @@
 
         function finalizeAdjustment(adjId, dateIdx) {
             if (!confirm('この日時で確定しますか？')) return;
-            const adj = currentAdjustments.find(a => a.id === adjId);
+
+            // Fix: Use String comparison to handle ID type mismatch
+            const adj = currentAdjustments.find(a => String(a.id) === String(adjId));
+
+            if (!adj) {
+                alert('エラー: 調整データが見つかりません。ページを再読み込みしてください。');
+                return;
+            }
+
             const finalDate = adj.candidates[dateIdx];
+
+            if (!finalDate) {
+                alert('エラー: 日程データが見つかりません。');
+                return;
+            }
+
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '処理中...';
+            btn.disabled = true;
 
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     action: 'finalizeAdjustment',
-                    adjustmentId: adjId,
+                    adjustmentId: String(adjId),
                     finalDate: finalDate
                 })
             }).then(r => r.json()).then(res => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+
                 if (res.success) {
-                    alert('日程が確定しました！(カレンダーに反映されました)');
+                    alert('🎉 日程が確定しました！カレンダーに追加されました。');
                     fetchAdjustments();
 
                     // Scroll to Calendar for immediate feedback
