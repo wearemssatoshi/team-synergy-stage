@@ -3521,6 +3521,45 @@
             if (screenId === 'screen-schedule' && typeof fetchAdjustments === 'function') {
                 fetchAdjustments();
             }
+
+            // v9.2: Sync profile image from backend when opening profile screen
+            if (screenId === 'screen-profile') {
+                syncProfileImageFromBackend();
+            }
+        }
+
+        // v9.2: Fetch latest profile image from backend
+        async function syncProfileImageFromBackend() {
+            const profile = getProfile();
+            if (!profile || !profile.name || !profile.pin) return;
+
+            try {
+                const url = `${SCRIPT_URL}?action=login&name=${encodeURIComponent(profile.name)}&pin=${encodeURIComponent(profile.pin)}&_t=${Date.now()}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.success && data.profileImage) {
+                    // Update localStorage with fresh image from backend
+                    localStorage.setItem('tss_profile_photo', data.profileImage);
+                    localStorage.setItem('tss_profile_image', data.profileImage);
+
+                    // Update profile object
+                    profile.image = data.profileImage;
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                    // Update displayed photo immediately
+                    const photo = document.getElementById('profilePhoto');
+                    const placeholder = document.querySelector('.profile-photo-placeholder');
+                    if (photo && data.profileImage) {
+                        photo.src = data.profileImage;
+                        photo.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                    }
+                    console.log('Profile image synced from backend');
+                }
+            } catch (e) {
+                console.warn('Profile image sync failed:', e);
+            }
         }
 
         // ============ MY VISION ACCORDION ============
