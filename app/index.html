@@ -15,8 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v7.18'; // UI: Update Button in Header
-    </script>
+        const APP_VERSION = 'v8.2'; // v8.2 Maintenance Edition
     </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
@@ -1640,7 +1639,7 @@
 
         <div
             style="font-size: 10px; opacity: 0.9; margin-top: 8px; color: #fff; text-align: center; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
-            <script>document.write(APP_VERSION);</script> Global Edition
+            <script>document.write(APP_VERSION);</script> Global Edition (Root Fix)
         </div>
 
         <!-- MY VISION CONTENT (Cream Background) -->
@@ -2297,14 +2296,18 @@
             fetch(url)
                 .then(r => r.json())
                 .then(res => {
+                    console.log('TSS v8.1 Adjustments Loader:', res);
                     if (res.adjustments) {
                         currentAdjustments = res.adjustments;
                         renderAdjustments();
                     } else {
-                        container.innerHTML = 'No data';
+                        container.innerHTML = '<div style="text-align:center;padding:20px;">表示可能なスケジュール調整がありません</div>';
                     }
                 })
-                .catch(e => container.innerHTML = 'Error loading schedule');
+                .catch(e => {
+                    console.error('Adjustment Fetch Fail:', e);
+                    container.innerHTML = '<div style="text-align:center;color:red;padding:20px;">データの取得に失敗しました</div>';
+                });
         }
 
         function renderAdjustments() {
@@ -2456,7 +2459,6 @@
             }).join('');
         }
 
-        // Helper for Vote Buttons
         function renderVoteBtn(adjId, dateStr, type, label, currentVote) {
             const isSelected = currentVote === type;
             let color = '#666';
@@ -2470,7 +2472,7 @@
             }
 
             return `
-             <button onclick="submitVote('${adj.id}','${dateStr}','${type}')" 
+             <button onclick="submitVote('${adjId}','${dateStr}','${type}')" 
                 style="flex:1; padding:8px 0; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer; transition:all 0.1s;
                        color:${color}; background:${bg}; border:${border};">
                 ${type} ${label}
@@ -2504,6 +2506,7 @@
             // Send to Backend
             fetch(SCRIPT_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     action: 'submitVote',
                     adjustmentId: adjId,
@@ -2515,7 +2518,7 @@
                     addTokens(res.tokensEarned);
                     showTokenEarned(res.tokensEarned, 'Participation Bonus! 🙌');
                 }
-            });
+            }).catch(e => console.error('Vote failed', e));
         }
 
         function finalizeAdjustment(adjId, dateIdx) {
@@ -2560,11 +2563,12 @@
                         console.log('Event injected locally:', newEvent);
 
                         // 2. Background Sync (Safety Net)
-                        // Trust Local Strategy: Do NOT refresh immediately.
-                        // setTimeout(() => calendar.refetchEvents(), 3000);
+                        setTimeout(() => {
+                            if (calendar) calendar.refetchEvents();
+                        }, 2000);
                     }
                 } else alert('Error: ' + res.error);
-            });
+            }).catch(e => alert('Finalize failed: ' + e.message));
         }
 
         function deleteAdjustment(adjId) {
@@ -2584,7 +2588,7 @@
                     alert('削除しました');
                     fetchAdjustments();
                 } else alert('Error: ' + res.error);
-            });
+            }).catch(e => alert('Delete failed: ' + e.message));
         }
 
         // Config handled globally
@@ -2633,21 +2637,24 @@
             }
         }
 
-        // ========== Version & Cache Control V5.1 ==========
+        // ========== Version & Cache Control V8.2 ==========
+        let isUpdatePrompted = false;
         function checkAppVersion() {
+            if (isUpdatePrompted) return;
             fetch(SCRIPT_URL + '?action=version&_t=' + Date.now())
                 .then(r => r.json())
                 .then(res => {
                     if (res.version) {
                         const el = document.getElementById('versionDisplay');
-                        if (el) el.textContent = `v${res.version} (Latest)`;
-                        const serverVer = parseFloat(res.version.replace('v', ''));
-                        const localVer = parseFloat(APP_VERSION.replace('v', ''));
+                        if (el) el.textContent = `v${res.version}`;
 
-                        if (serverVer > localVer) {
-                            if (confirm(`New Version (${res.version}) Available. Update?`)) {
-                                forceUpdate();
-                            }
+                        const serverVerStr = String(res.version).replace('v', '');
+                        const localVerStr = String(APP_VERSION).replace('v', '');
+
+                        if (serverVerStr !== localVerStr && !isUpdatePrompted) {
+                            isUpdatePrompted = true;
+                            console.log(`Version mismatch: Server(${serverVerStr}) vs Local(${localVerStr})`);
+                            // Removed confirm loop. Just silent refresh or manual.
                         }
                     }
                 })
@@ -3155,7 +3162,7 @@
 
         function showUserBadge(profile) {
             const badge = document.getElementById('userBadge');
-            // Header Update Button (v7.18)
+            // Header Update Button (v8.2)
             badge.innerHTML = `
                 ${escapeHtml(profile.name)} - ${escapeHtml(profile.role)} 
                 <button onclick="forceUpdate()" style="background:none; border:none; cursor:pointer; font-size:12px; margin-left:5px;" title="アプリを更新">🔄</button>
@@ -3748,8 +3755,7 @@
             // Send to Backend
             fetch(SCRIPT_URL, {
                 method: 'POST',
-                // Removed headers to let browser detect (or use text/plain for GAS simple requests)
-                // but usually text/plain is safest for simple CORS
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     action: 'comment',
                     postId: postId,
@@ -3921,8 +3927,9 @@
                 if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
                     const profile = getProfile();
 
-                    await fetch(SCRIPT_URL, {
+                    const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify({
                             action: 'like',
                             postId: id,
@@ -4108,7 +4115,8 @@
             if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
                 const profile = getProfile();
                 const userParam = profile ? `&user=${encodeURIComponent(profile.name)}` : '';
-                fetch(`${SCRIPT_URL}?action=like&id=${id}&type=announcement${userParam}`);
+                fetch(`${SCRIPT_URL}?action=like&id=${id}&type=announcement${userParam}`)
+                    .catch(e => console.error('Announcement like sync failed:', e));
             }
         }
 
@@ -4733,11 +4741,12 @@
             // Backend
             fetch(SCRIPT_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     action: 'deleteEvent',
                     eventId: eventId
                 })
-            });
+            }).catch(e => console.error('Delete event failed:', e));
         }
 
         // --- ADD EVENT MODAL (Refined) ---
@@ -4820,6 +4829,7 @@
             // Backend
             fetch(SCRIPT_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     action: 'addEvent',
                     title: title,
@@ -4834,23 +4844,10 @@
                         addTokens(1);
                         showTokenEarned(1, 'Schedule Added! 📅');
                         setTimeout(() => {
-                            // Trust Local: Do NOT force refetch events immediately.
-                            // if (calendar) {
-                            //    calendar.refetchEvents(); 
-                            // }
-                            // Only refresh LIST VIEW since we added to Calendar locally
-                            const evs = calendar.getEvents().map(e => ({
-                                id: e.id,
-                                title: e.title,
-                                start: e.start,
-                                allDay: e.allDay,
-                                author: e.extendedProps.author,
-                                type: e.extendedProps.type
-                            }));
-                            renderMonthlyEventsList(evs);
-                        }, 500);
+                            if (calendar) calendar.refetchEvents();
+                        }, 1000);
                     }
-                });
+                }).catch(e => alert('Schedule add failed: ' + e.message));
         }
 
         // ============ DAY VIEW MODAL (v7.7) ============

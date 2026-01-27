@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v7.18'; // UI: Update Button in Header
+const APP_VERSION = 'v8.2'; // v8.2 Maintenance Edition
 
 function doPost(e) {
   try {
@@ -925,19 +925,20 @@ function handleAddTodo(ss, data) {
 }
 
 function handleCompleteTodo(ss, data) {
-  const sheet = getTodosSheet(ss);
-  const allData = sheet.getDataRange().getValues();
-  const targetId = String(data.todoId);
-  const isCompleted = data.completed === true || data.completed === 'true'; // Toggle value from frontend
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sheet = getTodosSheet(ss);
+    sheet.getRange('G:G').setNumberFormat('0'); // TodoId is Col 7
+    const allData = sheet.getDataRange().getDisplayValues(); 
+  const isCompleted = data.completed === true || data.completed === 'true';
   
   for (let i = 1; i < allData.length; i++) {
-    if (String(allData[i][6]) === targetId) { // TodoId column index 6
-      // Update Completed status
+    if (allData[i][6] === targetId) { // TodoId col 6
       sheet.getRange(i + 1, 5).setValue(isCompleted);
-      
-      // Update CompletedAt
       const completedAt = isCompleted ? new Date().toISOString() : '';
       sheet.getRange(i + 1, 6).setValue(completedAt);
+      SpreadsheetApp.flush();
       
       // Award token if completed
       let tokenEarned = 0;
@@ -953,23 +954,36 @@ function handleCompleteTodo(ss, data) {
       });
     }
   }
-  
   return createResponse({ error: 'Todo not found' });
+  } catch (e) {
+    return createResponse({ error: 'Todo complete error: ' + e.message });
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function handleDeleteTodo(ss, data) {
-  const sheet = getTodosSheet(ss);
-  const allData = sheet.getDataRange().getValues();
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sheet = getTodosSheet(ss);
+    sheet.getRange('G:G').setNumberFormat('0');
+    const allData = sheet.getDataRange().getDisplayValues();
   const targetId = String(data.todoId);
   
   for (let i = 1; i < allData.length; i++) {
-    if (String(allData[i][6]) === targetId) {
+    if (allData[i][6] === targetId) {
       sheet.deleteRow(i + 1);
+      SpreadsheetApp.flush();
       return createResponse({ success: true, message: 'Todo deleted' });
     }
   }
-  
   return createResponse({ error: 'Todo not found' });
+  } catch (e) {
+    return createResponse({ error: 'Todo delete error: ' + e.message });
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function getTodos(ss, params) {
@@ -1085,7 +1099,7 @@ ${contextInfo}
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=' + GEMINI_API_KEY,
       {
         method: 'POST',
-        contentType: 'application/json',
+        headers: { 'Content-Type': 'application/json' }, // Added standard headers
         payload: JSON.stringify(payload),
         muteHttpExceptions: true
       }
@@ -1192,44 +1206,54 @@ function testSetup() {
 // ============ SCHEDULE HANDLERS ============
 
 function handleAddEvent(ss, data) {
-  let sheet = ss.getSheetByName('TSS_Schedule');
-  if (!sheet) {
-    sheet = ss.insertSheet('TSS_Schedule');
-    sheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId', 'Type']]);
-    sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    let sheet = ss.getSheetByName('TSS_Schedule');
+    if (!sheet) {
+      sheet = ss.insertSheet('TSS_Schedule');
+      sheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId', 'Type']]);
+      sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+    }
+    
+    const eventId = String(Date.now());
+    const row = [
+      new Date().toISOString(),
+      data.title,
+      data.start,
+      data.allDay,
+      data.author || 'Anonymous',
+      eventId,
+      data.type || 'shared' // Col 7: Type
+    ];
+    
+    sheet.appendRow(row);
+    SpreadsheetApp.flush();
+    
+    // Reward for scheduling
+    if (data.author) {
+      addTokensToUser(ss, data.author, 1, 'schedule_add', 'Added schedule event');
+    }
+    
+    return createResponse({ success: true, eventId: eventId, tokensEarned: 1 });
+  } catch (e) {
+    return createResponse({ error: 'Add Event Failed: ' + e.message });
+  } finally {
+    lock.releaseLock();
   }
-  
-  const eventId = String(Date.now());
-  const row = [
-    new Date().toISOString(),
-    data.title,
-    data.start,
-    data.allDay,
-    data.author || 'Anonymous',
-    eventId,
-    data.type || 'shared' // Col 7: Type
-  ];
-  
-  sheet.appendRow(row);
-  
-  // Reward for scheduling
-  if (data.author) {
-    addTokensToUser(ss, data.author, 1, 'schedule_add', 'Added schedule event');
-  }
-  
-  return createResponse({ success: true, eventId: eventId, tokensEarned: 1 });
 }
 
 function handleDeleteEvent(ss, data) {
   const sheet = ss.getSheetByName('TSS_Schedule');
   if (!sheet) return createResponse({ error: 'Schedule sheet not found' });
   
-  const allData = sheet.getDataRange().getValues();
+  const allData = sheet.getDataRange().getDisplayValues();
   const targetId = String(data.eventId);
   
   for (let i = 1; i < allData.length; i++) {
-    if (String(allData[i][5]) === targetId) { // EventId column index 5
+    if (allData[i][5] === targetId) { // EventId is col 5
       sheet.deleteRow(i + 1);
+      SpreadsheetApp.flush();
       return createResponse({ success: true, message: 'Event deleted' });
     }
   }
@@ -1296,7 +1320,7 @@ function getUsersSheet(ss) {
   let sheet = ss.getSheetByName('TSS_Users');
   if (!sheet) {
     sheet = ss.insertSheet('TSS_Users');
-    sheet.getRange(1, 1, 1, 11).setValues([[
+    sheet.getRange(1, 1, 1, 13).setValues([[
       'Name', 'PIN_Hash', 'Role', 'Bio', 'Future',
       'Token_Balance', 'Profile_Image', 'Theme_Song_URL',
       'Created_At', 'Last_Login', 'Settings_JSON', 'Total_Earned', 'Email'
@@ -1442,8 +1466,6 @@ function loginUser(params) {
           role: data[i][2] || 'メンバー',
           bio: data[i][3] || '',
           future: data[i][4] || '',
-          tokenBalance: data[i][5] || 0,
-          profileImage: data[i][6] || '',
           tokenBalance: data[i][5] || 0,
           profileImage: data[i][6] || '',
           themeSongUrl: data[i][7] || '',
@@ -1805,20 +1827,18 @@ function handleSubmitVote(ss, data) {
 
   try {
       const sheet = getAdjustmentsSheet(ss);
-      // Force fresh data fetch after lock
-      SpreadsheetApp.flush(); 
-      const allData = sheet.getDataRange().getValues();
+      sheet.getRange('A:A').setNumberFormat('0'); // Force plain number format
+      const allData = sheet.getDataRange().getDisplayValues(); 
       const targetId = String(data.adjustmentId);
       const user = data.user;
-      // Votes: { "2024-01-01T10:00": "O", "2024-01-01T12:00": "X" }
       const votes = data.votes || {}; 
       
       for (let i = 1; i < allData.length; i++) {
-        if (String(allData[i][0]) === targetId) { // AdjustmentId is Col 1
+        if (allData[i][0] === targetId) {
           let responses = {};
           try {
-            responses = JSON.parse(allData[i][5]); // Responses is Col 6 (index 5)
-          } catch (e) {}
+            responses = JSON.parse(allData[i][5] || '{}');
+          } catch (e) { responses = {}; }
           
           // Update user's vote
           responses[user] = votes;
@@ -1844,37 +1864,38 @@ function handleSubmitVote(ss, data) {
 }
 
 function handleFinalizeAdjustment(ss, data) {
-  const sheet = getAdjustmentsSheet(ss);
-  const allData = sheet.getDataRange().getValues();
-  const targetId = String(data.adjustmentId);
-  const finalDate = data.finalDate; // { start: ISO, end: ISO }
-  
-  // Find event in sheet
-  let eventRowIndex = -1;
-  let eventTitle = '';
-  let participants = [];
-  let author = '';
-  
-  for (let i = 1; i < allData.length; i++) {
-    if (String(allData[i][0]) === targetId) {
-      eventRowIndex = i;
-      eventTitle = allData[i][1];
-      author = allData[i][2];
-      try {
-        participants = JSON.parse(allData[i][4]);
-      } catch(e) { participants = []; }
-      
-      // Add author to participants if not included
-      if (!participants.includes(author)) participants.push(author);
-      break;
-    }
-  }
-  
-  if (eventRowIndex === -1) return createResponse({ error: 'Adjustment not found (ID: ' + targetId + ')' });
-  
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(10000);
+    lock.waitLock(15000); // 15 seconds for heavy sync
+    
+    const sheet = getAdjustmentsSheet(ss);
+    // Ensure column A (ID) is formatted as plain number to prevent 1.7E+12 conversion
+    sheet.getRange('A:A').setNumberFormat('0'); 
+    
+    // Now read data inside the lock to ensure it's fresh
+    const allData = sheet.getDataRange().getDisplayValues();
+    const targetId = String(data.adjustmentId);
+    const finalDate = data.finalDate;
+    
+    if (!finalDate) return createResponse({ error: 'Final date is missing' });
+
+    let eventRowIndex = -1;
+    let eventTitle = '';
+    let participants = [];
+    let author = '';
+    
+    for (let i = 1; i < allData.length; i++) {
+      if (allData[i][0] === targetId) {
+        eventRowIndex = i;
+        eventTitle = allData[i][1];
+        author = allData[i][2];
+        try {
+          const rawParts = allData[i][4];
+          participants = typeof rawParts === 'string' && rawParts.startsWith('[') ? JSON.parse(rawParts) : [];
+        } catch(e) { participants = []; }
+        break;
+      }
+    }
     
     // 1. Get Emails for Guests
     const emailMap = getUserEmails(ss, participants);
@@ -1910,37 +1931,42 @@ function handleFinalizeAdjustment(ss, data) {
   
   SpreadsheetApp.flush(); // Commit data to spreadsheet immediately
 
-  // 3. Create Google Calendar Event (Optional / Failure should NOT block app sync)
-  try {
-    const startTime = new Date(finalDate.start);
-    const endTime = new Date(finalDate.end);
-    
-    let description = `【TSS日程調整 確定】\n\n`;
-    description += `タイトル: ${eventTitle}\n`;
-    description += `決定日時: ${Utilities.formatDate(startTime, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm')} - ${Utilities.formatDate(endTime, 'Asia/Tokyo', 'HH:mm')}\n`;
-    description += `参加者: ${participants.join(', ')}\n`;
-    description += `作成者: ${author}\n\n`;
-    description += `--------------------------------\n`;
-    description += `Team Synergy Stage Appにより自動作成\n`;
-    
-    if (guestEmails.length === 0) {
-        description += `\n⚠️ 【注意】参加者のメールアドレスが登録されていないため、カレンダー招待は送信されませんでした。\n各自でカレンダーに登録してください。`;
-    }
+    // 3. Create Google Calendar Event (Optional / Failure should NOT block app sync)
+    try {
+      const startTime = new Date(finalDate.start);
+      const endTime = new Date(finalDate.end);
+      
+      let description = `【TSS日程調整 確定】\n\n`;
+      description += `タイトル: ${eventTitle}\n`;
+      description += `決定日時: ${Utilities.formatDate(startTime, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm')} - ${Utilities.formatDate(endTime, 'Asia/Tokyo', 'HH:mm')}\n`;
+      description += `参加者: ${participants.join(', ')}\n`;
+      description += `作成者: ${author}\n\n`;
+      description += `--------------------------------\n`;
+      description += `Team Synergy Stage Appにより自動作成\n`;
+      
+      if (guestEmails.length === 0) {
+          description += `\n⚠️ 【注意】参加者のメールアドレスが登録されていないため、カレンダー招待は送信されませんでした。\n各自でカレンダーに登録してください。`;
+      }
 
-    const options = {
-      description: description,
-      guests: guestList,
-      sendInvites: (guestEmails.length > 0)
-    };
-    
-    const calEvent = CalendarApp.getDefaultCalendar().createEvent(eventTitle, startTime, endTime, options);
-    calendarEventId = calEvent.getId();
-    
-    // Update the eventId in schedule sheet if it was empty
-    if (calendarEventId) {
-        const lastRow = scheduleSheet.getLastRow();
-        scheduleSheet.getRange(lastRow, 6).setValue(calendarEventId);
-    }
+      const options = {
+        description: description,
+        guests: guestList,
+        sendInvites: (guestEmails.length > 0)
+      };
+      
+      const calEvent = CalendarApp.getDefaultCalendar().createEvent(eventTitle, startTime, endTime, options);
+      calendarEventId = calEvent.getId();
+      
+      // Update the eventId in schedule sheet by finding the exact row
+      if (calendarEventId) {
+          const freshData = scheduleSheet.getDataRange().getDisplayValues();
+          for (let k = freshData.length - 1; k >= 1; k--) {
+              if (String(freshData[k][5]) === ('adj-' + targetId)) {
+                  scheduleSheet.getRange(k + 1, 6).setValue(calendarEventId);
+                  break;
+              }
+          }
+      }
     
   } catch (e) {
     console.error('Calendar Error (Non-Fatal for App Sync): ' + e.message);
@@ -1960,12 +1986,12 @@ function handleFinalizeAdjustment(ss, data) {
     count: guestEmails.length,
     calendarEventId: calendarEventId
   });
-} catch(e) {
-  console.error('Finalize Adjustment failed: ' + e.message);
-  return createResponse({ error: 'Finalize failed: ' + e.message });
-} finally {
-  lock.releaseLock();
-}
+  } catch (e) {
+    console.error('Finalize Adjustment failed: ' + e.message);
+    return createResponse({ error: 'Finalize failed: ' + e.message });
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function handleGetMyStats(ss, params) {
@@ -2089,13 +2115,18 @@ function getAdjustments(ss, params) {
   const isRelated = (author, parts) => {
     if (author === user) return true;
     if (parts.includes(user)) return true;
+    if (parts.includes('All')) return true; // Fix: Support 'All' broadcast
     return false;
   };
   
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     let participants = [];
-    try { participants = JSON.parse(row[4]); } catch(e){}
+    try { 
+      const rawParts = row[4];
+      participants = typeof rawParts === 'string' && rawParts.startsWith('[') ? JSON.parse(rawParts) : []; 
+      if (!Array.isArray(participants)) participants = [];
+    } catch(e){ participants = []; }
     
     if (isRelated(row[2], participants)) {
       result.push({
@@ -2195,22 +2226,30 @@ function handleAttendance(ss, data) {
 }
 
 function handleDeleteAdjustment(ss, data) {
-  const sheet = getAdjustmentsSheet(ss);
-  const allData = sheet.getDataRange().getValues();
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sheet = getAdjustmentsSheet(ss);
+    sheet.getRange('A:A').setNumberFormat('0');
+    const allData = sheet.getDataRange().getDisplayValues();
   const targetId = String(data.adjustmentId);
   const user = data.user;
   
   for (let i = 1; i < allData.length; i++) {
-    const rowId = String(allData[i][0]);
-    const author = allData[i][2];
-    
-    if (rowId === targetId) {
+    if (allData[i][0] === targetId) {
+      const author = allData[i][2];
       if (author !== user) {
         return createResponse({ error: 'Permission denied' });
       }
       sheet.deleteRow(i + 1);
+      SpreadsheetApp.flush();
       return createResponse({ success: true, message: 'Adjustment deleted' });
     }
   }
   return createResponse({ error: 'Adjustment not found' });
+  } catch (e) {
+    return createResponse({ error: 'Adjustment delete error: ' + e.message });
+  } finally {
+    lock.releaseLock();
+  }
 }
