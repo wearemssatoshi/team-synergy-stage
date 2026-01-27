@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v8.2'; // v8.2 Maintenance Edition
+        const APP_VERSION = 'v8.6'; // v8.2 Maintenance Edition
     </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
@@ -2721,7 +2721,7 @@
             }
         }
 
-        // ========== Version & Cache Control V8.2 ==========
+        // ========== Version & Cache Control V8.6 ==========
         let isUpdatePrompted = false;
         function checkAppVersion() {
             if (isUpdatePrompted) return;
@@ -2738,11 +2738,78 @@
                         if (serverVerStr !== localVerStr && !isUpdatePrompted) {
                             isUpdatePrompted = true;
                             console.log(`Version mismatch: Server(${serverVerStr}) vs Local(${localVerStr})`);
-                            // Removed confirm loop. Just silent refresh or manual.
+
+                            // Show Update Notification Banner
+                            showUpdateBanner(serverVerStr);
                         }
                     }
                 })
                 .catch(e => console.log('Version check failed', e));
+        }
+
+        function showUpdateBanner(newVersion) {
+            // Remove existing banner if any
+            const existingBanner = document.getElementById('updateBanner');
+            if (existingBanner) existingBanner.remove();
+
+            const banner = document.createElement('div');
+            banner.id = 'updateBanner';
+            banner.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, #D4AF37, #B8960C);
+                color: white;
+                padding: 12px 16px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 99999;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                font-family: 'Inter', sans-serif;
+                animation: slideDown 0.3s ease-out;
+            `;
+
+            banner.innerHTML = `
+                <style>
+                    @keyframes slideDown {
+                        from { transform: translateY(-100%); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                </style>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">🚀</span>
+                    <div>
+                        <div style="font-weight: 700; font-size: 13px;">新しいバージョンがあります！</div>
+                        <div style="font-size: 11px; opacity: 0.9;">v${newVersion} - 今すぐ更新して最新機能を使おう</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="forceUpdate()" style="
+                        background: white;
+                        color: #B8960C;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 20px;
+                        font-weight: 700;
+                        font-size: 12px;
+                        cursor: pointer;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                    ">更新する</button>
+                    <button onclick="document.getElementById('updateBanner').remove()" style="
+                        background: transparent;
+                        color: white;
+                        border: 1px solid rgba(255,255,255,0.5);
+                        padding: 8px 12px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        cursor: pointer;
+                    ">後で</button>
+                </div>
+            `;
+
+            document.body.appendChild(banner);
         }
 
         function forceUpdate() {
