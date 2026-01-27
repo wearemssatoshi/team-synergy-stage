@@ -2880,10 +2880,24 @@
                         const p = getProfile();
                         p.tokens = data.user.tokens;
                         if (data.user.role) p.role = data.user.role;
-                        // p.rank = data.user.rank; // If rank exists
+                        if (data.user.bio) p.bio = data.user.bio;
+                        if (data.user.future) p.future = data.user.future;
+
+                        // Restore profile photo from backend if not in localStorage
+                        if (data.user.image && !localStorage.getItem('tss_profile_photo')) {
+                            localStorage.setItem('tss_profile_photo', data.user.image);
+                            p.image = data.user.image;
+                        }
+
                         localStorage.setItem('tss_profile', JSON.stringify(p));
 
+                        // Update localStorage items for vision accordion
+                        if (data.user.role) localStorage.setItem('tss_role', data.user.role);
+                        if (data.user.bio) localStorage.setItem('tss_bio', data.user.bio);
+                        if (data.user.future) localStorage.setItem('tss_future', data.user.future);
+
                         updateTokenDisplay(); // Refresh UI
+                        updateVisionDisplay(); // Refresh accordion
                     }
                 })
                 .catch(e => console.log('Background sync failed', e));
@@ -3006,6 +3020,7 @@
             // Update vision accordion data
             localStorage.setItem('tss_future', future);
             localStorage.setItem('tss_role', role || 'メンバー');
+            localStorage.setItem('tss_bio', bio);
 
             showUserBadge(profile);
             updateVisionDisplay(); // Refresh the vision accordion

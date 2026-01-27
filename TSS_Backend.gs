@@ -1554,39 +1554,41 @@ function loginUser(params) {
 
 /**
  * データ同期（現在のユーザーデータを取得）
+ * v9.1: Name-only sync + full profile data return
  */
 function syncUserData(params) {
   try {
     const name = params?.name || '';
-    const pin = params?.pin || '';
     
-    if (!name || !pin) {
+    if (!name) {
       return createResponse({ 
         success: false, 
-        error: '認証情報が必要です' 
+        error: 'ユーザー名が必要です' 
       });
     }
     
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = getUsersSheet(ss);
     const data = sheet.getDataRange().getValues();
-    const pinHash = hashPin(pin);
     
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === name && data[i][1] === pinHash) {
+      if (data[i][0] === name) {
         // To-Doを取得
         const todos = getUserTodos(ss, name);
         
         // Name(0), PIN_Hash(1), Role(2), Bio(3), Future(4), Token_Balance(5), Profile_Image(6), Theme_Song_URL(7)
         return createResponse({ 
           success: true,
-          future: data[i][4] || '',
-          tokenBalance: data[i][5] || 0,
-          profileImage: data[i][6] || '',
-          themeSongUrl: data[i][7] || '',
-          profileImage: data[i][6] || '',
-          themeSongUrl: data[i][7] || '',
-          email: data[i][12] || '',
+          user: {
+            name: data[i][0],
+            role: data[i][2] || 'メンバー',
+            bio: data[i][3] || '',
+            future: data[i][4] || '',
+            tokens: data[i][5] || 0,
+            image: data[i][6] || '',
+            themeSongUrl: data[i][7] || '',
+            email: data[i][12] || ''
+          },
           todos: todos
         });
       }
@@ -1594,7 +1596,7 @@ function syncUserData(params) {
     
     return createResponse({ 
       success: false, 
-      error: '認証に失敗しました'
+      error: 'ユーザーが見つかりません'
     });
     
   } catch (error) {
