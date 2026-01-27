@@ -1346,56 +1346,75 @@
             margin: 4px;
         }
 
-        /* Events - DOT VIEW */
+        /* Events - COMPACT BADGE VIEW (v8.3) */
         .fc-event {
-            background: transparent !important;
+            background: var(--primary) !important;
             border: none !important;
-            box-shadow: none !important;
+            border-radius: 4px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
             cursor: pointer;
+            margin: 1px 2px !important;
+            padding: 2px 5px !important;
+            font-size: 9px !important;
+            line-height: 1.3 !important;
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .fc-event:hover {
+            transform: scale(1.02);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+            z-index: 10;
+        }
+
+        /* Show time and title */
+        .fc-event-main {
             display: flex !important;
-            justify-content: center !important;
             align-items: center !important;
-            margin-bottom: 2px !important;
-            padding: 2px 0 !important;
+            gap: 3px !important;
+            color: white !important;
+            font-weight: 600 !important;
         }
 
-        /* Hide text */
-        .fc-event-main,
-        .fc-event-title,
         .fc-event-time {
-            display: none !important;
+            display: inline !important;
+            font-size: 8px !important;
+            opacity: 0.9;
+            white-space: nowrap;
         }
 
-        /* The Dot */
-        .fc-event::after {
-            content: '';
-            display: block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
+        .fc-event-title {
+            display: inline !important;
+            font-size: 9px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
-        .fc-event:hover::after {
-            transform: scale(1.5);
+        /* Event Type Colors */
+        .fc-event.type-shared {
+            background: linear-gradient(135deg, #D4AF37, #B8960C) !important;
         }
 
-        /* Event Colors (Dot) */
-        .fc-event.type-shared::after {
-            background-color: #D4AF37 !important;
-            /* Gold */
+        .fc-event.type-personal {
+            background: linear-gradient(135deg, #6BA3E0, #4A90D9) !important;
         }
 
-        .fc-event.type-personal::after {
-            background-color: #A0C4FF !important;
-            /* Pale Blue */
+        .fc-event.type-official {
+            background: linear-gradient(135deg, #2d2d2d, #1a1a1a) !important;
         }
 
-        .fc-event.type-official::after {
-            background-color: #333 !important;
-            /* Dark */
+        /* Day cell with events */
+        .fc-daygrid-day-events {
+            min-height: 40px !important;
+        }
+
+        /* More events indicator */
+        .fc-daygrid-more-link {
+            font-size: 9px !important;
+            color: var(--primary) !important;
+            font-weight: 700 !important;
         }
 
         /* MODAL STYLES */
