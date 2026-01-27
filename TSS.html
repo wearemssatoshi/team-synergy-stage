@@ -1304,7 +1304,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v6.0';
+        const APP_VERSION = 'v10.1';
     </script>
 </head>
 
@@ -1682,8 +1682,8 @@
                 </button>
 
                 <div id="versionDisplay" class="version-badge"
-                    style="text-align: center; color: #aaa; font-size: 10px; margin-top: 20px;">TSS v10.1 / Powered by
-                    WEAREMS for</div>
+                    style="text-align: center; color: #aaa; font-size: 10px; margin-top: 20px;"></div>
+                <script>document.getElementById('versionDisplay').textContent = 'TSS ' + APP_VERSION + ' / Powered by WEAREMS for';</script>
             </div>
         </div>
     </main>
