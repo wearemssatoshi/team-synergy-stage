@@ -2283,7 +2283,7 @@ function handleDeleteAdjustment(ss, data) {
 
 // ============ v9.3 GOOGLE DRIVE PROFILE IMAGE UPLOAD (SSOT) ============
 // フォルダID: Google Driveで「TSS_Profile_Photos」フォルダを作成し、そのIDに置き換えてください
-const PROFILE_PHOTOS_FOLDER_ID = 'YOUR_FOLDER_ID_HERE'; // TODO: 実際のフォルダIDに置き換え
+const PROFILE_PHOTOS_FOLDER_ID = '1TF0UTsm1U6KmMvilQpAYN27kPKsqBoL6'; // TSS_Profile_Photos folder
 
 function handleUploadProfileImage(ss, data) {
   const lock = LockService.getScriptLock();
