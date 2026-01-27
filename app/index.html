@@ -3589,31 +3589,65 @@
             }
 
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = async function (e) {
                 const base64 = e.target.result;
-
-                // Save locally
-                localStorage.setItem('tss_profile_image', base64);
-                localStorage.setItem('tss_profile_photo', base64);
-
-                // Update Profile Object
                 const profile = getProfile();
-                if (profile) {
-                    profile.image = base64;
-                    localStorage.setItem('tss_profile', JSON.stringify(profile));
 
-                    // Backend Sync
-                    syncProfileToBackend(profile);
+                if (!profile) {
+                    alert('プロフィールがありません');
+                    return;
                 }
 
-                // Update UI
-                updateVisionDisplay();
-                updateProfileStats();
-                loadPosts(); // Update my avatar in posts
+                // v9.3: Upload to Google Drive via API (SSOT)
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'uploadProfileImage',
+                            name: profile.name,
+                            image: base64,
+                            type: file.type || 'image/png'
+                        })
+                    });
 
-                // Award Tokens
-                showTokenEarned(5, 'Nice Photo! 📸');
-                addTokens(5);
+                    const data = await response.json();
+
+                    if (data.success && data.url) {
+                        // Save Drive URL to localStorage (URL only, not Base64)
+                        localStorage.setItem('tss_profile_image', data.url);
+                        localStorage.setItem('tss_profile_photo', data.url);
+
+                        // Update Profile Object with URL
+                        profile.image = data.url;
+                        localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                        // Update UI
+                        updateVisionDisplay();
+                        updateProfileStats();
+                        loadPosts();
+
+                        // Award Tokens
+                        showTokenEarned(5, 'Photo saved to Cloud! ☁️📸');
+                        addTokens(5);
+
+                        console.log('Profile image saved to Google Drive:', data.url);
+                    } else {
+                        throw new Error(data.error || 'Upload failed');
+                    }
+                } catch (err) {
+                    console.error('Drive upload error:', err);
+                    // Fallback: save Base64 locally
+                    localStorage.setItem('tss_profile_image', base64);
+                    localStorage.setItem('tss_profile_photo', base64);
+                    profile.image = base64;
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
+                    syncProfileToBackend(profile);
+
+                    updateVisionDisplay();
+                    showTokenEarned(5, 'Photo saved locally 📸');
+                    addTokens(5);
+                }
             };
             reader.readAsDataURL(file);
         }
