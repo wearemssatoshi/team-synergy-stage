@@ -3791,8 +3791,8 @@
             <div class="rank-crown">🥈</div>
             <div class="rank-avatar" style="overflow:hidden;">${getAvatarHtml(top3[1])}</div>
             <div class="rank-name">${top3[1].name}</div>
-            <div class="rank-score">${top3[1].totalEarned || 0}</div>
-            <div class="rank-label">EARNED</div>
+            <div class="rank-score">${top3[1].tokens || 0}</div>
+            <div class="rank-label">TSST</div>
         </div>`;
             }
 
@@ -3803,8 +3803,8 @@
             <div class="rank-crown">👑</div>
             <div class="rank-avatar" style="overflow:hidden;">${getAvatarHtml(top3[0])}</div>
             <div class="rank-name">${top3[0].name}</div>
-            <div class="rank-score">${top3[0].totalEarned || 0}</div>
-            <div class="rank-label">EARNED</div>
+            <div class="rank-score">${top3[0].tokens || 0}</div>
+            <div class="rank-label">TSST</div>
         </div>`;
             }
 
@@ -3815,8 +3815,8 @@
             <div class="rank-crown">🥉</div>
             <div class="rank-avatar" style="overflow:hidden;">${getAvatarHtml(top3[2])}</div>
             <div class="rank-name">${top3[2].name}</div>
-            <div class="rank-score">${top3[2].totalEarned || 0}</div>
-            <div class="rank-label">EARNED</div>
+            <div class="rank-score">${top3[2].tokens || 0}</div>
+            <div class="rank-label">TSST</div>
         </div>`;
             }
             html += '</div>';
@@ -3834,7 +3834,7 @@
                     </div>
                     ${m.name}
                 </div>
-                <div class="rank-item-score">${m.totalEarned || 0} TSST</div>
+                <div class="rank-item-score">${m.tokens || 0} TSST</div>
             </div>`;
                 });
                 html += '</div>';
