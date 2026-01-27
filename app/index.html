@@ -1707,7 +1707,7 @@
 
             <!-- TOKEN BADGE (Left) -->
             <div class="token-badge" id="tokenDisplay"
-                style="flex: 0.8; background: var(--light-gray); padding: 10px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                style="flex: 0.8; background: var(--light-gray); padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); min-height: 50px;">
                 <div style="font-size: 8px; color: var(--primary); font-weight: 700; letter-spacing: 0.1em;">TOKENS
                 </div>
                 <div style="display: flex; align-items: baseline; gap: 4px;">
@@ -1721,7 +1721,7 @@
 
             <!-- MY VISION HEADER (Right) -->
             <div class="vision-accordion-header" onclick="toggleVisionAccordion()"
-                style="flex: 2.5; display: flex; align-items: center; justify-content: space-between; background: var(--light-gray); border: 1px solid rgba(212, 175, 55, 0.3); padding: 8px 12px; border-radius: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                style="flex: 2.5; display: flex; align-items: center; justify-content: space-between; background: var(--light-gray); border: 1px solid rgba(212, 175, 55, 0.3); padding: 10px 12px; border-radius: 12px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); min-height: 50px;">
                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;">
                     <div class="vision-photo" id="visionPhotoContainer"
                         style="position: relative; width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
@@ -1753,12 +1753,6 @@
             <div class="vision-accordion-content" id="visionAccordionContent"
                 style="background: #FFFDF5; border: 1px solid rgba(212,175,55,0.6); border-radius: 12px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 <div style="padding: 16px;">
-                    <div
-                        style="font-size: 10px; color: #3E2723; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.05em;">
-                        3 YEARS LATER</div>
-                    <div id="futureVisionDetail"
-                        style="font-size: 13px; line-height: 1.6; color: #1a1a1a; margin-bottom: 12px; white-space: pre-wrap; font-weight: 600;">
-                        (Set in Profile > Edit)</div>
                     <div
                         style="font-size: 10px; color: #3E2723; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.05em;">
                         ROLE</div>
@@ -3543,18 +3537,17 @@
             const photo = document.getElementById('visionPhoto');
             const placeholder = document.getElementById('visionPhotoPlaceholder');
 
-            // Get profile for user name
+            // Get profile for user data
             const profile = getProfile();
             const userName = profile ? profile.name : '';
 
-            // Get stored values
-            const future = localStorage.getItem('tss_future') || '-';
-            const role = localStorage.getItem('tss_role') || '-';
-            const bio = localStorage.getItem('tss_bio') || '-';
-            const profileImage = localStorage.getItem('tss_profile_image') || localStorage.getItem('tss_profile_photo') || '';
+            // Get stored values from profile object
+            const future = profile?.future || localStorage.getItem('tss_future') || '-';
+            const role = profile?.role || localStorage.getItem('tss_role') || '-';
+            const bio = profile?.bio || localStorage.getItem('tss_bio') || '-';
+            const profileImage = localStorage.getItem('tss_profile_photo') || profile?.image || '';
 
             futureText.textContent = future || '-';
-            if (futureDetail) futureDetail.textContent = future || 'No vision set yet.';
             roleText.textContent = role || '-';
             if (bioText) bioText.textContent = bio || '-';
 
