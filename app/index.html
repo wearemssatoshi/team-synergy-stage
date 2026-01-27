@@ -1298,52 +1298,95 @@
             box-shadow: none !important;
         }
 
-        /* Calendar Grid */
+        /* ====== PREMIUM CALENDAR GRID (v8.5) ====== */
+        .fc {
+            background: linear-gradient(135deg, #fefefe 0%, #f8f8f6 100%);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
         .fc-theme-standard td,
         .fc-theme-standard th {
-            border: none !important;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03) !important;
+            border: 1px solid rgba(0, 0, 0, 0.04) !important;
         }
 
         .fc-scrollgrid {
             border: none !important;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .fc-col-header {
+            background: linear-gradient(135deg, var(--primary), #8B7355);
+            border-radius: 10px 10px 0 0;
         }
 
         .fc-col-header-cell {
-            padding-bottom: 10px !important;
+            padding: 12px 0 !important;
         }
 
         .fc-col-header-cell-cushion {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-gray);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: white !important;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.15em;
             text-decoration: none !important;
+        }
+
+        /* Day Cells - Empty State Enhancement */
+        .fc-daygrid-day {
+            background: rgba(255, 255, 255, 0.7);
+            transition: all 0.2s ease;
+            min-height: 80px !important;
+        }
+
+        .fc-daygrid-day:hover {
+            background: rgba(255, 248, 230, 0.8);
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.1);
         }
 
         .fc-daygrid-day-number {
-            font-size: 0.9rem;
-            font-weight: 500;
+            font-size: 0.85rem;
+            font-weight: 600;
             color: var(--text-dark);
-            padding: 8px 12px !important;
+            padding: 10px 12px !important;
             text-decoration: none !important;
         }
 
+        /* Today Highlight - Gold Ring */
         .fc-day-today {
-            background-color: transparent !important;
+            background: linear-gradient(135deg, rgba(255, 248, 230, 0.9), rgba(255, 243, 200, 0.5)) !important;
         }
 
         .fc-day-today .fc-daygrid-day-number {
             background: var(--gradient-primary);
             color: white;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 4px;
+            margin: 6px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Weekend styling */
+        .fc-day-sat .fc-daygrid-day-number,
+        .fc-day-sun .fc-daygrid-day-number {
+            color: #B8860B;
+        }
+
+        /* Other month days (faded) */
+        .fc-day-other .fc-daygrid-day-number {
+            opacity: 0.3;
+        }
+
+        .fc-day-other {
+            background: rgba(245, 245, 245, 0.5) !important;
         }
 
         /* Events - COMPACT BADGE VIEW (v8.3) */
