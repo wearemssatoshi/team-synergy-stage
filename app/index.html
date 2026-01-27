@@ -4819,8 +4819,14 @@
                 locale: 'ja',
                 height: 'auto',
                 dayCellContent: function (e) {
-                    e.dayNumberText = e.dayNumberText.replace('日', '');
-                    return { html: e.dayNumberText };
+                    const dayNum = e.dayNumberText.replace('日', '');
+                    return { html: dayNum };
+                },
+                // v9.3: Show event count badge after events load
+                datesSet: function () {
+                    setTimeout(() => {
+                        updateDayCellEventCounts();
+                    }, 500);
                 },
                 // v9.2: Event Click - Show details in modal
                 eventClick: function (info) {
@@ -4980,6 +4986,50 @@
             });
 
             calendar.render();
+        }
+
+        // v9.3: Update day cells with event count badge
+        function updateDayCellEventCounts() {
+            if (!calendar) return;
+            const events = calendar.getEvents();
+
+            // Group events by date
+            const eventsByDate = {};
+            events.forEach(e => {
+                if (!e.start) return;
+                const dateKey = e.start.toISOString().split('T')[0];
+                if (!eventsByDate[dateKey]) eventsByDate[dateKey] = 0;
+                eventsByDate[dateKey]++;
+            });
+
+            // Update each day cell
+            document.querySelectorAll('.fc-daygrid-day').forEach(cell => {
+                const dateAttr = cell.getAttribute('data-date');
+                if (!dateAttr) return;
+
+                // Remove existing badge
+                const existingBadge = cell.querySelector('.event-count-badge');
+                if (existingBadge) existingBadge.remove();
+
+                const count = eventsByDate[dateAttr] || 0;
+                if (count > 0) {
+                    const dayFrame = cell.querySelector('.fc-daygrid-day-frame');
+                    if (dayFrame) {
+                        const badge = document.createElement('div');
+                        badge.className = 'event-count-badge';
+                        badge.innerHTML = `📅 ${count}件`;
+                        badge.style.cssText = `
+                            font-size: 9px;
+                            color: #D4AF37;
+                            font-weight: 600;
+                            text-align: center;
+                            margin-top: 2px;
+                            padding: 2px 4px;
+                        `;
+                        dayFrame.appendChild(badge);
+                    }
+                }
+            });
         }
 
         function renderMonthlyEventsList(events) {
