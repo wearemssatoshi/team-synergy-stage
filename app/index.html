@@ -3363,7 +3363,8 @@
                         future: data.future || '',
                         pin: pin, // Save used PIN
                         tokens: data.tokenBalance || 0,
-                        image: data.profileImage || ''
+                        image: data.profileImage || '',
+                        email: data.email || '' // v9.3: Email from backend (SSOT)
                     };
 
                     localStorage.setItem('tss_profile', JSON.stringify(profile));
