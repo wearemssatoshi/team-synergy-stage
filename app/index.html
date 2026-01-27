@@ -3203,10 +3203,18 @@
 
         function showUserBadge(profile) {
             const badge = document.getElementById('userBadge');
-            // Header Update Button (v8.2)
+            // Header with Profile Photo (v8.4)
+            const photoData = localStorage.getItem('tss_profile_photo');
+            const avatarHtml = photoData
+                ? `<img src="${photoData}" alt="" style="width:24px; height:24px; border-radius:50%; object-fit:cover; margin-right:6px; border:2px solid var(--primary);">`
+                : `<span style="display:inline-flex; width:24px; height:24px; border-radius:50%; background:var(--primary); color:white; font-size:11px; font-weight:bold; align-items:center; justify-content:center; margin-right:6px;">${profile.name.charAt(0).toUpperCase()}</span>`;
+
             badge.innerHTML = `
-                ${escapeHtml(profile.name)} - ${escapeHtml(profile.role)} 
-                <button onclick="forceUpdate()" style="background:none; border:none; cursor:pointer; font-size:12px; margin-left:5px;" title="アプリを更新">🔄</button>
+                <div style="display:flex; align-items:center;">
+                    ${avatarHtml}
+                    <span>${escapeHtml(profile.name)} - ${escapeHtml(profile.role)}</span>
+                    <button onclick="forceUpdate()" style="background:none; border:none; cursor:pointer; font-size:12px; margin-left:5px;" title="アプリを更新">🔄</button>
+                </div>
             `;
             badge.style.display = 'inline-block';
 
@@ -3217,10 +3225,10 @@
             document.getElementById('profileFuture').textContent = profile.future || '未設定';
 
             // Check for profile photo
-            const photoData = localStorage.getItem('tss_profile_photo');
+            const profilePhotoData = localStorage.getItem('tss_profile_photo');
             const avatarEl = document.getElementById('profileAvatar');
-            if (photoData) {
-                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+            if (profilePhotoData) {
+                avatarEl.innerHTML = `<img src="${profilePhotoData}" alt="Profile">`;
             } else {
                 avatarEl.textContent = profile.name.charAt(0).toUpperCase();
             }
