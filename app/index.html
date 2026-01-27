@@ -1708,7 +1708,8 @@
             <!-- TOKEN BADGE (Left) -->
             <div class="token-badge" id="tokenDisplay"
                 style="flex: 0.8; background: var(--light-gray); padding: 10px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <div style="font-size: 9px; color: #5C4010; letter-spacing: 1px; font-weight: 700;">TOKENS</div>
+                <div style="font-size: 8px; color: var(--primary); font-weight: 700; letter-spacing: 0.1em;">TOKENS
+                </div>
                 <div style="display: flex; align-items: baseline; gap: 4px;">
                     <span class="icon"
                         style="font-size: 16px; display: inline-block; animation: coinSpin 3s linear infinite;">🪙</span>
@@ -1761,7 +1762,13 @@
                     <div
                         style="font-size: 10px; color: #3E2723; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.05em;">
                         ROLE</div>
-                    <div id="roleVisionText" style="font-size: 13px; font-weight: 700; color: #BF360C;">-</div>
+                    <div id="roleVisionText"
+                        style="font-size: 13px; font-weight: 700; color: #BF360C; margin-bottom: 12px;">-</div>
+                    <div
+                        style="font-size: 10px; color: #3E2723; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.05em;">
+                        BIO</div>
+                    <div id="bioVisionText"
+                        style="font-size: 12px; line-height: 1.5; color: #1a1a1a; font-weight: 500;">-</div>
                 </div>
             </div>
         </div>
@@ -3354,17 +3361,12 @@
 
         function showUserBadge(profile) {
             const badge = document.getElementById('userBadge');
-            // Header with Profile Photo (v8.4)
-            const photoData = localStorage.getItem('tss_profile_photo');
-            const avatarHtml = photoData
-                ? `<img src="${photoData}" alt="" style="width:24px; height:24px; border-radius:50%; object-fit:cover; margin-right:6px; border:2px solid var(--primary);">`
-                : `<span style="display:inline-flex; width:24px; height:24px; border-radius:50%; background:var(--primary); color:white; font-size:11px; font-weight:bold; align-items:center; justify-content:center; margin-right:6px;">${profile.name.charAt(0).toUpperCase()}</span>`;
-
+            // Header Badge - Simple (v8.9)
             badge.innerHTML = `
-                <div style="display:flex; align-items:center;">
-                    ${avatarHtml}
-                    <span>${escapeHtml(profile.name)} - ${escapeHtml(profile.role)}</span>
-                    <button onclick="forceUpdate()" style="background:none; border:none; cursor:pointer; font-size:12px; margin-left:5px;" title="アプリを更新">🔄</button>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-weight:600;">${escapeHtml(profile.name)}</span>
+                    <span style="font-size:11px; color:var(--text-gray);">${escapeHtml(profile.role)}</span>
+                    <button onclick="forceUpdate()" style="background:none; border:none; cursor:pointer; font-size:12px;" title="アプリを更新">🔄</button>
                 </div>
             `;
             badge.style.display = 'inline-block';
@@ -3537,6 +3539,7 @@
             const futureText = document.getElementById('futureVisionText');
             const futureDetail = document.getElementById('futureVisionDetail');
             const roleText = document.getElementById('roleVisionText');
+            const bioText = document.getElementById('bioVisionText');
             const photo = document.getElementById('visionPhoto');
             const placeholder = document.getElementById('visionPhotoPlaceholder');
 
@@ -3547,11 +3550,13 @@
             // Get stored values
             const future = localStorage.getItem('tss_future') || '-';
             const role = localStorage.getItem('tss_role') || '-';
+            const bio = localStorage.getItem('tss_bio') || '-';
             const profileImage = localStorage.getItem('tss_profile_image') || localStorage.getItem('tss_profile_photo') || '';
 
             futureText.textContent = future || '-';
             if (futureDetail) futureDetail.textContent = future || 'No vision set yet.';
             roleText.textContent = role || '-';
+            if (bioText) bioText.textContent = bio || '-';
 
             if (profileImage) {
                 photo.src = profileImage;
