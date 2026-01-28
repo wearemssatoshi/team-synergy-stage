@@ -3599,8 +3599,9 @@
                     return;
                 }
 
-                // v9.3: Upload to Google Drive via API (SSOT)
+                // v10.1: Upload to Google Drive via API (SSOT)
                 try {
+                    console.log('Uploading to Drive...', profile.name);
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -3613,6 +3614,7 @@
                     });
 
                     const data = await response.json();
+                    console.log('Drive response:', data);
 
                     if (data.success && data.url) {
                         // Save Drive URL to localStorage (URL only, not Base64)
@@ -3633,11 +3635,13 @@
                         addTokens(5);
 
                         console.log('Profile image saved to Google Drive:', data.url);
+                        alert('✅ Cloud保存成功: ' + data.url.substring(0, 50) + '...');
                     } else {
                         throw new Error(data.error || 'Upload failed');
                     }
                 } catch (err) {
                     console.error('Drive upload error:', err);
+                    alert('❌ Cloud保存失敗: ' + err.message + '\nローカルに保存します');
                     // Fallback: save Base64 locally
                     localStorage.setItem('tss_profile_image', base64);
                     localStorage.setItem('tss_profile_photo', base64);
