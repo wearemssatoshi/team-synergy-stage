@@ -3240,7 +3240,7 @@
                         document.querySelectorAll('.token-display').forEach(el => el.textContent = res.newBalance);
                         const p = getProfile();
                         p.tokens = res.newBalance; // Update local profile
-                        saveProfile(p);
+                        localStorage.setItem('tss_profile', JSON.stringify(p));
                     }
                 } else {
                     alert('エラー: ' + res.error);
