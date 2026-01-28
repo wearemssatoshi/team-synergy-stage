@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v10.3'; // v10.3 Photo Upload Fix + Diamond Markers
+const APP_VERSION = 'v2.1'; // v2.1 Launch Edition
 
 /**
  * 🔧 ワンタイム修正スクリプト
