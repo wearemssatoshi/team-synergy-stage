@@ -3449,7 +3449,7 @@
         }
 
         // ============ PROFILE PHOTO ============
-        function handlePhotoUpload(event) {
+        async function handlePhotoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -3459,26 +3459,62 @@
             }
 
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = async function (e) {
                 const photoData = e.target.result;
-                localStorage.setItem('tss_profile_photo', photoData);
-
-                // Update Profile Object
                 const profile = getProfile();
-                profile.image = photoData;
-                localStorage.setItem('tss_profile', JSON.stringify(profile));
 
-                const avatarEl = document.getElementById('profileAvatar');
-                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+                if (!profile || !profile.name) {
+                    alert('プロフィールがありません');
+                    return;
+                }
 
-                // Immediately update vision accordion photo
-                updateVisionDisplay();
+                // v10.3: Upload to backend (SSOT)
+                try {
+                    alert('📤 アップロード中...');
 
-                // Backend Sync
-                syncProfileToBackend(profile);
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'uploadProfileImage',
+                            name: profile.name,
+                            image: photoData
+                        })
+                    });
 
-                showTokenEarned(5, 'Photo Uploaded! 📸');
-                addTokens(5);
+                    const data = await response.json();
+                    console.log('Photo upload response:', data);
+
+                    if (data.success) {
+                        // Save to localStorage
+                        localStorage.setItem('tss_profile_photo', photoData);
+                        profile.image = photoData;
+                        localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                        // Update UI
+                        const avatarEl = document.getElementById('profileAvatar');
+                        avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+                        updateVisionDisplay();
+
+                        alert('✅ 写真を保存しました！');
+                        showTokenEarned(5, 'Photo Uploaded! 📸');
+                        addTokens(5);
+                    } else {
+                        throw new Error(data.error || 'Upload failed');
+                    }
+                } catch (err) {
+                    console.error('Photo upload error:', err);
+                    alert('❌ 保存エラー: ' + err.message);
+
+                    // Fallback: save locally only
+                    localStorage.setItem('tss_profile_photo', photoData);
+                    profile.image = photoData;
+                    localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                    const avatarEl = document.getElementById('profileAvatar');
+                    avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+                    updateVisionDisplay();
+                }
             };
             reader.readAsDataURL(file);
         }
