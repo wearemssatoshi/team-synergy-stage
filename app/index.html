@@ -2818,20 +2818,19 @@
             fetch(SCRIPT_URL + '?action=version&_t=' + Date.now())
                 .then(r => r.json())
                 .then(res => {
-                    if (res.version) {
-                        const el = document.getElementById('versionDisplay');
-                        if (el) el.textContent = `v${res.version}`;
+                    // v10.2: Keep WEAREMS branding when updating version display
+                    const el = document.getElementById('versionDisplay');
+                    if (el) el.textContent = `TSS v${res.version} / Powered by WEAREMS for`;
 
-                        const serverVerStr = String(res.version).replace('v', '');
-                        const localVerStr = String(APP_VERSION).replace('v', '');
+                    const serverVerStr = String(res.version).replace('v', '');
+                    const localVerStr = String(APP_VERSION).replace('v', '');
 
-                        if (serverVerStr !== localVerStr && !isUpdatePrompted) {
-                            isUpdatePrompted = true;
-                            console.log(`Version mismatch: Server(${serverVerStr}) vs Local(${localVerStr})`);
+                    if (serverVerStr !== localVerStr && !isUpdatePrompted) {
+                        isUpdatePrompted = true;
+                        console.log(`Version mismatch: Server(${serverVerStr}) vs Local(${localVerStr})`);
 
-                            // Show Update Notification Banner
-                            showUpdateBanner(serverVerStr);
-                        }
+                        // Show Update Notification Banner
+                        showUpdateBanner(serverVerStr);
                     }
                 })
                 .catch(e => console.log('Version check failed', e));
