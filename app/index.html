@@ -3449,74 +3449,117 @@
         }
 
         // ============ PROFILE PHOTO ============
+        // 画像を圧縮する関数（スプレッドシートの50,000文字制限対策）
+        function compressImage(file, maxWidth = 200, quality = 0.7) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // 最大幅に合わせてリサイズ
+                        if (width > maxWidth) {
+                            height = height * (maxWidth / width);
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // JPEG形式で圧縮（品質を下げてサイズ削減）
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                        console.log('Compressed image size:', compressedBase64.length, 'chars');
+                        resolve(compressedBase64);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         async function handlePhotoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            if (file.size > 2 * 1024 * 1024) {
-                alert('画像サイズは2MB以下にしてください');
+            if (file.size > 5 * 1024 * 1024) {
+                alert('画像サイズは5MB以下にしてください');
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = async function (e) {
-                const photoData = e.target.result;
-                const profile = getProfile();
+            const profile = getProfile();
+            if (!profile || !profile.name) {
+                alert('プロフィールがありません');
+                return;
+            }
 
-                if (!profile || !profile.name) {
-                    alert('プロフィールがありません');
-                    return;
+            // v10.3: 画像を圧縮してからアップロード
+            try {
+                alert('📤 画像を処理中...');
+
+                // 画像を圧縮（200px幅、品質70%）
+                const compressedPhoto = await compressImage(file, 200, 0.7);
+
+                if (compressedPhoto.length > 45000) {
+                    // まだ大きい場合はさらに圧縮
+                    const veryCompressed = await compressImage(file, 150, 0.5);
+                    if (veryCompressed.length > 45000) {
+                        alert('❌ 画像が大きすぎます。もっと小さい画像を選んでください。');
+                        return;
+                    }
                 }
 
-                // v10.3: Upload to backend (SSOT)
-                try {
-                    alert('📤 アップロード中...');
+                const photoData = compressedPhoto.length > 45000 ?
+                    await compressImage(file, 150, 0.5) : compressedPhoto;
 
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({
-                            action: 'uploadProfileImage',
-                            name: profile.name,
-                            image: photoData
-                        })
-                    });
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'uploadProfileImage',
+                        name: profile.name,
+                        image: photoData
+                    })
+                });
 
-                    const data = await response.json();
-                    console.log('Photo upload response:', data);
+                const data = await response.json();
+                console.log('Photo upload response:', data);
 
-                    if (data.success) {
-                        // Save to localStorage
-                        localStorage.setItem('tss_profile_photo', photoData);
-                        profile.image = photoData;
-                        localStorage.setItem('tss_profile', JSON.stringify(profile));
-
-                        // Update UI
-                        const avatarEl = document.getElementById('profileAvatar');
-                        avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
-                        updateVisionDisplay();
-
-                        alert('✅ 写真を保存しました！');
-                        showTokenEarned(5, 'Photo Uploaded! 📸');
-                        addTokens(5);
-                    } else {
-                        throw new Error(data.error || 'Upload failed');
-                    }
-                } catch (err) {
-                    console.error('Photo upload error:', err);
-                    alert('❌ 保存エラー: ' + err.message);
-
-                    // Fallback: save locally only
+                if (data.success) {
+                    // Save to localStorage
                     localStorage.setItem('tss_profile_photo', photoData);
                     profile.image = photoData;
                     localStorage.setItem('tss_profile', JSON.stringify(profile));
 
+                    // Update UI
                     const avatarEl = document.getElementById('profileAvatar');
                     avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
                     updateVisionDisplay();
+
+                    alert('✅ 写真を保存しました！');
+                    showTokenEarned(5, 'Photo Uploaded! 📸');
+                    addTokens(5);
+                } else {
+                    throw new Error(data.error || 'Upload failed');
                 }
-            };
-            reader.readAsDataURL(file);
+            } catch (err) {
+                console.error('Photo upload error:', err);
+                alert('❌ 保存エラー: ' + err.message);
+
+                // Fallback: save locally only
+                localStorage.setItem('tss_profile_photo', photoData);
+                profile.image = photoData;
+                localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                const avatarEl = document.getElementById('profileAvatar');
+                avatarEl.innerHTML = `<img src="${photoData}" alt="Profile">`;
+                updateVisionDisplay();
+            }
         }
 
         function updateTokenDisplay() {
