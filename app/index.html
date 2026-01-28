@@ -295,12 +295,11 @@
             font-family: 'Montserrat', 'Noto Sans JP', sans-serif !important;
         }
 
-        /* v10.2 macOS Style Calendar Title */
         .fc-toolbar-title {
-            font-size: 24px !important;
+            font-size: 14px !important;
             font-weight: 700;
-            color: #1a1a1a;
-            letter-spacing: -0.02em;
+            color: var(--primary);
+            letter-spacing: 0.05em;
         }
 
         .fc-button {
@@ -1356,23 +1355,23 @@
             text-decoration: none !important;
         }
 
-        /* Today Highlight - macOS Style Red Circle */
+        /* Today Highlight - Gold Ring */
         .fc-day-today {
-            background: transparent !important;
+            background: linear-gradient(135deg, rgba(255, 248, 230, 0.9), rgba(255, 243, 200, 0.5)) !important;
         }
 
         .fc-day-today .fc-daygrid-day-number {
-            background: #FF3B30 !important;
-            color: white !important;
+            background: var(--gradient-primary);
+            color: white;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 4px;
-            font-weight: 600;
-            box-shadow: none;
+            margin: 6px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
         }
 
         /* Weekend styling - Japanese Calendar Style - v9.3 VIVID */
@@ -1386,52 +1385,49 @@
             font-weight: 700 !important;
         }
 
-        /* Saturday column header - macOS Clean Style */
+        /* Saturday column header - v9.3 VIVID with background */
         .fc-col-header-cell.fc-day-sat {
-            background: transparent !important;
+            background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
         }
 
         .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
-            color: #007AFF !important;
-            font-weight: 400 !important;
+            color: #FFFFFF !important;
+            font-weight: 800 !important;
         }
 
-        /* Sunday column header - macOS Clean Style */
+        /* Sunday column header - v9.3 VIVID with background */
         .fc-col-header-cell.fc-day-sun {
-            background: transparent !important;
+            background: linear-gradient(135deg, #EF4444, #DC2626) !important;
         }
 
         .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
-            color: #FF3B30 !important;
-            font-weight: 400 !important;
+            color: #FFFFFF !important;
+            font-weight: 800 !important;
         }
 
-        /* Saturday background - macOS Clean (no background) */
+        /* Saturday background highlight - v9.3 VIVID */
         .fc-day-sat {
-            background: transparent !important;
+            background: rgba(29, 78, 216, 0.06) !important;
         }
 
-        /* Sunday background - macOS Clean (no background) */
+        /* Sunday background highlight - v9.3 VIVID */
         .fc-day-sun {
-            background: transparent !important;
+            background: rgba(220, 38, 38, 0.06) !important;
         }
 
-        /* v10.2 macOS Style Event Tags */
+        /* v9.2 Event Badge Style */
         .fc-event {
-            font-size: 10px !important;
+            font-size: 9px !important;
             padding: 2px 6px !important;
-            border-radius: 4px !important;
+            border-radius: 10px !important;
             margin: 1px 2px !important;
             cursor: pointer !important;
-            border: none !important;
-            font-weight: 500 !important;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            transition: transform 0.1s ease, box-shadow 0.1s ease !important;
         }
 
         .fc-event:hover {
-            filter: brightness(0.95);
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         /* Event count badge for days with multiple events */
@@ -4860,10 +4856,9 @@
                 },
                 locale: 'ja',
                 height: 'auto',
-                // v10.2: macOS Style - Keep "日" suffix
                 dayCellContent: function (e) {
-                    // e.dayNumberText already contains "1日", "2日" etc in Japanese locale
-                    return { html: e.dayNumberText };
+                    const dayNum = e.dayNumberText.replace('日', '');
+                    return { html: dayNum };
                 },
                 // v9.3: Show event count badge after events load
                 datesSet: function () {
