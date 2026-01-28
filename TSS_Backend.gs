@@ -1524,7 +1524,9 @@ function loginUser(params) {
                   '', // ThemeSong
                   joinedAt,
                   new Date().toISOString(), // Last Login
-                  ''
+                  '{}', // Settings
+                  newTokens, // Total_Earned
+                  '' // Email
              ];
              sheet.appendRow(v2Row);
              
@@ -1757,7 +1759,9 @@ function updateProfile(params) {
                   themeSongUrl || '',
                   legacyJoined,
                   new Date().toISOString(),
-                  ''
+                  '{}', // Settings
+                  newTokens, // Total_Earned
+                  '' // Email
               ];
               usersSheet.appendRow(newRow);
               
