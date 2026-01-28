@@ -13,6 +13,54 @@
 
 const APP_VERSION = 'v10.3'; // v10.3 Photo Upload Fix + Diamond Markers
 
+/**
+ * 🔧 ワンタイム修正スクリプト
+ * GASエディタで「fixTssUsersSheet」を選択して ▶実行
+ * ヘッダーを修正し、Email列の誤ったタイムスタンプを削除します
+ */
+function fixTssUsersSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('TSS_Users');
+  
+  if (!sheet) {
+    Logger.log('❌ TSS_Users シートが見つかりません');
+    return;
+  }
+  
+  // 正しいヘッダー（13列）
+  const correctHeaders = [
+    'Name', 'PIN_Hash', 'Role', 'Bio', 'Future', 
+    'Token_Balance', 'Profile_Image', 'Theme_Song_URL', 
+    'Created_At', 'Last_Login', 'Settings', 'Total_Earned', 'Email'
+  ];
+  
+  // ヘッダー行を更新
+  sheet.getRange(1, 1, 1, 13).setValues([correctHeaders]);
+  Logger.log('✅ ヘッダーを13列に更新しました');
+  
+  // M列（Email）のタイムスタンプを削除
+  const data = sheet.getDataRange().getValues();
+  let fixCount = 0;
+  
+  for (let i = 1; i < data.length; i++) {
+    const emailValue = data[i][12]; // M列 (index 12)
+    
+    // タイムスタンプ形式（ISOフォーマット）をチェック
+    if (emailValue && typeof emailValue === 'string' && 
+        emailValue.match(/^\d{4}-\d{2}-\d{2}T/)) {
+      // タイムスタンプなので削除
+      sheet.getRange(i + 1, 13).setValue('');
+      fixCount++;
+    }
+  }
+  
+  Logger.log('✅ ' + fixCount + '件のタイムスタンプを削除しました');
+  Logger.log('🎉 修正完了！');
+  
+  SpreadsheetApp.flush();
+  return 'SUCCESS: Fixed ' + fixCount + ' rows';
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
