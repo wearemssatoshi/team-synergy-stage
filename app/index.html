@@ -1317,9 +1317,11 @@
             overflow: hidden;
         }
 
+        /* v2.1: Clean calendar header - no gradients */
         .fc-col-header {
-            background: linear-gradient(135deg, var(--primary), #8B7355);
+            background: #f8f8f8;
             border-radius: 10px 10px 0 0;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .fc-col-header-cell {
@@ -1329,7 +1331,7 @@
         .fc-col-header-cell-cushion {
             font-size: 0.7rem;
             font-weight: 700;
-            color: white !important;
+            color: #333 !important;
             text-transform: uppercase;
             letter-spacing: 0.15em;
             text-decoration: none !important;
