@@ -3355,6 +3355,10 @@
                 btn.disabled = false;
 
                 if (data.success) {
+                    // Debug: Check what backend returned
+                    console.log('🔍 Login Response:', data);
+                    console.log('🖼️ Profile Image from backend:', data.profileImage ? data.profileImage.substring(0, 50) + '...' : 'EMPTY');
+
                     const profile = {
                         name: data.name,
                         role: data.role || 'メンバー',
