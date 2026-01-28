@@ -2286,17 +2286,22 @@ function handleDeleteAdjustment(ss, data) {
 const PROFILE_PHOTOS_FOLDER_ID = '1TF0UTsm1U6KmMvilQpAYN27kPKsqBoL6'; // TSS_Profile_Photos folder
 
 /**
- * 🧪 画像保存テスト用関数（DriveApp不要版）
+ * 🧪 DriveApp権限テスト用関数
+ * この関数を実行すると権限承認ダイアログが表示されます
  */
-function testImageSave() {
-  Logger.log('✅ スプレッドシート保存方式はDriveApp権限不要です！');
-  Logger.log('✅ 画像アップロードの準備ができています。');
-  return 'SUCCESS: Spreadsheet-based image storage ready!';
+function testDriveAppPermission() {
+  try {
+    const folder = DriveApp.getFolderById(PROFILE_PHOTOS_FOLDER_ID);
+    Logger.log('✅ フォルダにアクセスできました: ' + folder.getName());
+    return 'SUCCESS: DriveApp permission granted!';
+  } catch (e) {
+    Logger.log('❌ エラー: ' + e.message);
+    return 'ERROR: ' + e.message;
+  }
 }
 
 /**
- * v10.3: スプレッドシートにBase64画像を直接保存（DriveApp権限不要）
- * 注意: 画像サイズが大きい場合はセルのサイズ制限（50,000文字）に注意
+ * v10.3: Google Driveに画像を保存（軽量版 - URLのみスプレッドシートに保存）
  */
 function handleUploadProfileImage(ss, data) {
   const lock = LockService.getScriptLock();
@@ -2305,27 +2310,57 @@ function handleUploadProfileImage(ss, data) {
     
     const userName = data.name;
     const imageData = data.image; // Base64 (data:image/...;base64,XXX)
+    const imageType = data.type || 'image/png';
     
     if (!userName || !imageData) {
       return createResponse({ error: '名前と画像が必要です' });
     }
     
-    // ユーザーのProfile_Imageを更新（Base64をそのまま保存）
+    // Base64からBlobを作成
+    let base64Content = imageData;
+    if (imageData.includes(',')) {
+      base64Content = imageData.split(',')[1]; // data:image/png;base64, を除去
+    }
+    
+    const blob = Utilities.newBlob(
+      Utilities.base64Decode(base64Content),
+      imageType,
+      `profile_${userName}_${Date.now()}.png`
+    );
+    
+    // Google Driveに保存
+    let folder;
+    try {
+      folder = DriveApp.getFolderById(PROFILE_PHOTOS_FOLDER_ID);
+    } catch (e) {
+      // フォルダが見つからない場合、新規作成
+      folder = DriveApp.createFolder('TSS_Profile_Photos');
+      Logger.log('Created new folder: ' + folder.getId());
+    }
+    
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    // 直接アクセス可能なURLを生成
+    const fileId = file.getId();
+    const directUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+    
+    // ユーザーのProfile_Image_URLを更新（URLのみ保存 = 軽量）
     const usersSheet = ss.getSheetByName('TSS_Users');
     if (usersSheet) {
       const userData = usersSheet.getDataRange().getValues();
       for (let i = 1; i < userData.length; i++) {
         if (userData[i][0] === userName) {
-          // Base64画像を直接保存（Col 7 = Profile_Image）
-          usersSheet.getRange(i + 1, 7).setValue(imageData);
+          usersSheet.getRange(i + 1, 7).setValue(directUrl); // Profile_Image column
           SpreadsheetApp.flush();
           
-          Logger.log('✅ Profile image saved for: ' + userName);
+          Logger.log('✅ Profile image saved to Drive for: ' + userName);
           
           return createResponse({ 
             success: true, 
-            url: imageData, // Base64をそのまま返す（フロントエンドで直接使用可能）
-            message: '画像を保存しました'
+            url: directUrl,
+            fileId: fileId,
+            message: '画像をGoogle Driveに保存しました'
           });
         }
       }
@@ -2340,3 +2375,4 @@ function handleUploadProfileImage(ss, data) {
     lock.releaseLock();
   }
 }
+
