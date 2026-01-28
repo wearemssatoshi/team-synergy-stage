@@ -2432,10 +2432,10 @@
                 body: JSON.stringify(payload)
             }).then(r => r.json()).then(res => {
                 if (res.success) {
-                    alert('Created!');
+                    alert('作成しました！');
                     closeNewAdjustmentForm();
                     fetchAdjustments();
-                } else alert('Error: ' + res.error);
+                } else alert('エラー: ' + res.error);
             });
         }
 
@@ -2743,8 +2743,8 @@
                             if (calendar) calendar.refetchEvents();
                         }, 2000);
                     }
-                } else alert('Error: ' + res.error);
-            }).catch(e => alert('Finalize failed: ' + e.message));
+                } else alert('エラー: ' + res.error);
+            }).catch(e => alert('確定に失敗しました: ' + e.message));
         }
 
         function deleteAdjustment(adjId) {
@@ -2763,8 +2763,8 @@
                 if (res.success) {
                     alert('削除しました');
                     fetchAdjustments();
-                } else alert('Error: ' + res.error);
-            }).catch(e => alert('Delete failed: ' + e.message));
+                } else alert('エラー: ' + res.error);
+            }).catch(e => alert('削除に失敗しました: ' + e.message));
         }
 
         // Config handled globally
@@ -3204,7 +3204,7 @@
 
         async function sendAttendance(type) {
             const profile = getProfile();
-            if (!profile || !profile.name) return alert('Please login first');
+            if (!profile || !profile.name) return alert('ログインしてください');
 
             const btn = type === 'check_in' ? document.getElementById('btnCheckIn') : document.getElementById('btnCheckOut');
             const originalText = btn.textContent;
@@ -3243,10 +3243,10 @@
                         saveProfile(p);
                     }
                 } else {
-                    alert('Error: ' + res.error);
+                    alert('エラー: ' + res.error);
                 }
             } catch (e) {
-                alert('Connection Error');
+                alert('接続エラー。もう一度お試しください。');
                 console.error(e);
             } finally {
                 btn.textContent = originalText;
@@ -5470,7 +5470,7 @@
                             if (calendar) calendar.refetchEvents();
                         }, 1000);
                     }
-                }).catch(e => alert('Schedule add failed: ' + e.message));
+                }).catch(e => alert('スケジュール追加に失敗しました: ' + e.message));
         }
 
         // ============ DAY VIEW MODAL (v7.7) ============
