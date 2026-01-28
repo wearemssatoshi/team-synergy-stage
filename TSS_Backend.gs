@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v10.2'; // v10.2 Cache Fix + Unified WEAREMS Display
+const APP_VERSION = 'v10.3'; // v10.3 Photo Upload Fix + Diamond Markers
 
 function doPost(e) {
   try {
