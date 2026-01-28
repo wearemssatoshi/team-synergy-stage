@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v10.1'; // v10.1 SSOT Photo Storage + Email Persistence Edition
+const APP_VERSION = 'v10.2'; // v10.2 Cache Fix + Unified WEAREMS Display
 
 function doPost(e) {
   try {

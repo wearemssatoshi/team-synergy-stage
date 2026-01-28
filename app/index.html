@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx92liR07RuPcJDkjol2ORnP8Met2t-m0TeZ0MnzGPBTchnxdAXIOM6-xm4E0nLyFNqPw/exec';
-        const APP_VERSION = 'v10.1'; // v10.1 SSOT Photo Storage + Email Persistence Edition
+        const APP_VERSION = 'v10.2'; // v10.2 Cache Fix + Unified WEAREMS Display
     </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
@@ -1789,10 +1789,10 @@
             </div>
         </div>
 
-        <div
+        <div id="headerVersionDisplay"
             style="font-size: 10px; opacity: 0.9; margin-top: 8px; color: #fff; text-align: center; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
-            <script>document.write(APP_VERSION);</script> Global Edition
         </div>
+        <script>document.getElementById('headerVersionDisplay').textContent = APP_VERSION + ' / Powered by WEAREMS for';</script>
 
         <!-- MY VISION CONTENT (Cream Background) -->
         <div class="vision-accordion" id="visionAccordion" style="display: none; margin-top: 5px;">
