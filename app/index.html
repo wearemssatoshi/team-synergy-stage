@@ -15,7 +15,7 @@
     <script>
         // ========== CONFIGURATION (Global) ==========
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxB3OJAAuNC3I2dCNsIKenpnwOj4WBRbcR-hsIX_lg_PGkBXQqOIDgbVr3x6IUazcBmfg/exec';
-        const APP_VERSION = 'v2.1'; // v2.1 Launch Edition
+        const APP_VERSION = 'v8.1';
     </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
@@ -1357,23 +1357,47 @@
             text-decoration: none !important;
         }
 
-        /* Today Highlight - Gold Ring */
+        /* Today Highlight - Premium Gold Ring (v8.1) */
         .fc-day-today {
-            background: linear-gradient(135deg, rgba(255, 248, 230, 0.9), rgba(255, 243, 200, 0.5)) !important;
+            background: linear-gradient(135deg, rgba(255, 248, 230, 0.95), rgba(255, 243, 200, 0.6)) !important;
+            position: relative;
+        }
+
+        .fc-day-today::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border: 1.5px solid rgba(212, 175, 55, 0.2);
+            border-radius: 8px;
+            pointer-events: none;
+            animation: todayPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes todayPulse {
+
+            0%,
+            100% {
+                border-color: rgba(212, 175, 55, 0.15);
+            }
+
+            50% {
+                border-color: rgba(212, 175, 55, 0.35);
+            }
         }
 
         .fc-day-today .fc-daygrid-day-number {
             background: var(--gradient-primary);
             color: white;
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 6px;
             font-weight: 700;
-            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+            font-size: 0.8rem;
+            box-shadow: 0 2px 10px rgba(212, 175, 55, 0.45);
         }
 
         /* Weekend styling - Japanese Calendar Style - v9.3 VIVID */
@@ -1417,87 +1441,24 @@
             background: rgba(220, 38, 38, 0.06) !important;
         }
 
-        /* v9.2 Event Badge Style */
+        /* ====== PREMIUM EVENT BADGES (v8.1) ====== */
         .fc-event {
-            font-size: 9px !important;
-            padding: 2px 6px !important;
-            border-radius: 10px !important;
-            margin: 1px 2px !important;
-            cursor: pointer !important;
-            transition: transform 0.1s ease, box-shadow 0.1s ease !important;
-        }
-
-        .fc-event:hover {
-            transform: scale(1.02);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Event count badge for days with multiple events */
-        .fc-event-count-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            background: linear-gradient(135deg, #D4AF37, #B8960C);
-            color: white;
-            font-size: 10px;
-            font-weight: 700;
-            border-radius: 9px;
-            padding: 0 5px;
-        }
-
-        /* Other month days (faded) */
-        .fc-day-other .fc-daygrid-day-number {
-            opacity: 0.25;
-        }
-
-        .fc-day-other {
-            background: rgba(248, 248, 248, 0.4) !important;
-        }
-
-        /* Empty cell subtle enhancement - dot pattern background */
-        .fc-daygrid-day-events:empty::after {
-            content: '';
-            display: block;
-            height: 40px;
-        }
-
-        /* Subtle decoration for cells without events */
-        .fc-daygrid-day-frame {
-            position: relative;
-        }
-
-        .fc-daygrid-day:not(.fc-day-other) .fc-daygrid-day-events:empty::before {
-            content: '';
-            position: absolute;
-            bottom: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 4px;
-            background: rgba(212, 175, 55, 0.15);
-            border-radius: 50%;
-        }
-
-        /* Events - COMPACT BADGE VIEW (v8.3) */
-        .fc-event {
-            background: var(--primary) !important;
             border: none !important;
-            border-radius: 4px !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+            border-radius: 6px !important;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
             cursor: pointer;
-            margin: 1px 2px !important;
-            padding: 2px 5px !important;
-            font-size: 9px !important;
-            line-height: 1.3 !important;
+            margin: 2px 3px !important;
+            padding: 3px 7px !important;
+            font-size: 10px !important;
+            line-height: 1.4 !important;
             overflow: hidden;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease !important;
+            letter-spacing: 0.01em;
         }
 
         .fc-event:hover {
-            transform: scale(1.02);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+            transform: translateY(-1px) scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
             z-index: 10;
         }
 
@@ -1505,7 +1466,7 @@
         .fc-event-main {
             display: flex !important;
             align-items: center !important;
-            gap: 3px !important;
+            gap: 4px !important;
             color: white !important;
             font-weight: 600 !important;
         }
@@ -1513,42 +1474,104 @@
         .fc-event-time {
             display: inline !important;
             font-size: 8px !important;
-            opacity: 0.9;
+            opacity: 0.85;
             white-space: nowrap;
+            font-weight: 500;
         }
 
         .fc-event-title {
             display: inline !important;
-            font-size: 9px !important;
+            font-size: 10px !important;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 100%;
+            font-weight: 600;
         }
 
-        /* Event Type Colors */
+        /* Event Type Colors - Premium Gradients */
         .fc-event.type-shared {
-            background: linear-gradient(135deg, #D4AF37, #B8960C) !important;
+            background: linear-gradient(135deg, #D4AF37 0%, #C6A355 100%) !important;
+            box-shadow: 0 2px 6px rgba(212, 175, 55, 0.3) !important;
         }
 
         .fc-event.type-personal {
-            background: linear-gradient(135deg, #6BA3E0, #4A90D9) !important;
+            background: linear-gradient(135deg, #5B8DEF 0%, #4A7BD9 100%) !important;
+            box-shadow: 0 2px 6px rgba(74, 123, 217, 0.3) !important;
         }
 
         .fc-event.type-official {
-            background: linear-gradient(135deg, #2d2d2d, #1a1a1a) !important;
+            background: linear-gradient(135deg, #3D3D3D 0%, #1A1A1A 100%) !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
         }
 
         /* Day cell with events */
         .fc-daygrid-day-events {
             min-height: 40px !important;
+            padding: 0 1px !important;
         }
 
         /* More events indicator */
         .fc-daygrid-more-link {
-            font-size: 9px !important;
+            font-size: 10px !important;
             color: var(--primary) !important;
             font-weight: 700 !important;
+            letter-spacing: 0.02em;
+            padding: 2px 4px !important;
+        }
+
+        /* Other month days (faded) */
+        .fc-day-other .fc-daygrid-day-number {
+            opacity: 0.2;
+        }
+
+        .fc-day-other {
+            background: rgba(248, 248, 248, 0.3) !important;
+        }
+
+        /* Empty cell spacer */
+        .fc-daygrid-day-events:empty::after {
+            content: '';
+            display: block;
+            height: 36px;
+        }
+
+        /* Subtle decoration for cells without events */
+        .fc-daygrid-day-frame {
+            position: relative;
+        }
+
+        /* ====== DOT INDICATOR (v8.1) ====== */
+        .event-dot-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 3px;
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .event-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+
+        .event-dot.dot-gold {
+            background: linear-gradient(135deg, #D4AF37, #C6A355);
+            box-shadow: 0 1px 3px rgba(212, 175, 55, 0.4);
+        }
+
+        .event-dot.dot-blue {
+            background: linear-gradient(135deg, #5B8DEF, #4A7BD9);
+            box-shadow: 0 1px 3px rgba(74, 123, 217, 0.4);
+        }
+
+        .event-dot.dot-dark {
+            background: linear-gradient(135deg, #3D3D3D, #1A1A1A);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         /* MODAL STYLES */
@@ -4944,6 +4967,7 @@
                 },
                 locale: 'ja',
                 height: 'auto',
+                dayMaxEvents: 2,
                 dayCellContent: function (e) {
                     const dayNum = e.dayNumberText.replace('日', '');
                     return { html: dayNum };
@@ -5114,64 +5138,57 @@
             calendar.render();
         }
 
-        // v10.3: Diamond markers for event count
-        // 1件 = ◆ 黒菱形 / 2-4件 = ◆ 黄色菱形 / 5件以上 = ◆ オレンジ菱形
+        // v8.1: Dot indicators for event types
         function updateDayCellEventCounts() {
             if (!calendar) return;
             const events = calendar.getEvents();
 
-            // Group events by date
+            // Group events by date with type info
             const eventsByDate = {};
             events.forEach(e => {
                 if (!e.start) return;
                 const dateKey = e.start.toISOString().split('T')[0];
-                if (!eventsByDate[dateKey]) eventsByDate[dateKey] = 0;
-                eventsByDate[dateKey]++;
+                if (!eventsByDate[dateKey]) eventsByDate[dateKey] = { types: new Set(), count: 0 };
+                const type = (e.extendedProps && e.extendedProps.type) || 'shared';
+                eventsByDate[dateKey].types.add(type);
+                eventsByDate[dateKey].count++;
             });
 
-            // Update each day cell with diamond marker
+            // Update each day cell with dot indicators
             document.querySelectorAll('.fc-daygrid-day').forEach(cell => {
                 const dateAttr = cell.getAttribute('data-date');
                 if (!dateAttr) return;
 
-                // Remove existing badge
-                const existingBadge = cell.querySelector('.event-count-badge');
-                if (existingBadge) existingBadge.remove();
+                // Remove existing indicators
+                const existing = cell.querySelector('.event-dot-indicator');
+                if (existing) existing.remove();
 
-                const count = eventsByDate[dateAttr] || 0;
-                if (count > 0) {
+                const info = eventsByDate[dateAttr];
+                if (info && info.count > 0) {
                     const dayFrame = cell.querySelector('.fc-daygrid-day-frame');
                     if (dayFrame) {
-                        const badge = document.createElement('div');
-                        badge.className = 'event-count-badge';
+                        const indicator = document.createElement('div');
+                        indicator.className = 'event-dot-indicator';
 
-                        // Diamond color based on event count
-                        let diamondColor, diamondStyle;
-                        if (count === 1) {
-                            // 1件: 黒菱形
-                            diamondColor = '#1a1a1a';
-                            diamondStyle = 'color: #1a1a1a;';
-                        } else if (count >= 2 && count <= 4) {
-                            // 2-4件: 黄色菱形
-                            diamondColor = '#F5C518';
-                            diamondStyle = 'color: #F5C518; text-shadow: 0 1px 2px rgba(0,0,0,0.2);';
-                        } else {
-                            // 5件以上: オレンジ菱形
-                            diamondColor = '#FF6B35';
-                            diamondStyle = 'color: #FF6B35; text-shadow: 0 1px 2px rgba(0,0,0,0.2);';
-                        }
+                        // Create dots based on event types present
+                        const typeOrder = ['shared', 'personal', 'official', 'management'];
+                        const dotClassMap = {
+                            'shared': 'dot-gold',
+                            'personal': 'dot-blue',
+                            'official': 'dot-dark',
+                            'management': 'dot-dark'
+                        };
 
-                        badge.innerHTML = `◆`;
-                        badge.style.cssText = `
-                            font-size: 12px;
-                            ${diamondStyle}
-                            font-weight: 700;
-                            text-align: center;
-                            margin-top: 2px;
-                            padding: 2px 4px;
-                        `;
-                        badge.title = `${count}件の予定`;
-                        dayFrame.appendChild(badge);
+                        typeOrder.forEach(type => {
+                            if (info.types.has(type)) {
+                                const dot = document.createElement('div');
+                                dot.className = `event-dot ${dotClassMap[type]}`;
+                                indicator.appendChild(dot);
+                            }
+                        });
+
+                        indicator.title = `${info.count}件の予定`;
+                        dayFrame.appendChild(indicator);
                     }
                 }
             });
