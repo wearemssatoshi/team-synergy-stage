@@ -6,10 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TSS Dashboard</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         rel="stylesheet">
     <style>
+        /* ═════════════════════════════════════
+           TSS DESIGN TOKENS v1.0
+           "TSS Gold" × Outfit
+           Generated: 2026/2/11
+           ═════════════════════════════════════ */
         :root {
+            --font-display: 'Outfit', -apple-system, sans-serif;
             --white: #FFFFFF;
             --off-white: #F9F9F9;
             --light-gray: #F2F2F2;
@@ -27,6 +33,13 @@
             --gradient-primary: linear-gradient(135deg, #D4AF37, #FFD700);
             --gradient-luxury: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
             --gradient-dark: linear-gradient(135deg, #1a1a1a, #000000);
+            /* TSS Gold Overrides */
+            --gold: #D4AF37;
+            --gold-warm: #FFD700;
+            --gold-soft: rgba(212, 175, 55, 0.08);
+            --gold-glow: rgba(212, 175, 55, 0.15);
+            --border-hover: rgba(212, 175, 55, 0.3);
+            --shadow-hover: 0 8px 30px rgba(212, 175, 55, 0.1);
         }
 
         * {
@@ -67,7 +80,7 @@
         }
 
         h1 {
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-size: 32px;
             font-weight: 600;
             letter-spacing: 0.15em;
@@ -82,7 +95,7 @@
         }
 
         .header-sub {
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-size: 11px;
             color: #5C4010;
             letter-spacing: 0.4em;
@@ -127,7 +140,7 @@
         }
 
         .stat-value {
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-size: 36px;
             font-weight: 700;
             background: var(--gradient-primary);
@@ -137,7 +150,7 @@
         }
 
         .stat-label {
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-size: 11px;
             color: var(--text-gray);
             margin-top: 5px;
@@ -154,7 +167,7 @@
         }
 
         .section-title {
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-size: 13px;
             font-weight: 600;
             color: var(--primary);
@@ -186,7 +199,7 @@
         }
 
         .members-table th {
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-size: 10px;
             color: var(--text-gray);
             letter-spacing: 0.15em;
@@ -215,7 +228,7 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-weight: 600;
             font-size: 14px;
             margin-right: 10px;
@@ -235,7 +248,7 @@
             color: var(--primary-dark);
             padding: 5px 12px;
             border-radius: 20px;
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-weight: 700;
             font-size: 12px;
             border: 1px solid var(--primary);
@@ -266,7 +279,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-weight: 700;
             font-size: 14px;
             color: var(--text-gray);
@@ -303,7 +316,7 @@
         }
 
         .ranking-tokens {
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-size: 18px;
             font-weight: 700;
             color: var(--primary);
@@ -395,7 +408,7 @@
             border: none;
             padding: 12px 24px;
             border-radius: 25px;
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-weight: 600;
             font-size: 12px;
             cursor: pointer;
@@ -411,7 +424,7 @@
         /* FORM INPUTS */
         .input-label {
             display: block;
-            font-family: 'Montserrat', sans-serif;
+            font-family: var(--font-display);
             font-size: 10px;
             color: var(--primary);
             letter-spacing: 0.15em;
@@ -426,7 +439,7 @@
             border-radius: 10px;
             padding: 12px 14px;
             color: var(--text-dark);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-display);
             font-size: 14px;
         }
 
