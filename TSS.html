@@ -1431,7 +1431,7 @@
                     <input type="tel" class="text-input" id="loginPin" placeholder="PINコード" maxlength="4" pattern="\d*">
                 </div>
 
-                <button class="btn-main" onclick="login()">LOGIN</button>
+                <button class="btn-main" onclick="login(event)">LOGIN</button>
                 <button class="btn-secondary" onclick="showScreen('screen-register')">新規登録はこちら</button>
             </div>
         </div>
@@ -1990,7 +1990,7 @@
             }
         }
 
-        async function login() {
+        async function login(event) {
             const name = document.getElementById('loginName').value.trim();
             const pin = document.getElementById('loginPin').value.trim();
 
@@ -2001,7 +2001,7 @@
 
             try {
                 // Show loading state
-                const btn = event.target;
+                const btn = event ? event.target : document.querySelector('#screen-login .btn-main');
                 const originalText = btn.textContent;
                 btn.textContent = 'LOGIN...';
                 btn.disabled = true;
@@ -2554,8 +2554,8 @@
             // Send to Backend
             fetch(SCRIPT_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
                     action: 'comment',
                     postId: postId,
                     author: profile.name,
@@ -3130,7 +3130,16 @@
             });
         }
 
-        function handlePin(mode) {
+        // SHA-256 Hash utility (Web Crypto API — no external library needed)
+        async function hashPin(pin) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pin + '_tss_salt_2026');
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function handlePin(mode) {
             const inputs = document.querySelectorAll('.pin-input');
             const pin = Array.from(inputs).map(i => i.value).join('');
 
@@ -3139,15 +3148,17 @@
                 return;
             }
 
+            const hashedPin = await hashPin(pin);
+
             if (mode === 'setup') {
-                localStorage.setItem('tss_pin', pin);
+                localStorage.setItem('tss_pin', hashedPin);
                 sessionStorage.setItem('tss_authenticated', 'true');
                 document.getElementById('pinModal').remove();
                 showTokenEarned(5, 'PIN設定完了! 🔐');
                 addTokens(5);
             } else {
                 const storedPin = localStorage.getItem('tss_pin');
-                if (pin === storedPin) {
+                if (hashedPin === storedPin) {
                     sessionStorage.setItem('tss_authenticated', 'true');
                     document.getElementById('pinModal').remove();
                 } else {
