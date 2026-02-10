@@ -1608,11 +1608,11 @@
         <div class="user-badge" id="userBadge" style="display: none;"></div>
 
         <!-- TOKEN BADGE (Compact) -->
-        <div class="token-badge"
+        <div class="token-badge" id="tokenDisplay"
             style="background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); display: inline-flex; align-items: center; gap: 8px; margin-top: 8px;">
             <span style="font-size: 10px; color: #FFD700; letter-spacing: 1px; font-weight: 700;">💎</span>
             <span class="token-balance" id="tokenBalance"
-                style="font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">0</span>
+                style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">0</span>
             <span class="token-label"
                 style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7);">TSST</span>
         </div>
@@ -3424,7 +3424,7 @@
 
             modal.innerHTML = `
                 <div style="background: white; padding: 30px; border-radius: 16px; text-align: center; width: 280px;">
-                    <h3 style="font-family: 'Montserrat', sans-serif; color: var(--primary); margin-bottom: 20px;">
+                    <h3 style="font-family: var(--font-display); color: var(--primary); margin-bottom: 20px;">
                         ${title}</h3>
                     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
                         <input type="password" maxlength="1" class="pin-input"
@@ -3437,7 +3437,7 @@
                             style="width: 45px; height: 50px; text-align: center; font-size: 24px; border: 2px solid var(--border); border-radius: 10px;">
                     </div>
                     <button onclick="handlePin('${mode}')"
-                        style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer;">${btnText}</button>
+                        style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: var(--font-display); font-weight: 600; cursor: pointer;">${btnText}</button>
                         <p style="margin-top: 15px; font-size: 12px; color: var(--text-gray);">セキュリティのため4桁のPINを設定してください</p>' : ''}
                 </div>
                 `;
@@ -3906,7 +3906,7 @@
                         style="cursor: pointer; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px;">
                         <div style="flex: 1;">
                             <div
-                                style="font-family: 'Montserrat', sans-serif; font-size: 10px; color: var(--text-gray); margin-bottom: 4px;">
+                                style="font-family: var(--font-display); font-size: 10px; color: var(--text-gray); margin-bottom: 4px;">
                                 ${formatDate(item.pubDate)}</div>
                             <div
                                 style="font-weight: 600; font-size: 13px; line-height: 1.4; color: var(--text-dark); margin-bottom: 6px;">
@@ -4227,7 +4227,7 @@
             <div id="${modalId}" class="modal-overlay" style="display:flex;">
                 <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
                     <div class="modal-header">SCHEDULE ADJUSTMENT</div>
-                    <h3 style="margin-bottom:5px; font-family:'Montserrat',sans-serif;">${escapeHtml(adj.title)}</h3>
+                    <h3 style="margin-bottom:5px; font-family:var(--font-display);">${escapeHtml(adj.title)}</h3>
                     <div style="font-size:11px; color:var(--text-gray); margin-bottom:20px;">Created by ${escapeHtml(adj.author)}</div>
 
                     <div style="margin-bottom:20px;">
