@@ -4203,7 +4203,8 @@
             // Try cache first
             const cached = localStorage.getItem('tss_adjustments_cache');
             if (cached) {
-                renderAdjustmentsList(JSON.parse(cached));
+                currentAdjustments = JSON.parse(cached);
+                renderAdjustments();
             } else {
                 container.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loading-spinner"></div></div>';
             }
@@ -4213,275 +4214,339 @@
                     const profile = getProfile();
                     const res = await fetch(`${SCRIPT_URL}?action=getAdjustments&user=${encodeURIComponent(profile.name)}`);
                     const data = await res.json();
+                    console.log('TSS v8.1 Adjustments Loader:', data);
                     if (data.adjustments) {
                         currentAdjustments = data.adjustments;
                         localStorage.setItem('tss_adjustments_cache', JSON.stringify(currentAdjustments));
-                        renderAdjustmentsList(currentAdjustments);
+                        renderAdjustments();
+                    } else {
+                        container.innerHTML = '<div style="text-align:center;padding:20px;">表示可能なスケジュール調整がありません</div>';
                     }
-                } catch (e) { console.error(e); }
+                } catch (e) {
+                    console.error('Adjustment Fetch Fail:', e);
+                    container.innerHTML = '<div style="text-align:center;color:red;padding:20px;">データの取得に失敗しました</div>';
+                }
             }
         }
 
-        function renderAdjustmentsList(list) {
+        function renderAdjustments() {
             const container = document.getElementById('adjustmentsList');
-            if (!container) return;
-
-            if (list.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:var(--text-gray); font-size:11px; padding:20px;">現在、調整中の予定はありません</div>';
+            if (currentAdjustments.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#999;font-size:14px;">現在、調整中のスケジュールはありません。<br>右上の＋ボタンから作成してみましょう！</div>';
                 return;
             }
 
-            container.innerHTML = list.map(adj => {
+            const profile = getProfile();
+
+            // === Smart Sorting ===
+            const sortedAdjustments = [...currentAdjustments].sort((a, b) => {
+                if (a.status !== b.status) {
+                    return a.status === 'adjusting' ? -1 : 1;
+                }
+                const aVoted = a.responses[profile.name] && Object.keys(a.responses[profile.name]).length > 0;
+                const bVoted = b.responses[profile.name] && Object.keys(b.responses[profile.name]).length > 0;
+                if (aVoted !== bVoted) return aVoted ? 1 : -1;
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+
+            container.innerHTML = sortedAdjustments.map(adj => {
+                const isAuthor = adj.author === profile.name;
                 const isFinalized = adj.status === 'finalized';
-                const statusLabel = isFinalized ? '決定済' : '調整中';
-                const statusClass = isFinalized ? '' : 'active';
-                const dateSummary = adj.finalDate ?
-                    `📅 ${formatDateShort(adj.finalDate.start)}` :
-                    `${adj.candidates.length} 候補日程`;
+
+                const bgStyle = isFinalized
+                    ? 'background: linear-gradient(135deg, #FFFDE7 0%, #FFFFFF 100%); border: 1px solid #FBC02D; opacity: 0.9;'
+                    : 'background: #fff; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.03);';
 
                 return `
-                <div class="adj-card" onclick="openAdjDetail('${adj.id}')" style="position:relative; opacity: ${isFinalized ? 0.7 : 1}">
-                    ${isFinalized ? '<div class="adj-final-badge">DECIDED</div>' : ''}
-                    <div class="adj-header">
-                        <div class="adj-title">${escapeHtml(adj.title)}</div>
-                        <div class="adj-status ${statusClass}">${statusLabel}</div>
+    <div class="card" style="padding:0; overflow:hidden; border-radius:12px; margin-bottom:16px; ${bgStyle} transition: transform 0.2s;">
+        <!-- Header -->
+        <div style="padding:15px 15px 10px; border-bottom:1px solid ${isFinalized ? '#FFF9C4' : '#f5f5f5'}; display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="flex:1;">
+                <div style="font-size:16px; font-weight:bold; color:var(--text-dark); margin-bottom:4px; line-height:1.4;">${escapeHtml(adj.title)}</div>
+                <div style="font-size:11px; color:#888; display:flex; align-items:center; gap:6px;">
+                    <span style="background:#f0f0f0; padding:2px 6px; border-radius:4px;">作成: ${escapeHtml(adj.author)}</span>
+                    ${isFinalized ? '<span style="color:#F57F17; font-weight:bold;">● 決定済み</span>' : '<span style="color:var(--success); font-weight:bold;">● 調整中</span>'}
+                </div>
+            </div>
+            
+             ${isAuthor ? `
+            <div style="margin-left:10px;">
+                <button onclick="deleteAdjustment('${adj.id}')" style="background:#fee; color:#c00; border:none; border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    🗑
+                </button>
+            </div>` : ''}
+        </div>
+
+        <!-- Result Banner (If Finalized) -->
+        ${isFinalized && adj.finalDate ? `
+        <div style="background:#FFF9C4; color:#F57F17; padding:8px 15px; font-size:13px; font-weight:bold; display:flex; align-items:center; gap:8px;">
+            🎉 確定日時: ${formatDateSimple(adj.finalDate.start)}
+        </div>` : ''}
+
+        <!-- Candidates List -->
+        <div style="padding:15px;">
+            ${adj.candidates
+                        .filter(date => {
+                            if (isFinalized) return adj.finalDate && date.start === adj.finalDate.start;
+                            return new Date(date.start) >= new Date(new Date().setHours(0, 0, 0, 0));
+                        })
+                        .map((date, idx) => {
+                            const dateObj = new Date(date.start);
+                            const month = dateObj.getMonth() + 1;
+                            const day = dateObj.getDate();
+                            const weekDay = ['日', '月', '火', '水', '木', '金', '土'][dateObj.getDay()];
+                            const time = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                            const dateStr = date.start;
+
+                            // My Vote
+                            const myVote = adj.responses[profile.name]?.[dateStr] || '-';
+
+                            // Group Votes
+                            let oCount = 0, dCount = 0, xCount = 0;
+                            let oNames = [], dNames = [], xNames = [];
+
+                            Object.entries(adj.responses).forEach(([name, votes]) => {
+                                if (votes[dateStr] === 'O') { oCount++; oNames.push(name); }
+                                else if (votes[dateStr] === '△') { dCount++; dNames.push(name); }
+                                else if (votes[dateStr] === 'X') { xCount++; xNames.push(name); }
+                            });
+
+                            const total = oCount + dCount + xCount;
+                            const max = total > 0 ? total : 1;
+
+                            // Vote Bar HTML
+                            const barHtml = `
+                    <div style="display:flex; height:6px; width:100%; background:#f0f0f0; border-radius:3px; overflow:hidden; margin-top:6px;">
+                        <div style="width:${(oCount / max) * 100}%; background:var(--success);"></div>
+                        <div style="width:${(dCount / max) * 100}%; background:#FBC02D;"></div>
+                        <div style="width:${(xCount / max) * 100}%; background:#ef4444;"></div>
+                    </div>`;
+
+                            return `
+            <div style="margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed #eee;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <!-- Calendar Icon -->
+                    <div style="background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px; width:44px; height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0;">
+                        <div style="font-size:10px; color:#666; font-weight:bold;">${month}/${day}</div>
+                        <div style="font-size:14px; font-weight:900; color:var(--text-dark);">(${weekDay})</div>
                     </div>
-                    <div style="font-size:11px; color:var(--text-gray); display:flex; justify-content:space-between;">
-                        <span>👤 ${escapeHtml(adj.author)}</span>
-                        <span>${dateSummary}</span>
-                    </div>
-                    <!-- Activity Bar -->
-                    <div style="height:3px; background:#f0f0f0; margin-top:10px; border-radius:2px; overflow:hidden;">
-                         <div style="height:100%; width:${Math.min(100, (Object.keys(adj.responses).length / (adj.participants.length || 1)) * 100)}%; background:var(--primary);"></div>
-                    </div>
-                    <div style="font-size:9px; color:#ccc; text-align:right; margin-top:2px;">
-                        ${Object.keys(adj.responses).length} / ${adj.participants.length || '?'} Voted
+                    
+                    <!-- Time & Status -->
+                    <div style="flex:1;">
+                        <div style="font-size:15px; font-weight:bold; color:#333; display:flex; align-items:center; gap:8px;">
+                             ${time} ～ 
+                             <span onclick='showVoteDetailsModal("${dateStr}", ${JSON.stringify(oNames)}, ${JSON.stringify(dNames)}, ${JSON.stringify(xNames)})' 
+                                   style="font-size:11px; background:#fff; border:1px solid #ddd; padding:2px 8px; border-radius:10px; cursor:pointer; font-weight:normal; color:#666;">
+                                   詳細 ▾
+                             </span>
+                        </div>
+                        ${barHtml}
+                        <div style="font-size:10px; color:#888; margin-top:3px; display:flex; gap:8px;">
+                            <span style="color:var(--success);">O ${oCount}</span>
+                            <span style="color:#FBC02D;">△ ${dCount}</span>
+                            <span style="color:#ef4444;">X ${xCount}</span>
+                        </div>
                     </div>
                 </div>
-                `;
+
+                <!-- My Action Buttons (Large) -->
+                ${!isFinalized ? `
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    ${renderVoteBtn(adj.id, dateStr, 'O', '参加', myVote)}
+                    ${renderVoteBtn(adj.id, dateStr, '△', '未定', myVote)}
+                    ${renderVoteBtn(adj.id, dateStr, 'X', '不参加', myVote)}
+                </div>` : ''}
+                
+                <!-- Author Finalize Action -->
+                ${!isFinalized && isAuthor ? `
+                <div style="margin-top:8px; text-align:right;">
+                     <button onclick="finalizeAdjustment('${adj.id}', ${idx})" 
+                        style="background:var(--primary); color:white; border:none; padding:6px 16px; font-size:11px; border-radius:20px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                        この日時で確定する
+                     </button>
+                </div>
+                ` : ''}
+
+            </div>`;
+                        }).join('')}
+        </div>
+    </div>`;
             }).join('');
         }
 
-        // --- NEW ADJUSTMENT FORM ---
-        function openNewAdjustmentForm() {
-            document.getElementById('new-adjustment-form').style.display = 'block';
-            newAdjDates = [];
-            renderAdjDates();
-        }
-        function closeNewAdjustmentForm() {
-            document.getElementById('new-adjustment-form').style.display = 'none';
-        }
-        function addAdjDate() {
-            const input = document.getElementById('adjDateInput');
-            if (!input.value) return;
-            const d = new Date(input.value);
-            // Default 1 hour duration
-            const end = new Date(d.getTime() + 60 * 60 * 1000);
+        function renderVoteBtn(adjId, dateStr, type, label, currentVote) {
+            const isSelected = currentVote === type;
+            let color = '#666';
+            let bg = '#fff';
+            let border = '1px solid #ddd';
 
-            newAdjDates.push({ start: d.toISOString(), end: end.toISOString() });
-            renderAdjDates();
-            input.value = ''; // Clear
-        }
-        function renderAdjDates() {
-            const div = document.getElementById('adjDatesList');
-            div.innerHTML = newAdjDates.map((d, i) => `
-                <div style="font-size:11px; background:var(--light-gray); padding:5px; margin-bottom:2px; border-radius:4px; display:flex; justify-content:space-between;">
-                    ${formatDateShort(d.start)} - ${formatTime(d.end)}
-                    <span onclick="newAdjDates.splice(${i},1);renderAdjDates()" style="color:red; cursor:pointer;">×</span>
-                </div>
-            `).join('');
-        }
-        async function createAdjustment() {
-            const title = document.getElementById('adjTitle').value;
-            const membersStr = document.getElementById('adjMemberInput').value;
-            const profile = getProfile();
-
-            if (!title || newAdjDates.length === 0) {
-                alert('タイトルと日程候補を入力してください');
-                return;
+            if (isSelected) {
+                if (type === 'O') { color = 'white'; bg = 'var(--success)'; border = 'none'; }
+                if (type === '△') { color = 'white'; bg = '#FBC02D'; border = 'none'; }
+                if (type === 'X') { color = 'white'; bg = '#ef4444'; border = 'none'; }
             }
 
-            const members = membersStr.split(',').map(s => s.trim()).filter(s => s);
-            // Ensure self is in
-            if (!members.includes(profile.name)) members.push(profile.name);
-
-            // API Call
-            const btn = document.querySelector('#new-adjustment-form .btn-main');
-            const originalText = btn.innerText;
-            btn.disabled = true; btn.innerText = "作成中..."; // Japanese Loading
-
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'createAdjustment',
-                        title: title,
-                        candidates: newAdjDates,
-                        participants: members,
-                        author: profile.name
-                    })
-                });
-
-                addTokens(2);
-                showTokenEarned(2, 'Adjustment Created! ✨');
-                closeNewAdjustmentForm();
-                fetchAdjustments(); // Reload
-            } catch (e) {
-                alert('作成エラーが発生しました');
-            }
-            btn.disabled = false; btn.innerText = originalText;
+            return `
+             <button onclick="submitVote('${adjId}','${dateStr}','${type}')" 
+                style="flex:1; padding:8px 0; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer; transition:all 0.1s;
+                       color:${color}; background:${bg}; border:${border};">
+                ${type} ${label}
+             </button>
+             `;
         }
 
-        // --- DETAIL & VOTING MODAL (HEATMAP) ---
-        function openAdjDetail(id) {
-            const adj = currentAdjustments.find(a => a.id === id);
-            if (!adj) return;
-
-            const profile = getProfile();
-            const isAuthor = adj.author === profile.name;
-            const myVote = adj.responses[profile.name] || {};
-            const isFinalized = adj.status === 'finalized';
-
-            // Create Modal
-            const modalId = 'adjDetailModal';
-            document.getElementById(modalId)?.remove();
-
-            const modalHtml = `
-            <div id="${modalId}" class="modal-overlay" style="display:flex;">
-                <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
-                    <div class="modal-header">SCHEDULE ADJUSTMENT</div>
-                    <h3 style="margin-bottom:5px; font-family:var(--font-display);">${escapeHtml(adj.title)}</h3>
-                    <div style="font-size:11px; color:var(--text-gray); margin-bottom:20px;">Created by ${escapeHtml(adj.author)}</div>
-
-                    <div style="margin-bottom:20px;">
-                        ${adj.candidates.map(date => {
-                // HEATMAP LOGIC
-                let scoreSum = 0;
-                let voterCount = 0;
-                const key = date.start;
-
-                let countO = 0;
-                let countT = 0;
-                let countX = 0;
-
-                Object.values(adj.responses).forEach(r => {
-                    const vote = r[key];
-                    if (vote === 'O') { scoreSum += 1; countO++; }
-                    if (vote === 'T') { scoreSum += 0.5; countT++; }
-                    if (vote === 'X') { countX++; }
-                    voterCount++;
-                });
-
-                const totalPossible = adj.participants.length || 1;
-                const ratio = scoreSum / totalPossible;
-                const bgOpacity = ratio * 0.5;
-
-                // My Vote Status
-                const myVal = myVote[key];
-
-                return `
-                            <div class="adj-heatmap-row">
-                                <div class="adj-heatmap-bg" style="width:100%; opacity:${Math.max(0.05, bgOpacity)}; background:${ratio > 0.7 ? '#D4AF37' : '#ccc'};"></div>
-                                <div class="adj-date">
-                                    <div>${formatDateShort(date.start)}</div>
-                                    <div style="font-size:10px; color:#666;">${formatTime(date.start)} - ${formatTime(date.end)}</div>
-                                    <div style="font-size:9px; color:#444; margin-top:2px;">
-                                        ⭕${countO} &nbsp; 🔺${countT} &nbsp; ❌${countX}
-                                    </div>
-                                </div>
-                                <div class="adj-votes">
-                                    ${!isFinalized ? `
-                                    <div class="vote-btn ${myVal === 'O' ? 'selected o' : ''}" onclick="voteAdj('${id}', '${key}', 'O')">○</div>
-                                    <div class="vote-btn ${myVal === 'T' ? 'selected t' : ''}" onclick="voteAdj('${id}', '${key}', 'T')">△</div>
-                                    <div class="vote-btn ${myVal === 'X' ? 'selected x' : ''}" onclick="voteAdj('${id}', '${key}', 'X')">×</div>
-                                    ` : `
-                                    <div style="font-weight:bold; color:var(--text-dark);">${myVal || '-'}</div>
-                                    `}
-                                </div>
-                                ${isAuthor && !isFinalized ? `
-                                <button onclick="finalizeAdj('${id}', '${date.start}', '${date.end}')" 
-                                    style="margin-left:10px; padding:5px 10px; border:none; background:var(--text-dark); color:white; border-radius:20px; font-size:10px; cursor:pointer; width:80px;">
-                                    この日時で<br>確定
-                                </button>
-                                ` : ''}
-                                ${isFinalized && adj.finalDate && adj.finalDate.start === date.start ? `
-                                <div style="margin-left:10px; color:var(--primary); font-weight:bold; font-size:12px;">★ 確定</div>
-                                ` : ''}
-                            </div>
-                            `;
-            }).join('')}
-                    </div>
-
-                    ${isFinalized ? `
-                    <div style="background:var(--light-gray); padding:15px; border-radius:8px; text-align:center; margin-bottom:15px;">
-                        <div style="font-weight:bold; color:var(--primary);">DETERMINED DATE</div>
-                        <div style="font-size:18px;">${formatDateShort(adj.finalDate.start)}</div>
-                        <div style="font-size:14px;">${formatTime(adj.finalDate.start)} - ${formatTime(adj.finalDate.end)}</div>
-                    </div>
-                    ` : ''}
-
-                    <button class="btn-secondary" onclick="document.getElementById('${modalId}').remove()">閉じる</button>
-                </div>
-            </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        function formatDateSimple(isoStr) {
+            const d = new Date(isoStr);
+            return `${d.getMonth() + 1}/${d.getDate()} (${['日', '月', '火', '水', '木', '金', '土'][d.getDay()]}) ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
         }
 
-        async function voteAdj(id, dateStr, val) {
+        function submitVote(adjId, dateStr, vote) {
             const profile = getProfile();
-            const adj = currentAdjustments.find(a => a.id === id);
+            const adjIndex = currentAdjustments.findIndex(a => a.id == adjId);
+            if (adjIndex === -1) return;
 
-            // Optimistic Update
+            const adj = currentAdjustments[adjIndex];
+
+            if (!adj.responses) adj.responses = {};
             if (!adj.responses[profile.name]) adj.responses[profile.name] = {};
-            adj.responses[profile.name][dateStr] = val;
 
-            // Re-render
-            document.getElementById('adjDetailModal').remove();
-            openAdjDetail(id);
+            // Update Local State (Optimistic)
+            adj.responses[profile.name][dateStr] = vote;
 
+            // Force Re-render
+            renderAdjustments();
+
+            // Send to Backend
             fetch(SCRIPT_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     action: 'submitVote',
-                    adjustmentId: id,
+                    adjustmentId: adjId,
                     user: profile.name,
                     votes: adj.responses[profile.name]
                 })
-            });
+            }).then(r => r.json()).then(res => {
+                if (res.tokensEarned && res.tokensEarned > 0) {
+                    addTokens(res.tokensEarned);
+                    showTokenEarned(res.tokensEarned, 'Participation Bonus! 🙌');
+                }
+            }).catch(e => console.error('Vote failed', e));
         }
 
-        async function finalizeAdj(id, start, end) {
-            if (!confirm('この日時で決定しますか？\n参加者全員に招待カレンダーが送信されます。')) return;
+        function finalizeAdjustment(adjId, dateIdx) {
+            if (!confirm('この日時で確定しますか？')) return;
 
-            // Show Loading
+            const adj = currentAdjustments.find(a => String(a.id) === String(adjId));
+
+            if (!adj) {
+                alert('エラー: 調整データが見つかりません。ページを再読み込みしてください。');
+                return;
+            }
+
+            const finalDate = adj.candidates[dateIdx];
+
+            if (!finalDate) {
+                alert('エラー: 日程データが見つかりません。');
+                return;
+            }
+
             const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = "処理中...";
+            const originalText = btn.textContent;
+            btn.textContent = '処理中...';
             btn.disabled = true;
 
-            try {
-                const res = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'finalizeAdjustment',
-                        adjustmentId: id,
-                        finalDate: { start: start, end: end }
-                    })
-                });
-                const data = await res.json();
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'finalizeAdjustment',
+                    adjustmentId: String(adjId),
+                    finalDate: finalDate
+                })
+            }).then(r => r.json()).then(res => {
+                btn.textContent = originalText;
+                btn.disabled = false;
 
-                if (data.success) {
-                    alert('日程が確定しました！\nGoogleカレンダーとアプリ内カレンダーに登録完了！📅');
-                    document.getElementById('adjDetailModal').remove();
-                    fetchAdjustments(); // Reload
-                } else {
-                    alert('エラー: ' + data.error);
-                    btn.innerText = originalText;
-                }
-            } catch (e) {
-                alert('通信エラー');
-                btn.innerText = originalText;
-            }
+                if (res.success) {
+                    alert('🎉 日程が確定しました！カレンダーに追加されました。');
+                    fetchAdjustments();
+
+                    const calEl = document.getElementById('calendar-container');
+                    if (calEl) calEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    if (typeof calendar !== 'undefined' && calendar) {
+                        const newEvent = {
+                            id: res.calendarEventId || ('local-' + Date.now()),
+                            title: adj.title,
+                            start: finalDate.start,
+                            end: finalDate.end,
+                            allDay: false,
+                            extendedProps: {
+                                author: getProfile().name,
+                                type: 'shared'
+                            },
+                            backgroundColor: '#1a1a1a',
+                            borderColor: '#1a1a1a'
+                        };
+                        calendar.addEvent(newEvent);
+
+                        setTimeout(() => {
+                            if (calendar) calendar.refetchEvents();
+                        }, 2000);
+                    }
+                } else alert('エラー: ' + res.error);
+            }).catch(e => alert('確定に失敗しました: ' + e.message));
+        }
+
+        function deleteAdjustment(adjId) {
+            if (!confirm('本当に削除しますか？')) return;
+            const profile = getProfile();
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'deleteAdjustment',
+                    adjustmentId: adjId,
+                    user: profile.name
+                })
+            }).then(r => r.json()).then(res => {
+                if (res.success) {
+                    alert('削除しました');
+                    fetchAdjustments();
+                } else alert('エラー: ' + res.error);
+            }).catch(e => alert('削除に失敗しました: ' + e.message));
+        }
+
+        function showVoteDetailsModal(dateStr, oNames, dNames, xNames) {
+            const modalHtml = `
+                <div id="voteDetailModal" class="modal-overlay" style="display:flex;">
+                    <div class="modal-content">
+                        <div class="modal-header">回答詳細</div>
+                        <div style="text-align:center; font-weight:bold; margin-bottom:15px;">${dateStr}</div>
+                        
+                        <div style="display:grid; gap:10px;">
+                            <div style="background:#f0fff4; padding:10px; border-radius:8px;">
+                                <div style="color:#2E7D32; font-weight:bold; border-bottom:1px solid #c6f6d5; margin-bottom:5px;">O (参加)</div>
+                                <div style="font-size:12px;">${oNames.length ? oNames.join(', ') : 'None'}</div>
+                            </div>
+                            <div style="background:#fffaf0; padding:10px; border-radius:8px;">
+                                <div style="color:#F9A825; font-weight:bold; border-bottom:1px solid #feebc8; margin-bottom:5px;">△ (未定)</div>
+                                <div style="font-size:12px;">${dNames.length ? dNames.join(', ') : 'None'}</div>
+                            </div>
+                            <div style="background:#fff5f5; padding:10px; border-radius:8px;">
+                                <div style="color:#C62828; font-weight:bold; border-bottom:1px solid #fed7d7; margin-bottom:5px;">X (不参加)</div>
+                                <div style="font-size:12px;">${xNames.length ? xNames.join(', ') : 'None'}</div>
+                            </div>
+                        </div>
+
+                        <button class="btn-secondary" style="margin-top:20px;" onclick="document.getElementById('voteDetailModal').remove()">CLOSE</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('voteDetailModal')?.remove();
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
         // Helper Formatters
