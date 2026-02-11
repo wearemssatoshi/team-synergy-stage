@@ -3851,6 +3851,24 @@
             calendar.render();
         }
 
+        // ============ EVENT TIME HELPER ============
+        function formatEventTime(timeVal) {
+            if (!timeVal) return '';
+            const s = String(timeVal);
+            // Handle GAS 1899-12-30T... ISO format
+            if (s.includes('1899') || s.includes('T')) {
+                try {
+                    const d = new Date(s);
+                    if (!isNaN(d.getTime())) {
+                        return String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+                    }
+                } catch (e) { }
+            }
+            // Already HH:MM format
+            if (/^\d{1,2}:\d{2}$/.test(s)) return s;
+            return s;
+        }
+
         // ============ GOOGLE CALENDAR INTEGRATION ============
         function createGCalLink(event) {
             const props = event.extendedProps || {};
@@ -3864,14 +3882,16 @@
 
             // If startTime is specified, create a timed event
             if (props.startTime) {
+                const formatted = formatEventTime(props.startTime);
                 const dateStr = event.start.toISOString().split('T')[0]; // YYYY-MM-DD
-                const startParts = props.startTime.split(':');
+                const startParts = formatted.split(':');
                 const startDt = new Date(event.start);
                 startDt.setHours(parseInt(startParts[0]), parseInt(startParts[1]), 0, 0);
 
                 let endDt;
                 if (props.endTime) {
-                    const endParts = props.endTime.split(':');
+                    const endFormatted = formatEventTime(props.endTime);
+                    const endParts = endFormatted.split(':');
                     endDt = new Date(event.start);
                     endDt.setHours(parseInt(endParts[0]), parseInt(endParts[1]), 0, 0);
                 } else {
@@ -3904,11 +3924,13 @@
             // Time display
             let timeHtml = '';
             if (props.startTime) {
+                const fStart = formatEventTime(props.startTime);
+                const fEnd = props.endTime ? formatEventTime(props.endTime) : '';
                 timeHtml = `
                     <div style="display:flex; align-items:center; gap:8px; margin:12px 0; padding:10px 14px; background:var(--light-gray); border-radius:10px;">
                         <span style="font-size:16px;">🕐</span>
                         <div>
-                            <div style="font-size:13px; font-weight:700; color:var(--text-dark);">${props.startTime}${props.endTime ? ' 〜 ' + props.endTime : ''}</div>
+                            <div style="font-size:13px; font-weight:700; color:var(--text-dark);">${fStart}${fEnd ? ' 〜 ' + fEnd : ''}</div>
                             <div style="font-size:10px; color:var(--text-gray);">開催時間</div>
                         </div>
                     </div>
@@ -4056,7 +4078,9 @@
                 if (e.type === 'official') typeColor = '#1a1a1a';
 
                 // Time display for list
-                const timeStr = e.startTime ? `<div style="font-size:10px; color:var(--primary); font-weight:600; margin-top:2px;">🕐 ${e.startTime}${e.endTime ? '〜' + e.endTime : ''}</div>` : '';
+                const fSt = formatEventTime(e.startTime);
+                const fEn = formatEventTime(e.endTime);
+                const timeStr = fSt ? `<div style="font-size:10px; color:var(--primary); font-weight:600; margin-top:2px;">🕐 ${fSt}${fEn ? '〜' + fEn : ''}</div>` : '';
 
                 // Escape event data for onclick (safe JSON)
                 const eventDataAttr = encodeURIComponent(JSON.stringify(e));
