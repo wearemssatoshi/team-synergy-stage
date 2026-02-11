@@ -1992,6 +1992,14 @@
 
     <nav id="mainNav" style="display: none;">
         <div class="nav-container">
+            <div class="nav-item" onclick="showScreen('screen-ai')">
+                <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg></span>
+                <span class="nav-label">AI</span>
+            </div>
             <div class="nav-item active" onclick="showScreen('screen-home')">
                 <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -2016,14 +2024,6 @@
                         <line x1="3" y1="10" x2="21" y2="10" />
                     </svg></span>
                 <span class="nav-label">SCHEDULE</span>
-            </div>
-            <div class="nav-item" onclick="showScreen('screen-ai')">
-                <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon
-                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg></span>
-                <span class="nav-label">AI</span>
             </div>
         </div>
     </nav>
@@ -3671,37 +3671,95 @@
                     openAddEventModal(info.dateStr);
                 },
                 eventClick: function (info) {
-                    const profile = getProfile();
-                    const props = info.event.extendedProps;
-                    const isMyEvent = props.author === (profile ? profile.name : '');
-
-                    let msg = `📅 ${info.event.title} \n`;
-                    msg += `作成者: ${props.author} \n`;
-                    msg += `タイプ: ${props.type === 'personal' ? '個人' : props.type === 'open' ? '共有' : '運営'} `;
-
-                    if (isMyEvent) {
-                        if (confirm(msg + '\n\n削除しますか？')) {
-                            const eventId = info.event.id;
-                            info.event.remove();
-
-                            // Also remove from list view (optimistic)
-                            document.getElementById(`event - list - item - ${eventId} `)?.remove();
-
-                            fetch(SCRIPT_URL, {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    action: 'deleteEvent',
-                                    eventId: eventId
-                                })
-                            });
-                        }
-                    } else {
-                        alert(msg);
-                    }
+                    showEventDetailModal(info.event);
                 }
             });
 
             calendar.render();
+        }
+
+        // ============ GOOGLE CALENDAR INTEGRATION ============
+        function createGCalLink(event) {
+            const format = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            const start = event.start;
+            let end = event.end;
+            if (!end) {
+                end = new Date(start.getTime() + 60 * 60 * 1000);
+            }
+            const title = encodeURIComponent(event.title);
+            const details = encodeURIComponent('Created via Team Synergy Stage App');
+            const dates = `${format(start)}/${format(end)}`;
+            return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
+        }
+
+        function showEventDetailModal(event) {
+            const props = event.extendedProps;
+            const profile = getProfile();
+            const isMyEvent = props.author === (profile ? profile.name : '');
+
+            const dateStr = event.start.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+
+            const modalHtml = `
+                <div id="eventDetailModal" class="modal-overlay" style="display:flex;">
+                    <div class="modal-content">
+                        <div class="modal-header">イベント詳細</div>
+                        
+                        <div style="margin-bottom:20px;">
+                             <div style="font-size:12px; color:var(--primary); font-weight:700; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:10px;">${dateStr}</div>
+                             <div style="font-size:18px; font-weight:700; color:var(--text-dark); margin-bottom:10px; line-height:1.4;">
+                                ${event.title.replace('🔒 ', '')}
+                             </div>
+                             
+                             <div style="display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-gray);">
+                                <span style="background:var(--light-gray); padding:4px 10px; border-radius:10px;">
+                                    👤 ${props.author || '不明'}
+                                </span>
+                                <span style="background:${props.type === 'personal' ? '#E3F2FD' : 'rgba(212, 175, 55, 0.1)'}; color:${props.type === 'personal' ? '#1565C0' : '#B8960C'}; padding:4px 10px; border-radius:10px; font-weight:600;">
+                                    ${props.type === 'personal' ? 'プライベート' : '共有'}
+                                </span>
+                             </div>
+                        </div>
+
+                        ${isMyEvent ? `
+                        <button class="btn-main" style="background:var(--danger); box-shadow:0 4px 15px rgba(239, 68, 68, 0.3);" onclick="deleteEventConfirmed('${event.id}')">
+                            <span style="font-size:14px;">🗑</span> イベントを削除
+                        </button>
+                        ` : ''}
+
+                        <!-- Google Calendar Button -->
+                        <a href="${createGCalLink(event)}" target="_blank" class="btn-main" style="background:#4285F4; box-shadow:0 4px 15px rgba(66, 133, 244, 0.3); margin-top:10px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <span style="font-size:16px;">🗓</span> Googleカレンダーに追加
+                        </a>
+
+                        <button class="btn-secondary" onclick="document.getElementById('eventDetailModal').remove()">閉じる</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('eventDetailModal')?.remove();
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function deleteEventConfirmed(eventId) {
+            if (!confirm('このイベントを削除しますか？')) return;
+
+            document.getElementById('eventDetailModal')?.remove();
+
+            if (calendar) {
+                const calEvent = calendar.getEventById(eventId);
+                if (calEvent) calEvent.remove();
+            }
+            document.getElementById(`event-list-item-${eventId}`)?.remove();
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'deleteEvent',
+                    eventId: eventId
+                })
+            });
+
+            showTokenEarned(0, 'イベントを削除しました');
         }
 
         function renderMonthlyEventsList(events) {
