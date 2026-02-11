@@ -1285,8 +1285,18 @@ function handleAddEvent(ss, data) {
     let sheet = ss.getSheetByName('TSS_Schedule');
     if (!sheet) {
       sheet = ss.insertSheet('TSS_Schedule');
-      sheet.getRange(1, 1, 1, 7).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId', 'Type']]);
-      sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+      sheet.getRange(1, 1, 1, 10).setValues([['Timestamp', 'Title', 'Start', 'AllDay', 'Author', 'EventId', 'Type', 'StartTime', 'EndTime', 'Description']]);
+      sheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+    } else {
+      // Migrate: add new columns if they don't exist yet
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      if (headers.length < 10 || headers[7] !== 'StartTime') {
+        const colCount = headers.length;
+        if (colCount < 8) sheet.getRange(1, 8).setValue('StartTime');
+        if (colCount < 9) sheet.getRange(1, 9).setValue('EndTime');
+        if (colCount < 10) sheet.getRange(1, 10).setValue('Description');
+        sheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+      }
     }
     
     const eventId = String(Date.now());
@@ -1297,7 +1307,10 @@ function handleAddEvent(ss, data) {
       data.allDay,
       data.author || 'Anonymous',
       eventId,
-      data.type || 'shared' // Col 7: Type
+      data.type || 'shared',
+      data.startTime || '',
+      data.endTime || '',
+      data.description || ''
     ];
     
     sheet.appendRow(row);
@@ -1361,7 +1374,10 @@ function getEvents(ss, params) {
       allDay: isAllDay,
       author: author,
       type: type,
-      createdAt: row[0]
+      createdAt: row[0],
+      startTime: row[7] || '',
+      endTime: row[8] || '',
+      description: row[9] || ''
     });
   }
   

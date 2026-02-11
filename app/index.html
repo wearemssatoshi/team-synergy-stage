@@ -1601,7 +1601,13 @@
             border-radius: 50%;
         }
 
-        /* ===== RESPONSIVE BREAKPOINTS ===== */
+        /* RESPONSIVE BREAKPOINTS */
+
+        /* Event list item tap effect */
+        .event-list-item:active {
+            transform: scale(0.98);
+            opacity: 0.85;
+        }
 
         /* Tablet */
         @media (min-width: 768px) {
@@ -3688,7 +3694,10 @@
                                     classNames: [className],
                                     extendedProps: {
                                         author: e.author,
-                                        type: e.type || 'shared'
+                                        type: e.type || 'shared',
+                                        startTime: e.startTime || '',
+                                        endTime: e.endTime || '',
+                                        description: e.description || ''
                                     }
                                 };
                             });
@@ -3712,14 +3721,43 @@
 
         // ============ GOOGLE CALENDAR INTEGRATION ============
         function createGCalLink(event) {
+            const props = event.extendedProps || {};
+            const title = encodeURIComponent(event.title.replace('🔒 ', ''));
+
+            // Build description with memo
+            let descParts = [];
+            if (props.description) descParts.push(props.description);
+            descParts.push('Created via Team Synergy Stage App');
+            const details = encodeURIComponent(descParts.join('\n\n'));
+
+            // If startTime is specified, create a timed event
+            if (props.startTime) {
+                const dateStr = event.start.toISOString().split('T')[0]; // YYYY-MM-DD
+                const startParts = props.startTime.split(':');
+                const startDt = new Date(event.start);
+                startDt.setHours(parseInt(startParts[0]), parseInt(startParts[1]), 0, 0);
+
+                let endDt;
+                if (props.endTime) {
+                    const endParts = props.endTime.split(':');
+                    endDt = new Date(event.start);
+                    endDt.setHours(parseInt(endParts[0]), parseInt(endParts[1]), 0, 0);
+                } else {
+                    endDt = new Date(startDt.getTime() + 60 * 60 * 1000); // Default 1 hour
+                }
+
+                const format = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                const dates = `${format(startDt)}/${format(endDt)}`;
+                return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
+            }
+
+            // All-day event fallback
             const format = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
             const start = event.start;
             let end = event.end;
             if (!end) {
                 end = new Date(start.getTime() + 60 * 60 * 1000);
             }
-            const title = encodeURIComponent(event.title);
-            const details = encodeURIComponent('Created via Team Synergy Stage App');
             const dates = `${format(start)}/${format(end)}`;
             return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
         }
@@ -3730,6 +3768,31 @@
             const isMyEvent = props.author === (profile ? profile.name : '');
 
             const dateStr = event.start.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+
+            // Time display
+            let timeHtml = '';
+            if (props.startTime) {
+                timeHtml = `
+                    <div style="display:flex; align-items:center; gap:8px; margin:12px 0; padding:10px 14px; background:var(--light-gray); border-radius:10px;">
+                        <span style="font-size:16px;">🕐</span>
+                        <div>
+                            <div style="font-size:13px; font-weight:700; color:var(--text-dark);">${props.startTime}${props.endTime ? ' 〜 ' + props.endTime : ''}</div>
+                            <div style="font-size:10px; color:var(--text-gray);">開催時間</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Description display
+            let descHtml = '';
+            if (props.description) {
+                descHtml = `
+                    <div style="margin:10px 0; padding:10px 14px; background:var(--light-gray); border-radius:10px;">
+                        <div style="font-size:10px; color:var(--text-gray); margin-bottom:4px; font-weight:600;">📝 メモ</div>
+                        <div style="font-size:12px; color:var(--text-dark); line-height:1.6; white-space:pre-wrap;">${escapeHtml(props.description)}</div>
+                    </div>
+                `;
+            }
 
             const modalHtml = `
                 <div id="eventDetailModal" class="modal-overlay" style="display:flex;">
@@ -3742,7 +3805,10 @@
                                 ${event.title.replace('🔒 ', '')}
                              </div>
                              
-                             <div style="display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-gray);">
+                             ${timeHtml}
+                             ${descHtml}
+
+                             <div style="display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-gray); margin-top:12px;">
                                 <span style="background:var(--light-gray); padding:4px 10px; border-radius:10px;">
                                     👤 ${props.author || '不明'}
                                 </span>
@@ -3770,6 +3836,26 @@
 
             document.getElementById('eventDetailModal')?.remove();
             document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        // Show event detail from UPCOMING EVENTS list click
+        function showEventDetailFromList(eventData) {
+            // Build a compatible event object for showEventDetailModal
+            const startDate = new Date(eventData.start);
+            const fakeEvent = {
+                id: eventData.id,
+                title: eventData.title,
+                start: startDate,
+                end: null,
+                extendedProps: {
+                    author: eventData.author,
+                    type: eventData.type || 'shared',
+                    startTime: eventData.startTime || '',
+                    endTime: eventData.endTime || '',
+                    description: eventData.description || ''
+                }
+            };
+            showEventDetailModal(fakeEvent);
         }
 
         function deleteEventConfirmed(eventId) {
@@ -3837,9 +3923,16 @@
                 if (e.type === 'personal') typeColor = '#4A90E2';
                 if (e.type === 'official') typeColor = '#1a1a1a';
 
+                // Time display for list
+                const timeStr = e.startTime ? `<div style="font-size:10px; color:var(--primary); font-weight:600; margin-top:2px;">🕐 ${e.startTime}${e.endTime ? '〜' + e.endTime : ''}</div>` : '';
+
+                // Escape event data for onclick (safe JSON)
+                const eventDataAttr = encodeURIComponent(JSON.stringify(e));
+
                 return `
                     <div id="event-list-item-${e.id}" class="event-list-item"
-                        style="display:flex; align-items:center; background:var(--white); padding:12px 16px; margin-bottom:10px; border-radius:12px; border-left:4px solid ${typeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                        onclick="showEventDetailFromList(JSON.parse(decodeURIComponent('${eventDataAttr}')))"
+                        style="display:flex; align-items:center; background:var(--white); padding:12px 16px; margin-bottom:10px; border-radius:12px; border-left:4px solid ${typeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.03); cursor:pointer; transition:all 0.2s ease; active:scale(0.98);">
                         <div style="text-align:center; margin-right:16px; min-width:40px;">
                             <div style="font-size:10px; font-weight:700; color:var(--text-gray);">${dayStr}</div>
                             <div style="font-size:18px; font-weight:800; color:var(--text-dark); line-height:1;">
@@ -3848,12 +3941,14 @@
                         <div style="flex:1;">
                             <div style="font-size:13px; font-weight:600; color:var(--text-dark); margin-bottom:2px;">
                                 ${escapeHtml(e.title)}</div>
+                            ${timeStr}
                             <div style="font-size:10px; color:var(--text-gray); display:flex; gap:8px;">
                                 <span>👤 ${escapeHtml(e.author)}</span>
                                 <span style="color:${typeColor}; font-weight:600;">${e.type === 'personal' ? 'Personal'
                         : e.type === 'official' ? 'Official' : 'Shared'}</span>
                             </div>
                         </div>
+                        <div style="color:var(--text-gray); font-size:16px; margin-left:8px;">›</div>
                     </div>
                     `;
             }).join('');
@@ -3880,6 +3975,22 @@
                                 <input type="text" id="eventTitleInput" class="text-input" placeholder="予定のタイトル">
                             </div>
 
+                            <div style="display:flex; gap:10px;">
+                                <div class="input-group" style="flex:1;">
+                                    <label class="input-label">開始時間</label>
+                                    <input type="time" id="eventStartTimeInput" class="text-input" style="font-size:14px;">
+                                </div>
+                                <div class="input-group" style="flex:1;">
+                                    <label class="input-label">終了時間</label>
+                                    <input type="time" id="eventEndTimeInput" class="text-input" style="font-size:14px;">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label">メモ (任意)</label>
+                                <textarea id="eventDescInput" class="text-input" placeholder="場所・詳細など" rows="2" style="resize:none;"></textarea>
+                            </div>
+
                             <div class="type-selector">
                                 <div class="type-option selected" onclick="selectEventType(this, 'shared')">
                                     <div class="type-indicator" style="background:var(--primary);"></div>
@@ -3895,7 +4006,6 @@
                                         <div style="font-size:9px; color:var(--text-gray);">自分だけに表示 (非公開)</div>
                                     </div>
                                 </div>
-                                <!-- Management option hidden for normal users usually, but available for simplicity here -->
                             </div>
 
                             <button class="btn-main" onclick="submitEvent()">ADD EVENT</button>
@@ -3909,6 +4019,9 @@
 
             // Reset
             document.getElementById('eventTitleInput').value = '';
+            if (document.getElementById('eventStartTimeInput')) document.getElementById('eventStartTimeInput').value = '';
+            if (document.getElementById('eventEndTimeInput')) document.getElementById('eventEndTimeInput').value = '';
+            if (document.getElementById('eventDescInput')) document.getElementById('eventDescInput').value = '';
             selectEventType(document.querySelector('.type-option'), 'shared'); // Default shared
 
             document.getElementById('addEventModal').style.display = 'flex';
@@ -3925,6 +4038,10 @@
             const title = document.getElementById('eventTitleInput').value.trim();
             if (!title) return;
 
+            const startTime = document.getElementById('eventStartTimeInput')?.value || '';
+            const endTime = document.getElementById('eventEndTimeInput')?.value || '';
+            const description = document.getElementById('eventDescInput')?.value.trim() || '';
+
             const profile = getProfile();
             const authorName = profile ? profile.name : 'Unknown';
 
@@ -3938,7 +4055,7 @@
                 start: selectedDateForEvent,
                 allDay: true,
                 classNames: [className],
-                extendedProps: { author: authorName, type: selectedEventType }
+                extendedProps: { author: authorName, type: selectedEventType, startTime, endTime, description }
             });
 
             // 2. Optimistic UPCOMING EVENTS Update
@@ -3948,7 +4065,10 @@
                 start: selectedDateForEvent,
                 allDay: true,
                 author: authorName,
-                type: selectedEventType
+                type: selectedEventType,
+                startTime: startTime,
+                endTime: endTime,
+                description: description
             };
 
             // Get current cached events and add new one
@@ -3968,7 +4088,10 @@
                     start: selectedDateForEvent,
                     allDay: true,
                     author: authorName,
-                    type: selectedEventType
+                    type: selectedEventType,
+                    startTime: startTime,
+                    endTime: endTime,
+                    description: description
                 })
             }).then(res => res.json())
                 .then(data => {
