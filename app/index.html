@@ -2345,21 +2345,38 @@
 
         // ============ YOUTUBE ============
         function loadYouTubeSettings() {
-            const settings = JSON.parse(localStorage.getItem('tss_youtube_settings') || '{}');
             const iframe = document.getElementById('youtubeEmbed');
             const caption = document.getElementById('youtubeCaption');
+            const defaultVideoId = 'M7lc1UVf-VE';
 
-            // Default video if none set
-            const defaultVideoId = 'M7lc1UVf-VE'; // Test video
-            const videoId = settings.videoId || defaultVideoId;
+            // Apply settings to UI
+            function applyYouTube(videoId, captionText) {
+                const id = videoId || defaultVideoId;
+                const newSrc = `https://www.youtube.com/embed/${id}`;
+                if (iframe.src !== newSrc) iframe.src = newSrc;
+                caption.textContent = captionText || '';
+                caption.style.display = captionText ? 'block' : 'none';
+            }
 
-            iframe.src = `https://www.youtube.com/embed/${videoId}`;
-            caption.textContent = settings.caption || '';
+            // 1. Apply localStorage immediately (fast)
+            const cachedVideoId = localStorage.getItem('tss_yt_video_id') || '';
+            const cachedCaption = localStorage.getItem('tss_yt_caption') || '';
+            applyYouTube(cachedVideoId, cachedCaption);
 
-            if (!settings.caption) {
-                caption.style.display = 'none';
-            } else {
-                caption.style.display = 'block';
+            // 2. Fetch from backend (TSS_Settings sheet) and update
+            if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                fetch(`${SCRIPT_URL}?action=settings`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.settings) {
+                            const vid = data.settings.youtube_video_id || '';
+                            const cap = data.settings.youtube_caption || '';
+                            localStorage.setItem('tss_yt_video_id', vid);
+                            localStorage.setItem('tss_yt_caption', cap);
+                            applyYouTube(vid, cap);
+                        }
+                    })
+                    .catch(err => console.log('YouTube settings fetch failed:', err));
             }
         }
 
