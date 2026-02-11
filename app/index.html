@@ -3752,18 +3752,29 @@
 
             document.getElementById('eventDetailModal')?.remove();
 
+            // Remove from calendar UI
             if (calendar) {
                 const calEvent = calendar.getEventById(eventId);
                 if (calEvent) calEvent.remove();
             }
+            // Remove from UPCOMING EVENTS list
             document.getElementById(`event-list-item-${eventId}`)?.remove();
 
+            // Remove from cache & re-render list
+            const cachedEvents = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
+            const filtered = cachedEvents.filter(e => e.id !== eventId);
+            localStorage.setItem('tss_schedule_cache', JSON.stringify(filtered));
+            renderMonthlyEventsList(filtered);
+
+            // Backend delete + full resync
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'deleteEvent',
                     eventId: eventId
                 })
+            }).then(() => {
+                if (calendar) calendar.refetchEvents();
             });
 
             showTokenEarned(0, 'イベントを削除しました');
@@ -3892,13 +3903,10 @@
             const profile = getProfile();
             const authorName = profile ? profile.name : 'Unknown';
 
-            // Optimistic UI Update (Refetch will happen but adds snappy feel if we manually add?)
-            // Actually simpler to just send and refetch.
-            // Let's optimistic add for instant feedback
-
             let className = 'type-shared';
             if (selectedEventType === 'personal') className = 'type-personal';
 
+            // 1. Optimistic Calendar Update
             calendar.addEvent({
                 id: 'temp-' + Date.now(),
                 title: (selectedEventType === 'personal' ? '🔒 ' : '') + title,
@@ -3908,9 +3916,25 @@
                 extendedProps: { author: authorName, type: selectedEventType }
             });
 
+            // 2. Optimistic UPCOMING EVENTS Update
+            const newEvent = {
+                id: 'temp-' + Date.now(),
+                title: title,
+                start: selectedDateForEvent,
+                allDay: true,
+                author: authorName,
+                type: selectedEventType
+            };
+
+            // Get current cached events and add new one
+            const cachedEvents = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
+            cachedEvents.push(newEvent);
+            localStorage.setItem('tss_schedule_cache', JSON.stringify(cachedEvents));
+            renderMonthlyEventsList(cachedEvents);
+
             document.getElementById('addEventModal').style.display = 'none';
 
-            // Backend
+            // 3. Backend Persist + Full Refresh
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({
@@ -3926,7 +3950,7 @@
                     if (data.success) {
                         addTokens(1);
                         showTokenEarned(1, 'Schedule Added! 📅');
-                        calendar.refetchEvents(); // Get real ID
+                        calendar.refetchEvents(); // Triggers renderMonthlyEventsList via events callback
                     }
                 });
         }
