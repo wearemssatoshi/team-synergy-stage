@@ -88,7 +88,7 @@
             position: sticky;
             top: 0;
             z-index: 9999;
-            height: 48px;
+            height: 56px;
             box-shadow: 0 2px 12px rgba(212, 175, 55, 0.18), 0 1px 3px rgba(0, 0, 0, 0.04);
             overflow: hidden;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -171,8 +171,8 @@
 
         /* Top bar: left avatar */
         .top-bar-avatar {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.25);
             border: 2px solid rgba(255, 255, 255, 0.6);
@@ -180,7 +180,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 18px;
             overflow: hidden;
             position: relative;
             z-index: 2;
@@ -213,48 +213,55 @@
             transform: translateX(-50%);
             z-index: 2;
             white-space: nowrap;
-            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .top-bar-subtitle {
+            font-family: var(--font-display);
+            font-size: 8px;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            opacity: 0.7;
+            display: block;
         }
 
         /* Top bar: right token */
         .top-bar-token {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, rgba(45, 35, 8, 0.85), rgba(74, 61, 20, 0.9));
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.35);
             backdrop-filter: blur(8px);
             padding: 4px 12px;
             border-radius: 16px;
-            border: 1px solid rgba(212, 175, 55, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             position: relative;
             z-index: 2;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 215, 0, 0.1);
             flex-shrink: 0;
         }
 
         .top-bar-token:hover {
-            background: linear-gradient(135deg, rgba(45, 35, 8, 0.95), rgba(74, 61, 20, 1));
-            border-color: rgba(212, 175, 55, 0.6);
-            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2), inset 0 1px 0 rgba(255, 215, 0, 0.15);
+            background: rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .top-bar-token-logo {
             font-family: var(--font-display);
-            font-size: 10px;
-            font-weight: 800;
+            font-size: 9px;
+            font-weight: 600;
             color: #FFD700;
             letter-spacing: -0.3px;
-            text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
         }
 
         .top-bar-token-value {
             font-family: var(--font-display);
-            font-size: 15px;
-            font-weight: 700;
-            color: #FFD700;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 8px rgba(255, 215, 0, 0.2);
+            font-size: 14px;
+            font-weight: 400;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
         }
 
         .theme-toggle {
@@ -1664,7 +1671,7 @@
         </div>
 
         <!-- Center: App Title -->
-        <div class="top-bar-title">TEAM SYNERGY STAGE</div>
+        <div class="top-bar-title">TEAM SYNERGY STAGE<span class="top-bar-subtitle">TSS COMMUNITY APP</span></div>
 
         <!-- Right: Token Badge -->
         <div class="top-bar-token" id="tokenDisplay" onclick="viewTokenHistory()">
@@ -2000,14 +2007,6 @@
                     </svg></span>
                 <span class="nav-label">AI</span>
             </div>
-            <div class="nav-item active" onclick="showScreen('screen-home')">
-                <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                        <polyline points="9 22 9 12 15 12 15 22" />
-                    </svg></span>
-                <span class="nav-label">HOME</span>
-            </div>
             <div class="nav-item" onclick="showScreen('screen-board')">
                 <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -2024,6 +2023,14 @@
                         <line x1="3" y1="10" x2="21" y2="10" />
                     </svg></span>
                 <span class="nav-label">SCHEDULE</span>
+            </div>
+            <div class="nav-item active" onclick="showScreen('screen-home')">
+                <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg></span>
+                <span class="nav-label">HOME</span>
             </div>
         </div>
     </nav>
@@ -3002,16 +3009,16 @@
             <div class="post-meta">
                 <div class="post-author">${escapeHtml(post.author)} <span
                         style="font-size:10px;color:#aaa;">${escapeHtml(post.authorRole || '')}</span></div>
-                <div class="post-time">${formatDate(post.createdAt)}</div>
+                <div class="post-time">${formatDate(post.createdAt || post.timestamp)}</div>
             </div>
         </div>
         <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
         <div class="post-actions">
-            <div class="post-action ${canLike ? '' : 'disabled'}" onclick="likePost(${post.id})"
+            <div class="post-action ${canLike ? '' : 'disabled'}" onclick="likePost('${post.id}')"
                 style="${canLike ? '' : 'opacity:0.5;cursor:default;'}">
                 ❤️ ${post.likes} <span style="font-size:10px;margin-left:4px;">(You: ${myCount}/10)</span>
             </div>
-            <div class="post-action" onclick="togglePostComments(${post.id})">
+            <div class="post-action" onclick="togglePostComments('${post.id}')">
                 💬 <span style="font-size:12px;">${(post.comments || []).length}</span>
             </div>
         </div>
@@ -3031,7 +3038,7 @@
                     </div>
                     <div style="flex:1; background:#f9f9f9; padding:8px; border-radius:8px;">
                         <div style="font-size:11px; font-weight:bold; color:#555;">${escapeHtml(c.author)} <span
-                                style="font-size:9px;color:#aaa;">${formatDate(c.createdAt)}</span></div>
+                                style="font-size:9px;color:#aaa;">${formatDate(c.createdAt || c.timestamp)}</span></div>
                         <div style="font-size:12px; color:#333;">${escapeHtml(c.content)}</div>
                     </div>
                 </div>
@@ -3040,7 +3047,7 @@
             <div style="display:flex; gap:8px; margin-top:8px;">
                 <input type="text" id="comment-input-${post.id}" placeholder="コメントを書く..."
                     style="flex:1; border:1px solid #ddd; border-radius:4px; padding:6px; font-size:12px;">
-                <button onclick="submitPostComment(${post.id})"
+                <button onclick="submitPostComment('${post.id}')"
                     style="background:var(--primary); color:white; border:none; border-radius:4px; padding:0 12px; font-size:12px; cursor:pointer;">送信</button>
             </div>
         </div>
