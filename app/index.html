@@ -3627,7 +3627,7 @@
                     const cached = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
 
                     // Construct URL with user param for privacy filtering
-                    const url = `${SCRIPT_URL}?action = getEvents & user=${encodeURIComponent(profile.name)} `;
+                    const url = `${SCRIPT_URL}?action=getEvents&user=${encodeURIComponent(profile.name)}`;
 
                     fetch(url)
                         .then(response => response.json())
@@ -4496,29 +4496,47 @@
                     alert('🎉 日程が確定しました！カレンダーに追加されました。');
                     fetchAdjustments();
 
-                    const calEl = document.getElementById('calendar-container');
+                    // Scroll to calendar
+                    const calEl = document.getElementById('calendar');
                     if (calEl) calEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+                    const eventId = res.calendarEventId || ('adj-' + adjId);
+                    const profile = getProfile();
+
+                    // 1. Optimistic Calendar Update
                     if (typeof calendar !== 'undefined' && calendar) {
-                        const newEvent = {
-                            id: res.calendarEventId || ('local-' + Date.now()),
+                        calendar.addEvent({
+                            id: eventId,
                             title: adj.title,
                             start: finalDate.start,
                             end: finalDate.end,
                             allDay: false,
+                            classNames: ['type-shared'],
                             extendedProps: {
-                                author: getProfile().name,
+                                author: profile.name,
                                 type: 'shared'
-                            },
-                            backgroundColor: '#1a1a1a',
-                            borderColor: '#1a1a1a'
-                        };
-                        calendar.addEvent(newEvent);
-
-                        setTimeout(() => {
-                            if (calendar) calendar.refetchEvents();
-                        }, 2000);
+                            }
+                        });
                     }
+
+                    // 2. Update cache + UPCOMING EVENTS list
+                    const schedEvent = {
+                        id: eventId,
+                        title: adj.title,
+                        start: finalDate.start,
+                        allDay: false,
+                        author: profile.name,
+                        type: 'shared'
+                    };
+                    const cachedEvents = JSON.parse(localStorage.getItem('tss_schedule_cache') || '[]');
+                    cachedEvents.push(schedEvent);
+                    localStorage.setItem('tss_schedule_cache', JSON.stringify(cachedEvents));
+                    renderMonthlyEventsList(cachedEvents);
+
+                    // 3. Full resync from backend (safety net)
+                    setTimeout(() => {
+                        if (calendar) calendar.refetchEvents();
+                    }, 2000);
                 } else alert('エラー: ' + res.error);
             }).catch(e => alert('確定に失敗しました: ' + e.message));
         }
