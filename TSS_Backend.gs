@@ -11,7 +11,7 @@
  * 7. TSS_Community.htmlのSCRIPT_URLに設定
  */
 
-const APP_VERSION = 'v8.1';
+const APP_VERSION = 'v9.0';
 
 /**
  * 🔧 ワンタイム修正スクリプト
