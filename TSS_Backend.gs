@@ -77,6 +77,8 @@ function doPost(e) {
         return handleLike(ss, data);
       case 'comment':
         return handleComment(ss, data);
+      case 'pinPost':
+        return handlePinPost(ss, data);
       case 'updateProfile':
         return updateProfile(data);
       // ============ ANNOUNCEMENTS ============
@@ -345,8 +347,18 @@ function handlePost(ss, data) {
   let sheet = ss.getSheetByName('TSS_Posts');
   if (!sheet) {
     sheet = ss.insertSheet('TSS_Posts');
-    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'Author', 'Content', 'Likes', 'PostId', 'Likers']]);
-    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, 9).setValues([['Timestamp', 'Author', 'Content', 'Likes', 'PostId', 'Likers', 'LinkUrl', 'LinkLabel', 'Pinned']]);
+    sheet.getRange(1, 1, 1, 9).setFontWeight('bold');
+  } else {
+    // Migrate: add new columns if they don't exist yet
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (headers.length < 9 || headers[6] !== 'LinkUrl') {
+      const colCount = headers.length;
+      if (colCount < 7) sheet.getRange(1, 7).setValue('LinkUrl');
+      if (colCount < 8) sheet.getRange(1, 8).setValue('LinkLabel');
+      if (colCount < 9) sheet.getRange(1, 9).setValue('Pinned');
+      sheet.getRange(1, 1, 1, 9).setFontWeight('bold');
+    }
   }
   
   const postId = Date.now();
@@ -356,7 +368,10 @@ function handlePost(ss, data) {
     data.content,
     0,
     postId,
-    '[]' // Initial Likers list
+    '[]', // Initial Likers list
+    data.linkUrl || '',
+    data.linkLabel || '',
+    false // Not pinned by default
   ];
   
   sheet.appendRow(row);
@@ -365,6 +380,48 @@ function handlePost(ss, data) {
   addTokensToUser(ss, data.author, 3, 'post', 'New Post Created');
   
   return createResponse({ success: true, postId: postId, tokensEarned: 3 });
+}
+
+// ============ PIN POST (Token Consumption) ============
+function handlePinPost(ss, data) {
+  const PIN_COST = 5;
+  const postId = String(data.postId || '');
+  const author = data.author || '';
+  
+  if (!postId || !author) {
+    return createResponse({ success: false, error: 'postIdとauthorが必要です' });
+  }
+  
+  // Check token balance
+  const userSheet = ss.getSheetByName('TSS_Users');
+  if (userSheet) {
+    const userRowIndex = findUserRowIndex(userSheet, author);
+    if (userRowIndex > 0) {
+      const balance = Number(userSheet.getRange(userRowIndex, 6).getValue()) || 0;
+      if (balance < PIN_COST) {
+        return createResponse({ success: false, error: 'トークン不足', required: PIN_COST, current: balance });
+      }
+    }
+  }
+  
+  // Find and update the post
+  const sheet = ss.getSheetByName('TSS_Posts');
+  if (!sheet) return createResponse({ success: false, error: 'Posts sheet not found' });
+  
+  const data_all = sheet.getDataRange().getValues();
+  for (let i = 1; i < data_all.length; i++) {
+    if (String(data_all[i][4]) === postId) {
+      // Set Pinned = true (Column 9)
+      sheet.getRange(i + 1, 9).setValue(true);
+      
+      // Deduct tokens
+      addTokensToUser(ss, author, -PIN_COST, 'pin_post', `Post Pinned (ID: ${postId})`, postId);
+      
+      return createResponse({ success: true, pinned: true, tokensCost: PIN_COST });
+    }
+  }
+  
+  return createResponse({ success: false, error: 'Post not found' });
 }
 
 function handleComment(ss, data) {
@@ -706,6 +763,11 @@ function getPosts(ss) {
     obj['likedBy'] = likers;
     obj['likes'] = likers.length > 0 ? likers.length : Number(obj['likes'] || 0); // Trust valid likers list count if available
 
+    // New fields: link and pin
+    obj['linkUrl'] = row[6] || '';
+    obj['linkLabel'] = row[7] || '';
+    obj['pinned'] = row[8] === true || row[8] === 'true' || row[8] === 'TRUE';
+
     // Add user info
     const info = userInfo[obj['author']] || {};
     obj['authorImage'] = info.image || '';
@@ -714,6 +776,13 @@ function getPosts(ss) {
 
     return obj;
   }).reverse(); // Latest first
+
+  // Sort: pinned posts first, then chronological
+  posts.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return 0; // Keep existing reverse-chronological order within each group
+  });
   
   return createResponse({ posts });
 }

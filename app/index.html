@@ -1808,6 +1808,12 @@
                 <div class="input-group">
                     <textarea class="text-input" id="postContent" placeholder="投稿を書く..." rows="3"></textarea>
                 </div>
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <input type="url" id="postLinkUrl" class="text-input" placeholder="🔗 リンクURL (任意)"
+                        style="flex:2; font-size:12px;">
+                    <input type="text" id="postLinkLabel" class="text-input" placeholder="ラベル"
+                        style="flex:1; font-size:12px;">
+                </div>
                 <button class="btn-main" onclick="submitPost()" style="margin-top: 0;">POST</button>
             </div>
 
@@ -2904,19 +2910,27 @@
             const content = document.getElementById('postContent').value.trim();
             if (!content) return;
 
+            const linkUrl = document.getElementById('postLinkUrl')?.value.trim() || '';
+            const linkLabel = document.getElementById('postLinkLabel')?.value.trim() || '';
+
             const profile = getProfile();
             const newPost = {
                 id: Date.now(),
                 author: profile.name,
                 content: content,
                 createdAt: new Date().toISOString(),
-                likes: 0
+                likes: 0,
+                linkUrl: linkUrl,
+                linkLabel: linkLabel,
+                pinned: false
             };
 
             posts.unshift(newPost);
             localStorage.setItem('tss_posts', JSON.stringify(posts));
             renderPosts();
             document.getElementById('postContent').value = '';
+            if (document.getElementById('postLinkUrl')) document.getElementById('postLinkUrl').value = '';
+            if (document.getElementById('postLinkLabel')) document.getElementById('postLinkLabel').value = '';
 
             // Update profile posts count
             updateProfileStats();
@@ -2928,7 +2942,9 @@
                 body: JSON.stringify({
                     action: 'post',
                     author: profile.name,
-                    content: content
+                    content: content,
+                    linkUrl: linkUrl,
+                    linkLabel: linkLabel
                 })
             })
                 .then(res => res.json())
@@ -3013,6 +3029,13 @@
             if (tasksEl) tasksEl.textContent = completedTasks;
         }
 
+        let showArchive = false;
+
+        function toggleArchive() {
+            showArchive = !showArchive;
+            renderPosts();
+        }
+
         function renderPosts() {
             const list = document.getElementById('postsList');
 
@@ -3021,9 +3044,13 @@
                 return;
             }
 
-            console.log('Rendering posts:', posts); // Debugging
+            const profile = getProfile();
+            const myName = profile ? profile.name : '';
 
-            list.innerHTML = posts.map(post => {
+            // Archive: show only 15 unless toggled
+            const displayPosts = showArchive ? posts : posts.slice(0, 15);
+
+            let html = displayPosts.map(post => {
                 // Profile Avatar Logic
                 let avatarHtml = post.author.charAt(0).toUpperCase();
                 if (post.authorImage) {
@@ -3034,7 +3061,37 @@
                 // Check my like count
                 const likedCounts = JSON.parse(localStorage.getItem('tss_liked_post_counts') || '{}');
                 const myCount = likedCounts[post.id] || 0;
-                const canLike = myCount < 10; return ` <div class="post-card">
+                const canLike = myCount < 10;
+
+                // Pin badge
+                const pinBadge = post.pinned ? `<div style="display:inline-flex; align-items:center; gap:4px; background:rgba(212,175,55,0.15); color:#B8960C; padding:2px 8px; border-radius:8px; font-size:10px; font-weight:700; margin-bottom:6px;">📌 PINNED</div>` : '';
+
+                // Pin button (only for own posts, not already pinned)
+                const isMyPost = post.author === myName;
+                const pinButton = (isMyPost && !post.pinned) ? `
+                    <div class="post-action" onclick="pinPost('${post.id}')" style="color:var(--primary);">
+                        📌 <span style="font-size:10px;">ピン留め (-5💎)</span>
+                    </div>` : '';
+
+                // Link card
+                let linkHtml = '';
+                if (post.linkUrl) {
+                    linkHtml = `
+                    <a href="${escapeHtml(post.linkUrl)}" target="_blank" rel="noopener noreferrer"
+                        style="display:flex; align-items:center; gap:8px; padding:10px; margin-top:8px; background:var(--primary-light, #f8f6f0); border-radius:8px; text-decoration:none; color:var(--primary); transition:transform 0.2s;">
+                        <span style="font-size:16px;">🔗</span>
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:600;">${escapeHtml(post.linkLabel || post.linkUrl)}</span>
+                        <span style="font-size:10px; color:var(--text-gray);">↗</span>
+                    </a>`;
+                }
+
+                // Auto-link URLs in content
+                const formattedContent = escapeHtml(post.content)
+                    .replace(/\n/g, '<br>')
+                    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:var(--primary); text-decoration:underline;">$1</a>');
+
+                return ` <div class="post-card" style="${post.pinned ? 'border:1px solid rgba(212,175,55,0.3); background:linear-gradient(135deg, #fffdf5 0%, #fff 100%);' : ''}">
+        ${pinBadge}
         <div class="post-header">
             <div class="post-avatar" style="overflow:hidden;">${avatarHtml}</div>
             <div class="post-meta">
@@ -3043,7 +3100,7 @@
                 <div class="post-time">${formatDate(post.createdAt || post.timestamp)}</div>
             </div>
         </div>
-        <div class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
+        <div class="post-content">${formattedContent}${linkHtml}</div>
         <div class="post-actions">
             <div class="post-action ${canLike ? '' : 'disabled'}" onclick="likePost('${post.id}')"
                 style="${canLike ? '' : 'opacity:0.5;cursor:default;'}">
@@ -3052,6 +3109,7 @@
             <div class="post-action" onclick="togglePostComments('${post.id}')">
                 💬 <span style="font-size:12px;">${(post.comments || []).length}</span>
             </div>
+            ${pinButton}
         </div>
 
         <!-- Comment Section -->
@@ -3084,6 +3142,80 @@
         </div>
         </div>
         `}).join('');
+
+            // Archive button
+            if (posts.length > 15 && !showArchive) {
+                html += `<div style="text-align:center; margin:16px 0;">
+                    <button onclick="toggleArchive()" class="btn-secondary" style="font-size:12px; padding:8px 20px;">
+                        📦 過去の投稿を表示 (${posts.length - 15}件)
+                    </button>
+                </div>`;
+            } else if (showArchive && posts.length > 15) {
+                html += `<div style="text-align:center; margin:16px 0;">
+                    <button onclick="toggleArchive()" class="btn-secondary" style="font-size:12px; padding:8px 20px;">
+                        🔼 最新15件のみ表示
+                    </button>
+                </div>`;
+            }
+
+            list.innerHTML = html;
+        }
+
+        // ============ PIN POST (Token Consumption) ============
+        async function pinPost(postId) {
+            const profile = getProfile();
+            if (!profile) return;
+
+            if ((profile.tokens || 0) < 5) {
+                alert('ピン留めには5トークンが必要です！現在: ' + (profile.tokens || 0) + '💎');
+                return;
+            }
+
+            if (!confirm('5トークンを消費してこの投稿をピン留めしますか？\n📌 ピン留めされた投稿はBoardの最上部に表示されます。')) return;
+
+            // Optimistic update
+            const post = posts.find(p => String(p.id) === String(postId));
+            if (post) {
+                post.pinned = true;
+                // Re-sort: pinned first
+                posts.sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return 0;
+                });
+                localStorage.setItem('tss_posts', JSON.stringify(posts));
+                renderPosts();
+            }
+
+            // Deduct tokens locally
+            addTokens(-5);
+            showTokenEarned(-5, 'Post Pinned! 📌');
+
+            // Backend sync
+            try {
+                if (SCRIPT_URL && !SCRIPT_URL.includes('YOUR_GAS_URL')) {
+                    const res = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'pinPost',
+                            postId: postId,
+                            author: profile.name
+                        })
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        console.error('Pin failed:', data.error);
+                        // Revert on failure
+                        if (post) post.pinned = false;
+                        addTokens(5); // Refund
+                        renderPosts();
+                        alert(data.error || 'ピン留めに失敗しました');
+                    }
+                }
+            } catch (err) {
+                console.error('Pin sync failed:', err);
+            }
         }
 
         async function likePost(id) {
