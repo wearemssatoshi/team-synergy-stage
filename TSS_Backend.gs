@@ -61,6 +61,99 @@ function fixTssUsersSheet() {
   return 'SUCCESS: Fixed ' + fixCount + ' rows';
 }
 
+/**
+ * 🧹 納品用クリーンアップ
+ * GASエディタで「cleanupForDelivery」を選択して ▶実行
+ * SATOSHI IGA と TAKUYA KIMURA 以外のユーザーデータを全シートから削除
+ */
+function cleanupForDelivery() {
+  const KEEP_USERS = ['SATOSHI IGA', 'TAKUYA KIMURA'];
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let totalDeleted = 0;
+
+  // Helper: ユーザー名が保持対象かチェック（大文字小文字無視）
+  function shouldKeep(name) {
+    if (!name) return false;
+    return KEEP_USERS.some(u => String(name).trim().toUpperCase() === u);
+  }
+
+  // 1. TSS_Users — Name列 (A=index 0)
+  totalDeleted += cleanSheet(ss, 'TSS_Users', 0);
+
+  // 2. TSS_Members — Name列 (A=index 0)
+  totalDeleted += cleanSheet(ss, 'TSS_Members', 0);
+
+  // 3. TSS_Posts — Author列 (B=index 1)
+  totalDeleted += cleanSheet(ss, 'TSS_Posts', 1);
+
+  // 4. TSS_Comments — Author列 (調査して判定)
+  totalDeleted += cleanSheet(ss, 'TSS_Comments', 1);
+
+  // 5. TSS_TokenLogs — User列 (B=index 1)
+  totalDeleted += cleanSheet(ss, 'TSS_TokenLogs', 1);
+
+  // 6. TSS_Todos — データ行をクリア（全ユーザー共有のため全削除）
+  const todosSheet = ss.getSheetByName('TSS_Todos');
+  if (todosSheet && todosSheet.getLastRow() > 1) {
+    const todoRows = todosSheet.getLastRow() - 1;
+    todosSheet.deleteRows(2, todoRows);
+    Logger.log('🗑 TSS_Todos: ' + todoRows + '行を削除');
+    totalDeleted += todoRows;
+  }
+
+  // 7. TSS_Attendance — 対象がいれば削除
+  totalDeleted += cleanSheet(ss, 'TSS_Attendance', 0);
+
+  // 8. TSS_Adjustments — 全削除
+  const adjSheet = ss.getSheetByName('TSS_Adjustments');
+  if (adjSheet && adjSheet.getLastRow() > 1) {
+    const adjRows = adjSheet.getLastRow() - 1;
+    adjSheet.deleteRows(2, adjRows);
+    Logger.log('🗑 TSS_Adjustments: ' + adjRows + '行を削除');
+    totalDeleted += adjRows;
+  }
+
+  // 9. 保持ユーザーのトークン残高をリセット（10=Welcome Bonus）
+  const usersSheet = ss.getSheetByName('TSS_Users');
+  if (usersSheet) {
+    const data = usersSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (shouldKeep(data[i][0])) {
+        usersSheet.getRange(i + 1, 6).setValue(10); // Token_Balance = 10
+        usersSheet.getRange(i + 1, 12).setValue(10); // Total_Earned = 10
+      }
+    }
+    Logger.log('🔄 保持ユーザーのトークンをリセット（10）');
+  }
+
+  SpreadsheetApp.flush();
+  Logger.log('🎉 クリーンアップ完了！合計 ' + totalDeleted + ' 行を削除しました');
+  Logger.log('👥 保持ユーザー: ' + KEEP_USERS.join(', '));
+
+  // Helper function for cleaning sheets
+  function cleanSheet(ss, sheetName, nameColIndex) {
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet || sheet.getLastRow() <= 1) {
+      Logger.log('⏭ ' + sheetName + ': スキップ（データなし）');
+      return 0;
+    }
+
+    const data = sheet.getDataRange().getValues();
+    let deleted = 0;
+
+    // 下から上に向かって削除（行番号がずれないように）
+    for (let i = data.length - 1; i >= 1; i--) {
+      if (!shouldKeep(data[i][nameColIndex])) {
+        sheet.deleteRow(i + 1);
+        deleted++;
+      }
+    }
+
+    Logger.log('🗑 ' + sheetName + ': ' + deleted + '行を削除（残り: ' + (data.length - 1 - deleted) + '行）');
+    return deleted;
+  }
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
