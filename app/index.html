@@ -2384,6 +2384,11 @@
                 localStorage.setItem('tss_future', future);
                 localStorage.setItem('tss_role', role);
 
+                // Save hashed PIN for PIN auth flow
+                const hashedPin = await hashPin(pin);
+                localStorage.setItem('tss_pin', hashedPin);
+                sessionStorage.setItem('tss_authenticated', 'true');
+
                 // Sync with Backend (This will create V2 user)
                 syncProfileToBackend(profile);
 
@@ -2429,6 +2434,12 @@
                     };
 
                     localStorage.setItem('tss_profile', JSON.stringify(profile));
+
+                    // Save hashed PIN for PIN auth flow
+                    const hashedPin = await hashPin(pin);
+                    localStorage.setItem('tss_pin', hashedPin);
+                    sessionStorage.setItem('tss_authenticated', 'true');
+
                     if (data.profileImage) {
                         localStorage.setItem('tss_profile_photo', data.profileImage);
                         localStorage.setItem('tss_profile_image', data.profileImage);
@@ -3647,6 +3658,14 @@
             const title = mode === 'login' ? 'PINを入力' : 'PINを設定';
             const btnText = mode === 'login' ? 'ログイン' : '設定';
 
+            const escapeLinks = mode === 'login' ? `
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                        <p style="font-size: 11px; color: var(--text-gray); margin-bottom: 8px;">PINを忘れた場合</p>
+                        <button onclick="logoutFromPin('screen-login')" style="background: none; border: none; color: #4A90E2; font-size: 12px; cursor: pointer; font-weight: 600; padding: 4px 8px;">🔓 別アカウントでログイン</button>
+                        <br>
+                        <button onclick="logoutFromPin('screen-register')" style="background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer; font-weight: 600; padding: 4px 8px;">📝 新規登録</button>
+                    </div>` : '';
+
             modal.innerHTML = `
                 <div style="background: white; padding: 30px; border-radius: 16px; text-align: center; width: 280px;">
                     <h3 style="font-family: var(--font-display); color: var(--primary); margin-bottom: 20px;">
@@ -3663,7 +3682,8 @@
                     </div>
                     <button onclick="handlePin('${mode}')"
                         style="background: var(--gradient-primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: var(--font-display); font-weight: 600; cursor: pointer;">${btnText}</button>
-                        <p style="margin-top: 15px; font-size: 12px; color: var(--text-gray);">セキュリティのため4桁のPINを設定してください</p>' : ''}
+                    ${mode === 'setup' ? '<p style="margin-top: 15px; font-size: 12px; color: var(--text-gray);">セキュリティのため4桁のPINを設定してください</p>' : ''}
+                    ${escapeLinks}
                 </div>
                 `;
 
@@ -3691,6 +3711,21 @@
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Logout from PIN screen — clear all local data and go to chosen screen
+        function logoutFromPin(targetScreen) {
+            if (!confirm('ログアウトすると、このデバイスのデータがリセットされます。よろしいですか？')) return;
+            // Clear all TSS-related localStorage
+            const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith('tss_'));
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            sessionStorage.removeItem('tss_authenticated');
+            // Remove PIN modal
+            const modal = document.getElementById('pinModal');
+            if (modal) modal.remove();
+            // Show target screen
+            showScreen(targetScreen);
+            document.getElementById('mainNav').style.display = 'none';
         }
 
         async function handlePin(mode) {
