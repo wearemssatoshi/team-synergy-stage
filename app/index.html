@@ -88,7 +88,7 @@
             position: sticky;
             top: 0;
             z-index: 9999;
-            height: 44px;
+            height: 48px;
             box-shadow: 0 2px 12px rgba(212, 175, 55, 0.18), 0 1px 3px rgba(0, 0, 0, 0.04);
             overflow: hidden;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -171,20 +171,22 @@
 
         /* Top bar: left avatar */
         .top-bar-avatar {
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.6);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 16px;
             overflow: hidden;
             position: relative;
             z-index: 2;
             transition: transform 0.2s ease, border-color 0.2s ease;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .top-bar-avatar:hover {
@@ -202,49 +204,57 @@
         /* Top bar: center title (Instagram-style) */
         .top-bar-title {
             font-family: var(--font-display);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.12em;
             color: var(--header-text);
-            position: relative;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 2;
             white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
         }
 
         /* Top bar: right token */
         .top-bar-token {
             display: flex;
             align-items: center;
-            gap: 4px;
-            background: rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(5px);
-            padding: 3px 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(45, 35, 8, 0.85), rgba(74, 61, 20, 0.9));
+            backdrop-filter: blur(8px);
+            padding: 4px 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
             position: relative;
             z-index: 2;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 215, 0, 0.1);
+            flex-shrink: 0;
         }
 
         .top-bar-token:hover {
-            background: rgba(0, 0, 0, 0.5);
+            background: linear-gradient(135deg, rgba(45, 35, 8, 0.95), rgba(74, 61, 20, 1));
+            border-color: rgba(212, 175, 55, 0.6);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2), inset 0 1px 0 rgba(255, 215, 0, 0.15);
         }
 
         .top-bar-token-logo {
             font-family: var(--font-display);
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
             color: #FFD700;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
+            text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
         }
 
         .top-bar-token-value {
             font-family: var(--font-display);
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
-            color: #fff;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            color: #FFD700;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 8px rgba(255, 215, 0, 0.2);
         }
 
         .theme-toggle {
@@ -3980,19 +3990,22 @@
     <style>
         /* ADJUSTMENT HEATMAP */
         .adj-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-            transition: 0.2s;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(212, 175, 55, 0.12);
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
         }
 
         .adj-card:hover {
-            border-color: var(--primary);
+            border-color: rgba(212, 175, 55, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .adj-header {
